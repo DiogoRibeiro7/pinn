@@ -1,6 +1,6 @@
 # Core dependencies
 torch>=1.9.0
-numpy>=1.20.0
+numpy>=2.4.4
 
 # Visualization
 matplotlib>=3.3.0
