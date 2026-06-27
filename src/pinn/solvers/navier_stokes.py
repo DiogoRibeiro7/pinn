@@ -51,7 +51,7 @@ def latin_hypercube(n: int, d: int, low: float = 0.0, high: float = 1.0) -> np.n
         raise ValueError("n and d must be positive.")
     cut = np.linspace(0.0, 1.0, n + 1)
     u = np.random.rand(n, d)
-    a, b = cut[:n], cut[1 : n + 1]
+    a, b = cut[:n].reshape(-1, 1), cut[1 : n + 1].reshape(-1, 1)
     rd = a + (b - a) * u
     H = np.zeros_like(rd)
     for j in range(d):
