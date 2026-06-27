@@ -550,6 +550,16 @@ u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x),
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
+## 📘 Tutorials (Jupyter)
+
+The `notebooks/` folder contains starter notebooks for interactive learning:
+
+- `01_getting_started.ipynb`
+- `02_sampling_and_metrics.ipynb`
+- `advanced/01_transfer_and_distribution.ipynb`
+
+These notebooks provide quick smoke tests and link to the corresponding example scripts.
+
 ### Development Setup
 
 ```bash
