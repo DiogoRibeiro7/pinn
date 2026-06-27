@@ -7,9 +7,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
-from pinn.solvers.raissi_improved import burgers_residual
+from pinn.solvers.raissi_improved import BurgersConfig, burgers_residual
 from pinn.utils.logging import get_logger
 from pinn.utils.metrics import compute_error_metrics
 
@@ -29,7 +28,7 @@ def main() -> None:
     logger = get_logger(__name__)
     logger.info("Estimating viscosity parameter nu from data")
 
-    cfg = ConfigLoader.from_yaml(args.config) if args.config else ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = MLP(in_dim=2, hidden_layers=4, width=32, out_dim=1).to(device)
@@ -69,7 +68,7 @@ def main() -> None:
     logger.info("Estimated nu", extra={"nu": nu.item()})
     pred = model(torch.cat([meas_t, meas_x], dim=1)).detach().cpu().numpy()
     metrics = compute_error_metrics(pred, U_true.reshape(-1, 1))
-    logger.info("MAE on measurements: %f", metrics["mae"])
+    logger.info("MAE on measurements: %f", metrics.mae)
 
 
 if __name__ == "__main__":

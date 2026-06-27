@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.solvers.navier_stokes import NSConfig, NavierStokesPINN, TrainConfig, tgv_u, tgv_v
 from pinn.utils.checkpointing import CheckpointManager
@@ -25,10 +24,7 @@ def main() -> None:
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if args.config:
-        cfg = ConfigLoader.from_yaml(args.config)
-    else:
-        cfg = ConfigFactory.create_navier_stokes_config() if hasattr(ConfigFactory, "create_navier_stokes_config") else NSConfig()
+    cfg = NSConfig()  # ConfigFactory returns a generic PINNConfig without .xmin/.nu
 
     logger = get_logger(__name__)
     logger.info("Starting Navier-Stokes solution")
@@ -46,7 +42,10 @@ def main() -> None:
     x = np.linspace(cfg.xmin, cfg.xmax, 50, dtype=np.float32)
     y = np.linspace(cfg.ymin, cfg.ymax, 50, dtype=np.float32)
     TT, XX, YY = np.meshgrid(t, x, y, indexing="ij")
-    pred = pinn.model(torch.from_numpy(np.stack([TT.ravel(), XX.ravel(), YY.ravel()], axis=1)).to(device)).cpu().numpy()
+    with torch.no_grad():
+        pred = pinn.model(
+            torch.from_numpy(np.stack([TT.ravel(), XX.ravel(), YY.ravel()], axis=1)).to(device)
+        ).cpu().numpy()
     pred_u = pred[:, 0].reshape(TT.shape)
     pred_v = pred[:, 1].reshape(TT.shape)
 
@@ -54,7 +53,7 @@ def main() -> None:
     true_v = tgv_v(TT, XX, YY, cfg.nu)
 
     metrics = compute_error_metrics(pred_u, true_u)
-    logger.info("Velocity-u MAE: %f", metrics["mae"])
+    logger.info("Velocity-u MAE: %f", metrics.mae)
 
     viz = PINNVisualizer()
     mag = np.sqrt(pred_u**2 + pred_v**2)

@@ -1,49 +1,60 @@
 #!/usr/bin/env python3
-"""Benchmark: compare continuous and discrete PINN methods."""
+"""Benchmark: compare loss-weighting strategies for a continuous PINN.
+
+The continuous PINN minimises a sum of three losses (IC, BC, PDE).  How those
+terms are weighted strongly affects the result -- in particular, up-weighting the
+initial condition keeps the network anchored to ``u(0, x)``.  This script trains
+two otherwise-identical models and reports their final losses.
+"""
 
 import argparse
 from pathlib import Path
 
-import torch
-
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import (
     BurgersConfig,
     ContinuousPINN,
-    DiscreteRKPINN,
     TrainConfig,
     burgers_residual,
-    rk4_tableau,
 )
 from pinn.utils.logging import get_logger
 
 
+def build_pinn(cfg: BurgersConfig) -> ContinuousPINN:
+    model = MLP(in_dim=2, hidden_layers=4, width=32, out_dim=1)
+    return ContinuousPINN(model=model, device="cpu", pde_residual_fn=burgers_residual,
+                          cfg_burgers=cfg)
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Method comparison benchmark")
-    parser.add_argument("--config", type=str, help="Configuration file")
+    parser = argparse.ArgumentParser(description="Loss-weighting comparison benchmark")
     parser.add_argument("--output-dir", type=str, default="./results")
+    parser.add_argument("--adam-steps", type=int, default=1500)
     args = parser.parse_args()
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     logger = get_logger(__name__)
-    cfg = ConfigLoader.from_yaml(args.config) if args.config else ConfigFactory.create_burgers_config()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    tcfg = TrainConfig(n_u0=32, n_bc=32, n_f=1_000, adam_steps=1_000, lbfgs_max_iter=0)
+    cfg = BurgersConfig()
+    tcfg = TrainConfig(n_u0=150, n_bc=100, n_f=1_500, adam_steps=args.adam_steps,
+                       lbfgs_max_iter=0, seed=123, track_losses=True)
 
-    model_cont = MLP(in_dim=2, hidden_layers=4, width=32, out_dim=1)
-    pinn_cont = ContinuousPINN(model_cont, device, burgers_residual, cfg)
-    logger.info("Training continuous PINN")
-    history_cont = pinn_cont.train(tcfg)
+    logger.info("Training with equal weights (1, 1, 1)")
+    hist_equal = build_pinn(cfg).train(tcfg, weights=(1.0, 1.0, 1.0))
 
-    stage_net = MLP(in_dim=2, hidden_layers=3, width=32, out_dim=1)
-    pinn_rk = DiscreteRKPINN(stage_net, device, burgers_residual, cfg, tableau=rk4_tableau())
-    logger.info("Training RK PINN")
-    history_rk = pinn_rk.train(tcfg)
+    logger.info("Training with IC-weighted loss (10, 1, 1)")
+    hist_weighted = build_pinn(cfg).train(tcfg, weights=(10.0, 1.0, 1.0))
 
     logger.info(
-        "Final losses", extra={"continuous": history_cont["total"][-1], "rk": history_rk["total"][-1]}
+        "Final losses",
+        extra={
+            "equal_total": hist_equal["total"][-1],
+            "equal_ic": hist_equal["ic"][-1],
+            "weighted_total": hist_weighted["total"][-1],
+            "weighted_ic": hist_weighted["ic"][-1],
+        },
     )
+    print(f"Equal weights   : total {hist_equal['total'][-1]:.3e} | IC {hist_equal['ic'][-1]:.3e}")
+    print(f"IC up-weighted  : total {hist_weighted['total'][-1]:.3e} | IC {hist_weighted['ic'][-1]:.3e}")
 
 
 if __name__ == "__main__":

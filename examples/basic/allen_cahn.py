@@ -82,11 +82,13 @@ def main() -> None:
     with torch.no_grad():
         UU = model(torch.stack([TT.flatten(), XX.flatten()], dim=1).to(device)).cpu().numpy()
     viz = PINNVisualizer()
-    viz.plot_spacetime_1d(
-        TT.numpy(),
+    viz.plot_2d_field(
         XX.numpy(),
+        TT.numpy(),
         UU.reshape(TT.shape),
         title="Allen-Cahn PINN",
+        xlabel="x",
+        ylabel="t",
         save_path=str(out_dir / "allen_cahn_solution.png"),
     )
 

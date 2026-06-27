@@ -7,7 +7,6 @@ import argparse
 from dataclasses import replace
 from pathlib import Path
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.sampling import (
     ActiveLearningConfig,
@@ -51,7 +50,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     logger = get_logger(__name__)
 
-    cfg = ConfigLoader.from_yaml(args.config) if args.config else ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     baseline_pinn = build_pinn(cfg)
     active_pinn = build_pinn(cfg)
 

@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import (
     BurgersConfig,
@@ -41,11 +40,8 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load configuration
-    if args.config:
-        cfg = ConfigLoader.from_yaml(args.config)
-    else:
-        cfg = ConfigFactory.create_burgers_config()
+    # Problem configuration (ConfigFactory returns a generic PINNConfig without .nu/.tmin)
+    cfg = BurgersConfig()
 
     logger = get_logger(__name__)
     logger.info("Starting Burgers equation solution")
@@ -88,11 +84,11 @@ def main() -> None:
     else:
         pinn.train(
             tcfg,
+            weights=(10.0, 1.0, 1.0),
             checkpoint_manager=checkpoint_manager,
             resume=False,
             callbacks=callbacks,
         )
-    dashboard.serve()
 
     # Evaluation grid
     t = np.linspace(cfg.tmin, cfg.tmax, 51, dtype=np.float32)
@@ -102,14 +98,16 @@ def main() -> None:
     true = analytical_solution(TT, XX, cfg.nu)
 
     metrics = compute_error_metrics(pred, true)
-    logger.info("MAE: %f MSE: %f", metrics["mae"], metrics["mse"])
+    logger.info("MAE: %f MSE: %f", metrics.mae, metrics.mse)
 
     viz = PINNVisualizer()
-    viz.plot_spacetime_1d(
-        TT,
+    viz.plot_2d_field(
         XX,
+        TT,
         pred,
         title="Burgers PINN Solution",
+        xlabel="x",
+        ylabel="t",
         save_path=str(output_dir / "burgers_solution.png"),
     )
 
