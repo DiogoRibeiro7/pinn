@@ -552,13 +552,14 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 📘 Tutorials (Jupyter)
 
-The `notebooks/` folder contains starter notebooks for interactive learning:
+The `notebooks/` folder mirrors `examples/` with interactive notebooks for:
 
-- `01_getting_started.ipynb`
-- `02_sampling_and_metrics.ipynb`
-- `advanced/01_transfer_and_distribution.ipynb`
+- `basic/` → `examples/basic/`
+- `advanced/` → `examples/advanced/`
+- `benchmarks/` → `examples/benchmarks/`
+- core demos (`demo_visualization`, getting-started, sampling/metrics)
 
-These notebooks provide quick smoke tests and link to the corresponding example scripts.
+These notebooks are lightweight launch pads and include commented `%run` cells for the full scripts.
 
 ### Development Setup
 
