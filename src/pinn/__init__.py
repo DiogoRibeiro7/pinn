@@ -1,7 +1,7 @@
 """Core package for Physics-Informed Neural Networks."""
 from importlib.metadata import PackageNotFoundError, version
 
-from . import config, deployment, models, optimization, solvers, transfer, utils
+from . import config, deployment, models, optimization, solvers, transfer, utils, visualization
 from .models import (
     MLP,
     AttentionPINN,
@@ -155,6 +155,7 @@ __all__ = [
     "optimization",
     "transfer",
     "utils",
+    "visualization",
     "MLP",
     "MultiScalePINN",
     "FourierMultiScalePINN",
@@ -180,7 +181,6 @@ __all__ = [
     "NSTrainConfig",
     "sampling",
     "metrics",
-    "visualization",
     "error_handling",
     "logging",
     "checkpointing",

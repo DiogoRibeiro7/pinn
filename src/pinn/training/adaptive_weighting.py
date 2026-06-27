@@ -264,7 +264,7 @@ class AdaptiveLossWeighting:
     @property
     def requires_gradients(self) -> bool:
         method = self.config.method.lower()
-        return method in {"gradnorm", "pareto", "pareto_mtl", "mgda", "meta"}
+        return method in {"gradnorm", "pareto", "pareto_mtl", "mgda", "meta", "meta_learning"}
 
     # ------------------------------------------------------------------
     # Public API
