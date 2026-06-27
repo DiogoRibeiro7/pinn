@@ -6,7 +6,6 @@ from pathlib import Path
 
 import torch
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import (
     BurgersConfig,
@@ -32,7 +31,7 @@ def main() -> None:
     logger = get_logger(__name__)
     logger.info("Starting distributed training example")
 
-    cfg = ConfigLoader.from_yaml(args.config) if args.config else ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     model = MLP(in_dim=2, hidden_layers=2, width=20, out_dim=1)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     pinn = ContinuousPINN(model, device, burgers_residual, cfg)

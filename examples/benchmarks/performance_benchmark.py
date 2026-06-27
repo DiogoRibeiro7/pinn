@@ -4,7 +4,6 @@
 import argparse
 from pathlib import Path
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import (
     ContinuousPINN,
@@ -25,7 +24,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     logger = get_logger(__name__)
-    cfg = ConfigLoader.from_yaml(args.config) if args.config else ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     model = MLP(in_dim=2, hidden_layers=2, width=20, out_dim=1)
     pinn = ContinuousPINN(model=model, device="cpu", pde_residual_fn=burgers_residual, cfg_burgers=cfg)
 

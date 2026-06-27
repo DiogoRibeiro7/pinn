@@ -6,7 +6,6 @@ from pathlib import Path
 
 import torch
 
-from pinn.config.management import ConfigFactory, ConfigLoader
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import BurgersConfig, TrainConfig, ContinuousPINN, burgers_residual
 from pinn.utils.logging import get_logger
@@ -21,7 +20,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     logger = get_logger(__name__)
-    cfg = ConfigLoader.from_yaml(args.config) if args.config else ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tcfg = TrainConfig(n_u0=32, n_bc=32, n_f=1_000, adam_steps=1_000, lbfgs_max_iter=0)
 
