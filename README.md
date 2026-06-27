@@ -152,28 +152,29 @@ demo_schrodinger()
 ## 📁 Repository Structure
 
 ```
-pinn-repository/
-├── 📋 README.md                       # This comprehensive guide
-├── 📦 requirements.txt                # Python dependencies
+pinn/
+├── 📋 README.md                  # This guide
+├── 🗺️  ROADMAP.md                 # Project status & planned work
+├── 📦 pyproject.toml             # Packaging & dependencies
 │
-├── 🧠 Core PINN Implementations (under src/pinn/solvers)
-│   ├── raissi.py                # Original Burgers (continuous + discrete)
-│   ├── raissi_improved.py       # Enhanced with docs/types/visualization
-│   ├── raissi_generic.py        # Generic framework (Allen-Cahn + Schrödinger)
-│   └── navier_stokes.py         # 2D Navier-Stokes with periodic BCs
+├── 🧠 src/pinn/                  # The library
+│   ├── models/                   # MLP, Fourier-feature, multi-scale, attention, …
+│   ├── solvers/                  # Burgers (continuous + RK), Navier–Stokes, generic
+│   ├── sampling/                 # Latin-Hypercube, importance, active learning
+│   ├── training/                 # Adaptive weighting, curriculum, meta-learning, …
+│   ├── transfer/                 # Pre-training, fine-tuning, distillation, domain adaptation
+│   ├── uncertainty/              # Ensembles, MC-dropout, Bayesian, GP priors
+│   ├── distributed/              # Data-parallel trainer, gradient compression, load balancing
+│   ├── optimization/             # Caching & computation reuse
+│   ├── deployment/               # REST/gRPC model serving, model I/O
+│   ├── visualization/            # Plotting toolkit & training dashboard
+│   ├── utils/                    # Metrics, checkpointing, profiling, validation
+│   └── config/                   # Configuration management
 │
-├── 🛠️ Advanced Utilities
-│   ├── visualization.py              # Comprehensive plotting toolkit
-│   ├── sampling.py                   # Advanced sampling strategies
-│   └── metrics.py                    # Error analysis and validation
-│
-├── 🎨 Examples & Demonstrations
-│   └── demo_visualization.py         # Complete visualization showcase
-│
-└── 📚 Documentation
-    ├── api_reference.md               # Detailed API documentation
-    ├── theory_background.md           # Mathematical foundations
-
+├── 🎨 examples/                  # Runnable scripts (basic / advanced / benchmarks)
+├── 📓 notebooks/                 # Self-contained, executed Kaggle-style tutorials
+├── 🧪 tests/                     # Test suite
+└── 📚 docs/                      # Sphinx documentation
 ```
 
 ## 🔬 Implemented PDEs
@@ -546,20 +547,35 @@ u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x),
 }
 ```
 
+## 🗺️ Roadmap
+
+See [**ROADMAP.md**](ROADMAP.md) for the current status of the library and what's planned next —
+new PDE solvers and architectures, GPU/multi-node validation, richer uncertainty quantification, and
+documentation. Contributions toward any roadmap item are very welcome.
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 ## 📘 Tutorials (Jupyter)
 
-The `notebooks/` folder mirrors `examples/` with interactive notebooks for:
+The [`notebooks/`](notebooks/) folder contains **self-contained, executed** tutorials in a narrative,
+Kaggle-style format — theory in LaTeX, runnable code, and baked-in plots and metrics. Each runs
+end-to-end on a laptop CPU in a minute or two.
 
-- `basic/` → `examples/basic/`
-- `advanced/` → `examples/advanced/`
-- `benchmarks/` → `examples/benchmarks/`
-- core demos (`demo_visualization`, getting-started, sampling/metrics)
+- **Core** — [getting started](notebooks/01_getting_started.ipynb), the
+  [visualization toolkit](notebooks/00_demo_visualization.ipynb), and
+  [sampling & metrics](notebooks/02_sampling_and_metrics.ipynb)
+- **[`basic/`](notebooks/basic/)** — Burgers, Allen–Cahn (custom residual), a reusable PDE template,
+  and 2-D Navier–Stokes
+- **[`advanced/`](notebooks/advanced/)** — inverse problems, uncertainty quantification,
+  multi-scale/curriculum training, and distributed training
+- **[`benchmarks/`](notebooks/benchmarks/)** — active learning, convergence, loss weighting,
+  spectral bias, performance, and transfer learning
 
-These notebooks are lightweight launch pads and include commented `%run` cells for the full scripts.
+Start with [`notebooks/01_getting_started.ipynb`](notebooks/01_getting_started.ipynb) and follow the
+guided path in the [notebooks README](notebooks/README.md). The standalone scripts the notebooks are
+based on live in [`examples/`](examples/).
 
 ### Development Setup
 
