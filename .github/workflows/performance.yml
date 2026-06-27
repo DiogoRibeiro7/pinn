@@ -1,0 +1,38 @@
+name: Performance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: pip install .[dev]
+      - run: pytest tests/performance -q
+      - run: python scripts/benchmark_training.py
+      - run: python scripts/benchmark_distributed.py
+      - run: |
+          python - <<'PY'
+import json
+with open('benchmark_report.json') as f:
+    data=json.load(f)
+out={'benchmarks':[{'name':r['name'],'value':r['duration_sec'],'unit':'s'} for r in data]}
+with open('benchmark.json','w') as f:
+    json.dump(out,f)
+PY
+      - uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: training
+          tool: customSmallerIsBetter
+          output-file-path: benchmark.json
+          benchmark-data-dir-path: benchmark-data
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          fail-on-alert: true

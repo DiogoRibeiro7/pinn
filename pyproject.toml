@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pinn"
+version = "0.1.0"
+description = "Physics-Informed Neural Network implementations"
+authors = [{name = "Diogo Ribeiro", email = "diogo.debastos.ribeiro@gmail.com"}]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=1.9.0",
+    "numpy>=1.20.0",
+    "tqdm>=4.60.0",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.3.0", "seaborn>=0.11.0", "plotly>=5.0.0", "scipy>=1.7.0"]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=3.0.0",
+    "hypothesis>=6.0.0",
+    "jupyter>=1.0.0",
+    "ipykernel>=6.0.0",
+    "black",
+    "mypy",
+    "flake8>=5.0.0",
+    "bandit>=1.7.0",
+    "sphinx>=5.0",
+    "sphinx-autodoc-typehints>=1.19",
+    "pytest-benchmark>=3.4.0",
+]
+gpu = ["cupy-cuda11x"]
+deploy = ["fastapi>=0.95", "uvicorn>=0.20", "grpcio>=1.54"]
+
+[project.scripts]
+pinn = "pinn.cli:main"
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.mypy]
+python_version = "3.8"
+ignore_missing_imports = true
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+
+[tool.bandit]
+exclude = ["tests"]
+
+[tool.pytest.ini_options]
+addopts = "-q --cov=pinn --cov-report=term-missing --cov-fail-under=90"
+testpaths = ["tests"]
+markers = [
+    "integration: integration tests",
+    "performance: performance benchmarks",
+]
+
+[project.urls]
+Homepage = "https://github.com/DiogoRibeiro7/pinn"
+
+[tool.semantic_release]
+version_source = "tag"
+upload_to_pypi = true
+upload_to_release = true
+branch = "main"
+changelog_file = "CHANGELOG.md"
+build_command = "python -m build"

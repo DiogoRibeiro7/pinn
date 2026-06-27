@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+recursive-include docs *.rst *.md
+recursive-include examples *
+recursive-include src/pinn/config/templates *
+recursive-include scripts *.py
+include Dockerfile
+recursive-include deployment *
