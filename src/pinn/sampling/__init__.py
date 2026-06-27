@@ -21,8 +21,14 @@ from .multifidelity import (
     MultiFidelityGaussianProcess,
     MultiFidelitySampler,
 )
+from ..utils.sampling import AdaptiveSampler, Domain, create_boundary_points, create_lhs_sampler, LatinHypercubeSampler
 
 __all__ = [
+    "AdaptiveSampler",
+    "Domain",
+    "create_lhs_sampler",
+    "create_boundary_points",
+    "LatinHypercubeSampler",
     "GradientBasedImportanceSampler",
     "MultiFidelitySampler",
     "HierarchicalConfig",

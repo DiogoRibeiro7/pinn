@@ -1,7 +1,7 @@
 """Core package for Physics-Informed Neural Networks."""
 from importlib.metadata import PackageNotFoundError, version
 
-from . import config, deployment, models, optimization, solvers, transfer, utils, visualization
+from . import config, deployment, models, optimization, solvers, transfer, utils
 from .models import (
     MLP,
     AttentionPINN,
@@ -51,13 +51,19 @@ from .utils.validation import (
 )
 from .utils.metrics import compute_error_metrics
 from .utils.sampling import create_lhs_sampler
-from .visualization import (
-    PINNVisualizer,
-    TrainingDashboard,
-    export_animation,
-    quick_plot_1d,
-    quick_plot_loss,
-)
+
+try:  # pragma: no cover - optional dependency may be missing
+    from .utils.visualization import PINNVisualizer, quick_plot_1d, quick_plot_loss
+except Exception:  # pragma: no cover - optional dependency may be missing
+    PINNVisualizer = None  # type: ignore[assignment]
+    quick_plot_1d = None  # type: ignore[assignment]
+    quick_plot_loss = None  # type: ignore[assignment]
+
+try:  # pragma: no cover - optional dependency may be missing
+    from .visualization import TrainingDashboard, export_animation
+except Exception:  # pragma: no cover - optional dependency may be missing
+    TrainingDashboard = None  # type: ignore[assignment]
+    export_animation = None  # type: ignore[assignment]
 from .sampling import (
     GradientBasedImportanceSampler,
     ActiveLearningStrategy,

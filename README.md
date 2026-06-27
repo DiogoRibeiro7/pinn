@@ -156,11 +156,11 @@ pinn-repository/
 ├── 📋 README.md                       # This comprehensive guide
 ├── 📦 requirements.txt                # Python dependencies
 │
-├── 🧠 Core PINN Implementations
-│   ├── pinn_raissi.py                # Original Burgers (continuous + discrete)
-│   ├── pinn_raissi_improved.py       # Enhanced with docs/types/visualization
-│   ├── pinn_raissi_generic.py        # Generic framework (Allen-Cahn + Schrödinger)
-│   └── pinn_navier_stokes.py         # 2D Navier-Stokes with periodic BCs
+├── 🧠 Core PINN Implementations (under src/pinn/solvers)
+│   ├── raissi.py                # Original Burgers (continuous + discrete)
+│   ├── raissi_improved.py       # Enhanced with docs/types/visualization
+│   ├── raissi_generic.py        # Generic framework (Allen-Cahn + Schrödinger)
+│   └── navier_stokes.py         # 2D Navier-Stokes with periodic BCs
 │
 ├── 🛠️ Advanced Utilities
 │   ├── visualization.py              # Comprehensive plotting toolkit
@@ -268,7 +268,7 @@ fig = viz.plot_vector_field_2d(X, Y, U, V,
 ### Latin Hypercube Sampling
 
 ```python
-from sampling import create_lhs_sampler
+from pinn.sampling import create_lhs_sampler
 
 # Efficient space-filling sampling
 sampler = create_lhs_sampler(bounds=[(-1,1), (0,1)], seed=123)
@@ -278,7 +278,7 @@ points = sampler.sample(10000)
 ### Adaptive Refinement
 
 ```python
-from sampling import AdaptiveSampler
+from pinn.sampling import AdaptiveSampler
 
 # Residual-based adaptive sampling
 adaptive_sampler = AdaptiveSampler(domain, residual_fn, base_sampler)
@@ -288,7 +288,7 @@ refined_points = adaptive_sampler.sample(5000)
 ### Boundary Condition Sampling
 
 ```python
-from sampling import create_boundary_points
+from pinn.sampling import create_boundary_points
 
 # Specialized boundary sampling
 boundaries = create_boundary_points(
@@ -302,7 +302,7 @@ boundaries = create_boundary_points(
 ### Quick Validation
 
 ```python
-from metrics import quick_error_summary, validate_pinn_solution
+from pinn.utils.metrics import quick_error_summary, validate_pinn_solution
 
 # Fast error overview
 print(quick_error_summary(y_true, y_pred))
@@ -317,7 +317,7 @@ pass_fail, results, summary = validate_pinn_solution(
 ### Detailed Analysis
 
 ```python
-from metrics import comprehensive_error_analysis, generate_metrics_report
+from pinn.utils.metrics import comprehensive_error_analysis, generate_metrics_report
 
 # Full error analysis
 results = comprehensive_error_analysis(
@@ -334,7 +334,7 @@ print(report)
 ### Convergence Analysis
 
 ```python
-from metrics import ConvergenceAnalysis
+from pinn.utils.metrics import ConvergenceAnalysis
 
 # Analyze convergence rates
 analyzer = ConvergenceAnalysis()
@@ -379,7 +379,7 @@ def my_pde_residual(model, t, x):
 
 ```python
 from pinn.solvers.raissi_generic import ContinuousPINNGeneric
-from sampling import Domain
+from pinn.sampling import Domain
 
 # Setup domain and model
 domain = Domain(bounds=[(0, 1), (-1, 1)], names=['t', 'x'])

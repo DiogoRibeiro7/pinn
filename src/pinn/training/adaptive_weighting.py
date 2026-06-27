@@ -83,6 +83,9 @@ class AdaptiveWeightingConfig:
     rl_discount, rl_learning_rate, rl_epsilon:
         Hyper-parameters controlling the reinforcement-learning-inspired
         weighting heuristic.
+    meta_hidden:
+        Hidden size for the meta-learning weighting network (used when
+        ``method`` is ``"meta"`` or ``"meta_learning"``).
     bo_exploration:
         Exploration factor for the Bayesian weighting heuristic.  Higher
         values encourage sampling more diverse weights.
@@ -112,6 +115,7 @@ class AdaptiveWeightingConfig:
     rl_learning_rate: float = 0.2
     rl_epsilon: float = 0.1
     bo_exploration: float = 0.25
+    meta_hidden: int = 64
     visualize: bool = True
     strict_validation: bool = True
     log_history: bool = True
@@ -136,6 +140,7 @@ class AdaptiveWeightingConfig:
         check_range("rl_learning_rate", self.rl_learning_rate, min=0.0)
         check_range("rl_discount", self.rl_discount, min=0.0)
         check_range("bo_exploration", self.bo_exploration, min=1e-6)
+        check_range("meta_hidden", self.meta_hidden, min=1)
         if self.initial_weights is not None and len(self.initial_weights) != num_losses:
             msg = (
                 "initial_weights must match the number of losses; "
