@@ -15,20 +15,8 @@ import pytest
 import numpy as np
 import tempfile
 import os
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 import matplotlib.pyplot as plt
-
-
-from pinn.utils.visualization import (
-    PINNVisualizer,
-    VisualizationConfig,
-    VisualizationError,
-    quick_plot_1d,
-    quick_plot_2d,
-    quick_plot_loss,
-    create_custom_config,
-)
 
 
 # For this demonstration, we'll assume the classes are available
@@ -765,7 +753,7 @@ class TestIntegrationWithMatplotlib:
             return fig
 
         # Should complete without errors
-        fig = mock_plot_function()
+        mock_plot_function()
 
         # Verify matplotlib functions were called
         mock_subplots.assert_called_once_with(figsize=(10, 6))

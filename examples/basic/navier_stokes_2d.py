@@ -66,8 +66,10 @@ def main() -> None:
     true_u = tgv_u(TT, XX, YY, cfg.nu)
     true_v = tgv_v(TT, XX, YY, cfg.nu)
 
-    metrics = compute_error_metrics(pred_u, true_u)
-    logger.info("Velocity-u MAE: %f", metrics.mae)
+    metrics_u = compute_error_metrics(pred_u, true_u)
+    metrics_v = compute_error_metrics(pred_v, true_v)
+    logger.info("Velocity-u MAE: %f", metrics_u.mae)
+    logger.info("Velocity-v MAE: %f", metrics_v.mae)
 
     viz = PINNVisualizer()
     mag = np.sqrt(pred_u**2 + pred_v**2)

@@ -24,10 +24,11 @@ def main() -> None:
     logger.info("Custom PDE example started")
 
     if args.config:
-        cfg = ConfigLoader.from_yaml(args.config)
+        # Loading validates the file; a real script would hand the result
+        # to its solver. This template has no consumer for it yet.
+        ConfigLoader.from_yaml(args.config)
         logger.info("Loaded configuration", extra={"config": args.config})
     else:
-        cfg = None
         logger.warning("No configuration supplied; using defaults")
 
     # User would define model, residual function and training loop here

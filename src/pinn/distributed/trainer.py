@@ -17,7 +17,7 @@ reused by higher level orchestration utilities in :mod:`pinn.distributed`.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Sequence
 
 import time
 

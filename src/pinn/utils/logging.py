@@ -27,7 +27,6 @@ import logging
 import logging.config
 import time
 from functools import wraps
-from logging.handlers import HTTPHandler, RotatingFileHandler
 from typing import Any, Dict, Optional
 
 try:  # Optional dependency

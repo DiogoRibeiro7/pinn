@@ -16,13 +16,13 @@ different architectures, training strategies, and hyperparameters.
 from __future__ import annotations
 
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Union, Callable, Any
+from typing import Dict, List, Tuple, Optional, Callable, Any
 from dataclasses import dataclass
-from abc import ABC, abstractmethod
 import warnings
 
 try:
-    from scipy import stats, integrate
+    # integrate is imported to probe SciPy's availability, not used directly.
+    from scipy import stats, integrate  # noqa: F401
     from scipy.spatial.distance import wasserstein_distance
 
     SCIPY_AVAILABLE = True
@@ -419,7 +419,7 @@ class StatisticalAnalysis:
             try:
                 statistic, _, _ = stats.anderson_ksamp([y_true_flat, y_pred_flat])
                 return statistic
-            except:
+            except Exception:
                 return np.nan
         else:
             raise ValueError(f"Unknown method: {method}")

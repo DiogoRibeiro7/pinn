@@ -19,16 +19,14 @@ Key improvements:
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, List, Dict, Any, Union, Sequence
+from typing import Optional, Tuple, List, Dict, Union, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 from matplotlib.figure import Figure
-from matplotlib.axes import Axes
 import seaborn as sns
 
 from .logging import get_logger
@@ -1081,7 +1079,7 @@ def demo_visualization_improvements():
 
         # Test 1D plotting with error handling
         print("Testing 1D solution plotting...")
-        fig1 = viz.plot_1d_solution(
+        viz.plot_1d_solution(
             x,
             u_pred,
             u_true,
@@ -1092,9 +1090,7 @@ def demo_visualization_improvements():
 
         # Test error analysis
         print("Testing error analysis...")
-        fig2 = viz.plot_error_analysis(
-            x, u_pred, u_true, title="Comprehensive Error Analysis"
-        )
+        viz.plot_error_analysis(x, u_pred, u_true, title="Comprehensive Error Analysis")
         plt.show()
 
         # Test loss curve plotting with synthetic data
@@ -1114,7 +1110,7 @@ def demo_visualization_improvements():
             ],
         }
 
-        fig3 = viz.plot_loss_curves(
+        viz.plot_loss_curves(
             synthetic_loss,
             title="Enhanced Loss Curves with Smoothing",
             smoothing_window=100,
@@ -1128,7 +1124,7 @@ def demo_visualization_improvements():
         X, Y = np.meshgrid(x_2d, y_2d)
         field_2d = np.sin(X) * np.cos(Y) * np.exp(-(X**2 + Y**2) / 4)
 
-        fig4 = viz.plot_2d_field(
+        viz.plot_2d_field(
             X,
             Y,
             field_2d,
@@ -1142,9 +1138,7 @@ def demo_visualization_improvements():
         U = -np.sin(Y)
         V = np.sin(X)
 
-        fig5 = viz.plot_vector_field_2d(
-            X, Y, U, V, title="Enhanced Vector Field Plot", skip=3
-        )
+        viz.plot_vector_field_2d(X, Y, U, V, title="Enhanced Vector Field Plot", skip=3)
         plt.show()
 
         print("All visualization tests passed successfully!")

@@ -26,8 +26,7 @@ import functools
 import logging
 import time
 import psutil
-import warnings
-from typing import Dict, Any, Optional, Callable, List, Union, Type, Tuple
+from typing import Dict, Any, Optional, Callable, List, Tuple
 from dataclasses import dataclass, field
 from pathlib import Path
 from contextlib import contextmanager
@@ -841,7 +840,6 @@ def demonstrate_error_handling():
 
     # Set up logging
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
 
     # 1. Demonstrate basic error creation and formatting
     print("1. Creating and formatting errors...")
@@ -919,7 +917,7 @@ def demonstrate_error_handling():
 
     try:
         simulate_resource_operation()
-    except Exception as e:
+    except Exception:
         print("Resource cleanup on error:")
         # Cleanup functions were automatically called
 
@@ -928,7 +926,6 @@ def demonstrate_error_handling():
 
     # Create a mock checkpoint directory
     import tempfile
-    import shutil
 
     with tempfile.TemporaryDirectory() as temp_dir:
         checkpoint_dir = Path(temp_dir) / "checkpoints"

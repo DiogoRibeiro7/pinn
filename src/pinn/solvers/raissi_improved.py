@@ -16,9 +16,9 @@ Example:
     >>> demo()  # Run demonstration with both PINN variants
 
 References:
-    Raissi, M., Perdikaris, P., & Karniadakis, G. E. (2019). 
-    Physics-informed neural networks: A deep learning framework for 
-    solving forward and inverse problems involving nonlinear partial 
+    Raissi, M., Perdikaris, P., & Karniadakis, G. E. (2019).
+    Physics-informed neural networks: A deep learning framework for
+    solving forward and inverse problems involving nonlinear partial
     differential equations. Journal of Computational Physics, 378, 686-707.
 """
 
@@ -536,7 +536,8 @@ class ContinuousPINN:
             x_f_tensor = torch.from_numpy(x_f).to(self.device)
 
         # Convert remaining arrays to tensors
-        to_tensor = lambda a: torch.from_numpy(a).to(self.device)
+        def to_tensor(a: np.ndarray) -> Tensor:
+            return torch.from_numpy(a).to(self.device)
 
         data = {
             "t0": to_tensor(t0),

@@ -256,7 +256,8 @@ class NavierStokesPINN:
         ).astype(np.float32)
 
         # Build tensors
-        to_t = lambda a: torch.from_numpy(a).to(self.device)
+        def to_t(a: np.ndarray) -> Tensor:
+            return torch.from_numpy(a).to(self.device)
 
         return {
             # IC
@@ -390,9 +391,9 @@ class NavierStokesPINN:
 
             def closure() -> Tensor:
                 lb.zero_grad(set_to_none=True)
-                l = loss_fn()
-                l.backward()
-                return l
+                loss = loss_fn()
+                loss.backward()
+                return loss
 
             logger.info("Starting L-BFGS optimization")
             lb.step(closure)

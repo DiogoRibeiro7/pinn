@@ -64,7 +64,17 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Residual-based adaptive refinement (RAR) wired into the training loop
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions
-  - Expand test coverage for solvers, sampling, and transfer modules
+  - Expand test coverage for solvers, sampling, and transfer modules. Coverage is
+    currently ~54%, and `--cov-fail-under` in `pyproject.toml` is a ratchet set just
+    below it — raise the gate as tests land. The thinnest modules are
+    `utils/visualization.py` (14%), `utils/metrics.py` (24%) and
+    `utils/error_handling.py` (29%)
+  - Clear the ~91 `mypy` errors across 25 modules. The type-check step in
+    `.github/workflows/ci.yml` is `continue-on-error: true` until then; make it
+    blocking once the backlog is gone
+  - Rework `tests/unit/test_visualization.py`, which defines local stand-ins for
+    `PINNVisualizer`, `VisualizationConfig` and friends instead of exercising the
+    real implementations, so it currently asserts against its own test doubles
 
 ---
 

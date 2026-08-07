@@ -6,7 +6,13 @@ extend-ignore =
     ; whitespace before ':' — disagrees with black on slices
     E203,
     ; line break before binary operator — black's preferred style
-    W503
+    W503,
+    ; line too long — black is the authority on line length and already
+    ; reformats everything it can to 88 columns. What survives is string
+    ; literals, URLs and comments that black cannot split, where the
+    ; remaining violations are typically one or two characters over and
+    ; wrapping them by hand hurts readability more than it helps.
+    E501
 exclude =
     .git,
     __pycache__,

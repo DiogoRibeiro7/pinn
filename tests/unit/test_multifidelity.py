@@ -40,7 +40,10 @@ def test_hierarchical_training_improves_accuracy() -> None:
         domain, [5, 20], [1.0, 4.0], base_sampler=LatinHypercubeSampler(domain, seed=2)
     )
     models = [_make_model(), _make_model()]
-    analytic_fn = lambda x: torch.sin(x)
+
+    def analytic_fn(x):
+        return torch.sin(x)
+
     trainer = HierarchicalPINNTrainer(models, sampler, analytic_fn)
     trainer.train_hierarchical(
         HierarchicalConfig(total_budget=40, epochs=50, validate_points=20)

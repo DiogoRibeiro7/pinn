@@ -25,7 +25,7 @@ lightweight and validated to prevent misconfiguration during experiments.
 from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence
 
 import numpy as np
 import torch

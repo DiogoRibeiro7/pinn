@@ -200,7 +200,9 @@ class ContinuousPINN:
             np.float32
         )
 
-        to_t = lambda a: torch.from_numpy(a).to(self.device)
+        def to_t(a: np.ndarray) -> Tensor:
+            return torch.from_numpy(a).to(self.device)
+
         return {
             "t0": to_t(t0),
             "x0": to_t(x0),

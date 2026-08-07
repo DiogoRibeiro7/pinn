@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
-from typing import Deque, Dict, Iterable, Callable, Optional, Any
+from typing import Deque, Dict, Any
 
 import plotly.graph_objects as go
 

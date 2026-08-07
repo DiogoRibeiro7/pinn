@@ -25,7 +25,7 @@ import tracemalloc
 from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Callable, List, Optional
 
 try:  # optional
     import torch  # type: ignore

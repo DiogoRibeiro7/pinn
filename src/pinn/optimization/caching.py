@@ -142,7 +142,9 @@ class AdaptiveCache:
         if not compressed:
             return payload
         data = gzip.decompress(payload)
-        return pickle.loads(data)
+        # Trusted input: this cache only ever deserialises payloads it
+        # serialised itself in _serialise. Never point it at foreign data.
+        return pickle.loads(data)  # nosec B301
 
     def _evict_one(self) -> None:
         if not self._entries:
@@ -274,7 +276,8 @@ class AdaptiveCache:
         if source is None or not source.exists():
             return
         with open(source, "rb") as fh:
-            payload = pickle.load(fh)
+            # Trusted input: this file is written by this class's own save().
+            payload = pickle.load(fh)  # nosec B301
         with self._lock:
             self._entries = payload.get("entries", {})
             self._current_memory = payload.get("memory", 0)

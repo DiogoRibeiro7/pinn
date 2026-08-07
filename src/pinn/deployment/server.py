@@ -82,4 +82,7 @@ def main() -> None:  # pragma: no cover - thin wrapper for uvicorn
     """Launch a Uvicorn server using the model path from ``PINN_MODEL_PATH``."""
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+    # A container has to bind every interface to be reachable from outside it.
+    # Override with PINN_HOST (e.g. 127.0.0.1) when running directly on a host.
+    host = os.getenv("PINN_HOST", "0.0.0.0")  # nosec B104
+    uvicorn.run(app, host=host, port=int(os.getenv("PORT", "8000")))

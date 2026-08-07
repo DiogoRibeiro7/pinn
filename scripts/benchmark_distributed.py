@@ -13,7 +13,6 @@ import torch
 from pinn.config.management import ConfigFactory
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import (
-    BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,

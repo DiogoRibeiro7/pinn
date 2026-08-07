@@ -24,4 +24,4 @@ autosummary_generate = True
 html_theme = "alabaster"
 
 # Ensure doctests see package root
-doctest_global_setup = f"import numpy as np; import torch; import pinn"
+doctest_global_setup = "import numpy as np; import torch; import pinn"
