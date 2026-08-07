@@ -199,7 +199,7 @@ class PretrainingManager:
 
 
 def ensure_batch_dict(
-    batch: BatchType | tuple[torch.Tensor, ...] | torch.Tensor
+    batch: BatchType | tuple[torch.Tensor, ...] | torch.Tensor,
 ) -> BatchType:
     """Convert batches returned by :class:`~torch.utils.data.DataLoader` to dictionaries."""
 

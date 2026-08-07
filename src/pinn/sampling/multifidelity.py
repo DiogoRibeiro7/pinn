@@ -31,7 +31,6 @@ from torch import Tensor
 
 from pinn.utils.sampling import BaseSampler, Domain, LatinHypercubeSampler
 
-
 # ---------------------------------------------------------------------------
 # Multi-fidelity sampler
 # ---------------------------------------------------------------------------

@@ -52,7 +52,9 @@ dev = [
     "hypothesis>=6.0.0",
     "jupyter>=1.0.0",
     "ipykernel>=7.3.0",
-    "black",
+    # Pinned exactly: black's formatting changes between releases, so an
+    # unpinned version makes "black --check" in CI disagree with local runs.
+    "black==26.5.1",
     "mypy",
     "flake8>=5.0.0",
     "bandit>=1.7.0",

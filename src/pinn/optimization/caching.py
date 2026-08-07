@@ -23,7 +23,6 @@ from collections import defaultdict, deque
 import numpy as np
 import torch
 
-
 # ---------------------------------------------------------------------------
 # Cache entry representation
 # ---------------------------------------------------------------------------

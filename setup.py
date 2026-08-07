@@ -15,7 +15,7 @@ extras_require = {
         "pytest>=6.0.0",
         "jupyter>=1.0.0",
         "ipykernel>=6.0.0",
-        "black",
+        "black==26.5.1",
         "mypy",
     ],
     "gpu": ["cupy-cuda11x"],
