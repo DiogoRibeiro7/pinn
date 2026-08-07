@@ -1,0 +1,76 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "pinn: A Modular PyTorch Framework for Physics-Informed Neural Networks"
+abstract: >-
+  pinn is a modular PyTorch framework for solving forward and inverse partial
+  differential equation problems with Physics-Informed Neural Networks, in which
+  the governing equations are embedded directly in the training loss via
+  automatic differentiation. It provides continuous-time and discrete-time
+  Runge-Kutta solvers, a range of network architectures (Fourier-feature,
+  multi-scale, attention, Bayesian, ensemble), adaptive loss weighting and
+  sampling strategies, uncertainty quantification, transfer learning, distributed
+  training, and model-serving utilities.
+type: software
+authors:
+  - family-names: Ribeiro
+    given-names: Diogo
+    orcid: "https://orcid.org/0009-0001-2022-7072"
+    affiliation: "ESMAD - School of Media Arts and Design, Polytechnic of Porto"
+    email: diogo.debastos.ribeiro@gmail.com
+repository-code: "https://github.com/DiogoRibeiro7/pinn"
+url: "https://github.com/DiogoRibeiro7/pinn"
+license: MIT
+version: 0.1.0
+date-released: "2026-08-07"
+keywords:
+  - physics-informed neural networks
+  - PINN
+  - scientific machine learning
+  - partial differential equations
+  - deep learning
+  - PyTorch
+  - automatic differentiation
+  - inverse problems
+  - uncertainty quantification
+  - computational physics
+references:
+  - type: article
+    title: >-
+      Physics-informed neural networks: A deep learning framework for solving
+      forward and inverse problems involving nonlinear partial differential
+      equations
+    authors:
+      - family-names: Raissi
+        given-names: Maziar
+      - family-names: Perdikaris
+        given-names: Paris
+      - family-names: Karniadakis
+        given-names: George Em
+    journal: Journal of Computational Physics
+    volume: 378
+    start: 686
+    end: 707
+    year: 2019
+    doi: 10.1016/j.jcp.2018.10.045
+  - type: article
+    title: Physics-informed machine learning
+    authors:
+      - family-names: Karniadakis
+        given-names: George Em
+      - family-names: Kevrekidis
+        given-names: Ioannis G.
+      - family-names: Lu
+        given-names: Lu
+      - family-names: Perdikaris
+        given-names: Paris
+      - family-names: Wang
+        given-names: Sifan
+      - family-names: Yang
+        given-names: Liu
+    journal: Nature Reviews Physics
+    volume: 3
+    issue: 6
+    start: 422
+    end: 440
+    year: 2021
+    doi: 10.1038/s42254-021-00314-5

@@ -20,6 +20,21 @@ jobs:
       - run: mypy src
       - run: bandit -r src -ll
 
+  metadata:
+    name: Validate citation metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Validate CITATION.cff
+        run: |
+          pip install cffconvert
+          cffconvert --validate
+      - name: Validate .zenodo.json
+        run: python -c "import json; json.load(open('.zenodo.json'))"
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:

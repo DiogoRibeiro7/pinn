@@ -60,8 +60,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/pinn-repository.git
-cd pinn-repository
+git clone https://github.com/DiogoRibeiro7/pinn.git
+cd pinn
 
 # Development installation
 pip install -e .
@@ -496,6 +496,37 @@ u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x),
 
 ## 📚 References & Citations
 
+### Citing This Software
+
+If you use this library in academic work, please cite it. Machine-readable metadata is
+provided in [`CITATION.cff`](CITATION.cff) (GitHub renders a "Cite this repository" button
+from it) and [`.zenodo.json`](.zenodo.json) (used when a tagged release is archived to
+Zenodo).
+
+```bibtex
+@software{ribeiro_pinn,
+  author    = {Ribeiro, Diogo},
+  title     = {{pinn}: A Modular PyTorch Framework for Physics-Informed Neural Networks},
+  year      = {2026},
+  version   = {0.1.0},
+  publisher = {Zenodo},
+  url       = {https://github.com/DiogoRibeiro7/pinn}
+}
+```
+
+> Once the first release is archived on Zenodo, add the minted `doi` field to the entry
+> above and the DOI badge to the top of this README. See
+> [Zenodo setup](#zenodo-archiving-setup) below.
+
+#### Zenodo archiving setup
+
+1. Sign in to [zenodo.org](https://zenodo.org) with GitHub and grant repository access.
+2. Under **GitHub**, flip the toggle for `DiogoRibeiro7/pinn` to **On**.
+3. Publish a tagged GitHub release (e.g. `v0.1.0`). Zenodo archives the tarball and mints
+   a version DOI plus a *concept DOI* that always resolves to the latest version.
+4. Add the concept-DOI badge to this README and the DOI to `CITATION.cff` / the BibTeX
+   entry above.
+
 ### Primary References
 
 1. **Raissi, M., Perdikaris, P., & Karniadakis, G. E.** (2019). Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations. _Journal of Computational Physics_, 378, 686-707.
@@ -581,8 +612,8 @@ based on live in [`examples/`](examples/).
 
 ```bash
 # Clone and setup development environment
-git clone https://github.com/diogoribeiro7/pinn-repository.git
-cd pinn-repository
+git clone https://github.com/DiogoRibeiro7/pinn.git
+cd pinn
 
 # Create development environment
 pip install -r requirements-dev.txt
@@ -602,14 +633,14 @@ pytest tests/
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the <LICENSE> file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 📞 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/diogoribeiro7/pinn-repository/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/diogoribeiro7/pinn-repository/discussions)
+- **Issues**: [GitHub Issues](https://github.com/DiogoRibeiro7/pinn/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/DiogoRibeiro7/pinn/discussions)
 - **Email**: [dfr@esmad.ipp.pt](mailto:dfr@esmad.ipp.pt)
-- **Documentation**: [Full Documentation](https://diogoribeiro7.github.io/pinn-repository)
+- **Documentation**: [Full Documentation](https://DiogoRibeiro7.github.io/pinn)
 
 ## 🙏 Acknowledgments
 
@@ -621,4 +652,4 @@ This project is licensed under the MIT License - see the <LICENSE> file for deta
 
 ⭐ **Star this repository** if you find it useful for your research!
 
-📖 **Read the full documentation** at [your-username.github.io/pinn-repository](https://your-username.github.io/pinn-repository)
+📖 **Read the full documentation** at [DiogoRibeiro7.github.io/pinn](https://DiogoRibeiro7.github.io/pinn)

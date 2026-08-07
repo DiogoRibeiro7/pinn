@@ -7,8 +7,37 @@ name = "pinn"
 version = "0.1.0"
 description = "Physics-Informed Neural Network implementations"
 authors = [{name = "Diogo Ribeiro", email = "diogo.debastos.ribeiro@gmail.com"}]
+maintainers = [{name = "Diogo Ribeiro", email = "diogo.debastos.ribeiro@gmail.com"}]
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.8"
+keywords = [
+    "physics-informed neural networks",
+    "pinn",
+    "scientific machine learning",
+    "partial differential equations",
+    "deep learning",
+    "pytorch",
+    "inverse problems",
+    "uncertainty quantification",
+    "computational physics",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
 dependencies = [
     "torch>=1.9.0",
     "numpy>=1.20.0",
@@ -63,6 +92,10 @@ markers = [
 
 [project.urls]
 Homepage = "https://github.com/DiogoRibeiro7/pinn"
+Repository = "https://github.com/DiogoRibeiro7/pinn"
+Documentation = "https://DiogoRibeiro7.github.io/pinn"
+Issues = "https://github.com/DiogoRibeiro7/pinn/issues"
+Changelog = "https://github.com/DiogoRibeiro7/pinn/blob/main/CHANGELOG.md"
 
 [tool.semantic_release]
 version_source = "tag"
