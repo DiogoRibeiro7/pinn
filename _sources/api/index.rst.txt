@@ -20,4 +20,3 @@ API Reference
 .. automodule:: pinn.visualization
    :members:
    :undoc-members:
-
