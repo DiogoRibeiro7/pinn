@@ -4,7 +4,7 @@ numpy>=2.2.6
 PyYAML>=6.0.0
 
 # Visualization
-matplotlib>=3.3.0
+matplotlib>=3.10.9
 seaborn>=0.13.2
 
 # Optional: Enhanced plotting and scientific computing
