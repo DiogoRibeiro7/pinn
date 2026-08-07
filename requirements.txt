@@ -22,4 +22,4 @@ jupyter>=1.0.0
 ipykernel>=6.0.0
 
 # Progress bars
-tqdm>=4.60.0
+tqdm>=4.68.3
