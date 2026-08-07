@@ -95,11 +95,3 @@ Repository = "https://github.com/DiogoRibeiro7/pinn"
 Documentation = "https://DiogoRibeiro7.github.io/pinn"
 Issues = "https://github.com/DiogoRibeiro7/pinn/issues"
 Changelog = "https://github.com/DiogoRibeiro7/pinn/blob/main/CHANGELOG.md"
-
-[tool.semantic_release]
-version_source = "tag"
-upload_to_pypi = true
-upload_to_release = true
-branch = "main"
-changelog_file = "CHANGELOG.md"
-build_command = "python -m build"
