@@ -96,7 +96,10 @@ class CheckpointManager:
         }
         cpath = self._checkpoint_path(step)
         with self._open(cpath, "wb") as f:
-            torch.save(state, f, pickle_protocol=5)
+            # Default pickle protocol: the weights_only unpickler used on load
+            # cannot read protocol-5 frames, and tensor storage is written to
+            # the archive separately, so protocol 5 bought nothing here.
+            torch.save(state, f)
 
         meta = CheckpointMeta(metrics=metrics, config=config, timestamp=time.time())
         with open(self._metadata_path(step), "w", encoding="utf-8") as f:
@@ -143,7 +146,7 @@ class CheckpointManager:
             raise FileNotFoundError("No checkpoints found")
         latest = files[-1]
         with self._open(latest, "rb") as f:
-            state = torch.load(f, map_location="cpu", weights_only=False)
+            state = torch.load(f, map_location="cpu", weights_only=True)
         step = int(state.get("step", 0))
         if model is not None:
             model.load_state_dict(state["model_state"])
@@ -162,7 +165,7 @@ class CheckpointManager:
         if self.best_path is None:
             raise FileNotFoundError("No best checkpoint available")
         with self._open(self.best_path, "rb") as f:
-            state = torch.load(f, map_location="cpu", weights_only=False)
+            state = torch.load(f, map_location="cpu", weights_only=True)
         model.load_state_dict(state["model_state"])
         optimizer.load_state_dict(state["optimizer_state"])
         return model, optimizer, int(state.get("step", 0))

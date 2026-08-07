@@ -58,7 +58,7 @@ def load_model(
     base = _version_path(Path(path), version)
     file_path = base.with_suffix(".pt")
     model = model_cls()
-    state = torch.load(file_path, map_location="cpu")
+    state = torch.load(file_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
     model.eval()
     return model

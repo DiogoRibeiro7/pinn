@@ -515,7 +515,7 @@ class TrainingCache:
         if cached is None and not refresh:
             file_path = self._sample_file(key)
             if file_path is not None and file_path.exists():
-                cached = torch.load(file_path, map_location="cpu")
+                cached = torch.load(file_path, map_location="cpu", weights_only=True)
                 if self._sample_cache is not None:
                     self._sample_cache.put(key, cached, priority=5)
         if cached is not None and not refresh:

@@ -47,6 +47,13 @@ Python version, and citable.
 
 ### Security
 
+- Load checkpoints, cached samples and served models with
+  `torch.load(..., weights_only=True)`. Checkpoint restore had explicitly passed
+  `weights_only=False`, which unpickles arbitrary objects and allows code
+  execution from a malicious checkpoint file. Checkpoints are now written with
+  the default pickle protocol rather than protocol 5, because the weights-only
+  unpickler cannot read protocol-5 frames; checkpoints written by earlier
+  revisions cannot be loaded by this release.
 - The serving entry point still binds all interfaces by default, as a container
   requires, but the host is now configurable through `PINN_HOST`.
 - Documented the trust boundary on the cache's `pickle` loads, which only ever

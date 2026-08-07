@@ -52,12 +52,13 @@ dev = [
     "hypothesis>=6.0.0",
     "jupyter>=1.0.0",
     "ipykernel>=7.3.0",
-    # Pinned exactly: black's formatting changes between releases, so an
-    # unpinned version makes "black --check" in CI disagree with local runs.
+    # The three tools that gate CI are pinned exactly. Their output changes
+    # between releases -- black reformats, flake8 and bandit add new checks --
+    # so an unpinned version makes CI disagree with a local run that passed.
     "black==26.5.1",
     "mypy",
-    "flake8>=5.0.0",
-    "bandit>=1.7.0",
+    "flake8==7.3.0",
+    "bandit==1.9.4",
     "sphinx>=5.0",
     "sphinx-autodoc-typehints>=1.19",
     "pytest-benchmark>=3.4.0",
