@@ -18,7 +18,7 @@ grpcio>=1.54
 
 # Development and testing (optional)
 pytest>=6.0.0
-jupyter>=1.0.0
+jupyter>=1.1.1
 ipykernel>=6.0.0
 
 # Progress bars
