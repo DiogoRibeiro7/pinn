@@ -1,5 +1,61 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-.pytest_cache/
+*.py[cod]
+*$py.class
+
+# Python packaging and build artifacts
 *.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+wheelhouse/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test, coverage, and benchmark artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.hypothesis/
+.benchmarks/
+
+# Type checker / linter caches
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Documentation builds
+docs/_build/
+site/
+
+# Local run outputs
 results/
+runs/
+outputs/
+checkpoints/
+logs/
+*.log
+
+# Model / tensor artifacts generated during experiments
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.npy
+*.npz
+
+# OS / editor metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
