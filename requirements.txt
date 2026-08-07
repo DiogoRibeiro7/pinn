@@ -9,7 +9,7 @@ seaborn>=0.13.2
 
 # Optional: Enhanced plotting and scientific computing
 scipy>=1.15.3
-plotly>=5.0.0
+plotly>=6.9.0
 
 # Deployment
 fastapi>=0.95
