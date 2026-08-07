@@ -30,6 +30,7 @@ if __name__ == "__main__":
         description="Physics-Informed Neural Network implementations",
         packages=find_packages("src"),
         package_dir={"": "src"},
+        python_requires=">=3.10",
         install_requires=install_requires,
         extras_require=extras_require,
         entry_points={
