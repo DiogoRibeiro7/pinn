@@ -8,6 +8,12 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+- Added the project governance and contribution files: `CONTRIBUTING.md`,
+  `CODE_OF_CONDUCT.md`, `SECURITY.md` (including a threat model), issue and pull
+  request templates, `CODEOWNERS`, `.gitattributes`, `.editorconfig` and a
+  `.pre-commit-config.yaml` pinned to the same tool versions as CI.
+- Corrected the README development setup, which told contributors to install from a
+  `requirements-dev.txt` that does not exist.
 - Recorded the Zenodo concept DOI (`10.5281/zenodo.21844101`) in `CITATION.cff`, the
   README citation block and a README badge.
 - Corrected the README badges, which still advertised Python 3.8+ and PyTorch 1.9+, and

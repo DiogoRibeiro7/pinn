@@ -1,0 +1,61 @@
+name: Feature request
+description: Suggest a new solver, architecture, or capability.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check [ROADMAP.md](https://github.com/DiogoRibeiro7/pinn/blob/main/ROADMAP.md)
+        first — the item you want may already be planned, in which case comment
+        there rather than opening a duplicate.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: >-
+        Describe the situation you are stuck in, rather than the solution you
+        have in mind. It often turns out there is more than one way to unblock it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to see?
+      description: The API, solver, or behaviour you are proposing.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - New PDE or solver
+        - Network architecture
+        - Training strategy or optimisation
+        - Sampling
+        - Uncertainty quantification
+        - Distributed training or performance
+        - Deployment and serving
+        - Visualisation
+        - Documentation or examples
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: >-
+        Papers, reference implementations, or benchmark problems. For a new PDE,
+        an exact or reference solution to validate against is especially valuable.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Would you be willing to work on this?
+      options:
+        - label: I would be willing to open a pull request for this.

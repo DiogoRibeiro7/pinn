@@ -144,7 +144,7 @@ from pinn.solvers.raissi_generic import ContinuousPINNGeneric
 from pinn.solvers.raissi_generic import demo_allen_cahn
 demo_allen_cahn()
 
-# Nonlinear Schrödinger equation  
+# Nonlinear Schrödinger equation
 from pinn.solvers.raissi_generic import demo_schrodinger
 demo_schrodinger()
 ```
@@ -247,11 +247,11 @@ from pinn.utils.visualization import PINNVisualizer
 viz = PINNVisualizer()
 
 # Spacetime heatmap
-fig = viz.plot_spacetime_1d(t_grid, x_grid, u_solution, 
+fig = viz.plot_spacetime_1d(t_grid, x_grid, u_solution,
                            title="Solution Evolution")
 
 # Error analysis with statistics
-fig = viz.plot_error_analysis(x, u_pred, u_true, 
+fig = viz.plot_error_analysis(x, u_pred, u_true,
                              title="Comprehensive Error Analysis")
 ```
 
@@ -259,7 +259,7 @@ fig = viz.plot_error_analysis(x, u_pred, u_true,
 
 ```python
 # 2D vector fields (e.g., velocity)
-fig = viz.plot_vector_field_2d(X, Y, U, V, 
+fig = viz.plot_vector_field_2d(X, Y, U, V,
                               title="Navier-Stokes Velocity Field",
                               skip=3, scale=1.0)
 ```
@@ -293,7 +293,7 @@ from pinn.sampling import create_boundary_points
 
 # Specialized boundary sampling
 boundaries = create_boundary_points(
-    bounds=[(-1,1), (0,1)], 
+    bounds=[(-1,1), (0,1)],
     n_points_per_face=200
 )
 ```
@@ -322,8 +322,8 @@ from pinn.utils.metrics import comprehensive_error_analysis, generate_metrics_re
 
 # Full error analysis
 results = comprehensive_error_analysis(
-    y_true, y_pred, 
-    coordinates=coords, 
+    y_true, y_pred,
+    coordinates=coords,
     residuals=residuals
 )
 
@@ -361,11 +361,11 @@ def my_pde_residual(model, t, x):
     u = model(torch.cat([t, x], dim=1))
 
     # Compute derivatives using autograd
-    u_t = torch.autograd.grad(u, t, torch.ones_like(u), 
+    u_t = torch.autograd.grad(u, t, torch.ones_like(u),
                              retain_graph=True, create_graph=True)[0]
-    u_x = torch.autograd.grad(u, x, torch.ones_like(u), 
+    u_x = torch.autograd.grad(u, x, torch.ones_like(u),
                              retain_graph=True, create_graph=True)[0]
-    u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x), 
+    u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x),
                               retain_graph=True, create_graph=True)[0]
 
     # PDE residual
@@ -394,7 +394,7 @@ pinn = ContinuousPINNGeneric(
     u_dim=1,
     u0_fn=lambda x: np.sin(np.pi * x),           # Initial condition
     bc_left_fn=lambda t: np.zeros_like(t),       # Left boundary
-    bc_right_fn=lambda t: np.zeros_like(t),      # Right boundary  
+    bc_right_fn=lambda t: np.zeros_like(t),      # Right boundary
     residual_fn=my_pde_residual                  # Your PDE residual
 )
 
@@ -424,7 +424,7 @@ class OptimalTrainConfig:
 
     # Loss weighting (tune for balance)
     w_ic: float = 1.0         # Initial condition weight
-    w_bc: float = 1.0         # Boundary condition weight  
+    w_bc: float = 1.0         # Boundary condition weight
     w_pde: float = 1.0        # PDE residual weight
 
     # Reproducibility
@@ -477,13 +477,13 @@ PINNs leverage automatic differentiation to compute exact derivatives:
 
 ```python
 # First derivative: ∂u/∂t
-u_t = torch.autograd.grad(u, t, grad_outputs=torch.ones_like(u), 
+u_t = torch.autograd.grad(u, t, grad_outputs=torch.ones_like(u),
                          retain_graph=True, create_graph=True)[0]
 
 # Second derivative: ∂²u/∂x²
-u_x = torch.autograd.grad(u, x, torch.ones_like(u), 
+u_x = torch.autograd.grad(u, x, torch.ones_like(u),
                          retain_graph=True, create_graph=True)[0]
-u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x), 
+u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x),
                           retain_graph=True, create_graph=True)[0]
 ```
 
@@ -608,17 +608,29 @@ based on live in [`examples/`](examples/).
 ### Development Setup
 
 ```bash
-# Clone and setup development environment
+# Clone and set up a development environment
 git clone https://github.com/DiogoRibeiro7/pinn.git
 cd pinn
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-# Create development environment
-pip install -r requirements-dev.txt
+# Install with the development and visualisation extras. Install `viz` too:
+# importing pinn pulls in matplotlib and seaborn.
+pip install -e ".[dev,viz]"
+
+# Optional: run the formatting and lint checks on every commit
 pre-commit install
 
-# Run tests
-pytest tests/
+# Run the checks CI runs
+pytest
+black --check .
+flake8 .
+bandit -r src -ll
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow, and
+[SECURITY.md](SECURITY.md) before deploying the serving layer or loading a
+checkpoint you did not produce yourself.
 
 ### Areas for Contribution
 

@@ -1,0 +1,49 @@
+# Normalise line endings. Without this, checkouts on Windows produce CRLF in
+# the working tree, and any tool that rewrites a file can commit the CRLF back,
+# showing whole files as changed. Text files are stored as LF in the repository
+# and checked out with the platform's native endings.
+* text=auto
+
+# Files that must keep LF regardless of platform: shell scripts break with CRLF,
+# and anything a Linux container reads should match what the container expects.
+*.sh            text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.cff           text eol=lf
+
+# Explicitly textual, so diffs and merges behave.
+*.py            text diff=python
+*.md            text
+*.rst           text
+*.toml          text
+*.cfg           text
+*.ini           text
+*.json          text
+*.txt           text
+
+# Binary: never diff, never touch line endings.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.pdf           binary
+*.pt            binary
+*.pth           binary
+*.ckpt          binary
+*.onnx          binary
+*.npy           binary
+*.npz           binary
+
+# Jupyter notebooks are JSON. Keep them textual but suppress diff noise in
+# review; use nbdiff locally when the cell-level change matters.
+*.ipynb         text linguist-documentation
+
+# Keep generated and vendored material out of language statistics.
+docs/_build/*   linguist-generated
+notebooks/*     linguist-documentation
+
+# Deliberately no `export-ignore` rules. `git archive` is what GitHub serves as
+# the release tarball and what Zenodo archives for the DOI, so stripping tests
+# or CI configuration from it would make the citable record less complete and
+# less reproducible than the repository it claims to preserve.

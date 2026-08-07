@@ -1,0 +1,56 @@
+# Install with: pre-commit install
+#
+# The formatter and linter revisions below are pinned to the same versions as
+# the `dev` extra in pyproject.toml. Keep them in step -- if they drift, a commit
+# that passes locally will fail in CI, which is the exact failure this pinning
+# exists to prevent.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^notebooks/
+      - id: end-of-file-fixer
+        exclude: ^notebooks/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^notebooks/
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: debug-statements
+      # Deliberately no mixed-line-ending hook. .gitattributes normalises line
+      # endings at the git level, and on Windows (core.autocrlf=true) a checkout
+      # legitimately produces CRLF in the working tree. A hook that rewrites
+      # those to LF fights the checkout on every run, reporting a "fix" that
+      # produces no committed change.
+
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
+      - id: black
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
+    hooks:
+      - id: bandit
+        args: [-c, pyproject.toml, -ll]
+        additional_dependencies: ['bandit[toml]']
+        files: ^src/
+
+  # CITATION.cff and .zenodo.json gate CI; catch a malformed one before pushing.
+  - repo: local
+    hooks:
+      - id: validate-citation
+        name: validate CITATION.cff
+        entry: cffconvert --validate
+        language: python
+        additional_dependencies: [cffconvert]
+        files: ^CITATION\.cff$
+        pass_filenames: false
