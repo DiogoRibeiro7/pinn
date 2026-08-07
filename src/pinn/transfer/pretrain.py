@@ -3,7 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Iterable, Iterator, List, MutableMapping, Optional, Sequence
+from typing import (
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    MutableMapping,
+    Optional,
+    Sequence,
+)
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -78,8 +87,10 @@ class PretrainingManager:
         self,
         model: torch.nn.Module,
         config: PretrainingConfig | None = None,
-        optimizer_factory: Callable[[Iterable[torch.nn.Parameter], float], torch.optim.Optimizer]
-        | None = None,
+        optimizer_factory: (
+            Callable[[Iterable[torch.nn.Parameter], float], torch.optim.Optimizer]
+            | None
+        ) = None,
     ) -> None:
         self.model = model
         self.config = config or PretrainingConfig()
@@ -97,7 +108,9 @@ class PretrainingManager:
 
         self._tasks.append(task)
 
-    def run(self, tasks: Optional[Sequence[PretrainingTask]] = None) -> Dict[str, Dict[str, float]]:
+    def run(
+        self, tasks: Optional[Sequence[PretrainingTask]] = None
+    ) -> Dict[str, Dict[str, float]]:
         """Execute the pre-training schedule and return metrics per task."""
 
         task_sequence = list(tasks or self._tasks)
@@ -109,9 +122,14 @@ class PretrainingManager:
 
         for index, task in enumerate(task_sequence):
             if self.config.reset_optimizer_each_task or self._optimizer is None:
-                self._optimizer = self.optimizer_factory(self.model.parameters(), self.config.lr)
+                self._optimizer = self.optimizer_factory(
+                    self.model.parameters(), self.config.lr
+                )
             self.logger.info(
-                "Starting pre-training task %s (%d/%d)", task.name, index + 1, len(task_sequence)
+                "Starting pre-training task %s (%d/%d)",
+                task.name,
+                index + 1,
+                len(task_sequence),
             )
             if task.description:
                 self.logger.debug("Task description: %s", task.description)
@@ -123,8 +141,12 @@ class PretrainingManager:
 
         return results
 
-    def _run_single_task(self, task: PretrainingTask, device: torch.device) -> Dict[str, float]:
-        assert self._optimizer is not None, "Optimizer must be created before running a task"
+    def _run_single_task(
+        self, task: PretrainingTask, device: torch.device
+    ) -> Dict[str, float]:
+        assert (
+            self._optimizer is not None
+        ), "Optimizer must be created before running a task"
         running_loss = 0.0
         total_steps = 0
         best_loss = float("inf")
@@ -136,7 +158,9 @@ class PretrainingManager:
                 loss = task.loss_fn(self.model, batch)
                 loss.backward()
                 if self.config.gradient_clip is not None:
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.gradient_clip)
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), self.config.gradient_clip
+                    )
                 self._optimizer.step()
 
                 running_loss += loss.item()
@@ -167,10 +191,16 @@ class PretrainingManager:
                 break
 
         avg_loss = running_loss / max(total_steps, 1)
-        return {"avg_loss": avg_loss, "best_loss": best_loss, "steps": float(total_steps)}
+        return {
+            "avg_loss": avg_loss,
+            "best_loss": best_loss,
+            "steps": float(total_steps),
+        }
 
 
-def ensure_batch_dict(batch: BatchType | tuple[torch.Tensor, ...] | torch.Tensor) -> BatchType:
+def ensure_batch_dict(
+    batch: BatchType | tuple[torch.Tensor, ...] | torch.Tensor
+) -> BatchType:
     """Convert batches returned by :class:`~torch.utils.data.DataLoader` to dictionaries."""
 
     if isinstance(batch, dict):
@@ -209,16 +239,22 @@ def build_simplified_pretraining_task(
     if noise_std > 0:
         y = y + noise_std * torch.randn_like(y)
     dataset = TensorDataset(x, y)
-    loader = DataLoader(dataset, batch_size=batch_size or min(64, num_points), shuffle=True)
+    loader = DataLoader(
+        dataset, batch_size=batch_size or min(64, num_points), shuffle=True
+    )
 
     def loss_fn(model: torch.nn.Module, batch: BatchType) -> torch.Tensor:
         preds = model(batch["input"])
         return torch.nn.functional.mse_loss(preds, batch["target"])
 
-    return PretrainingTask(name=name, data_loader=loader, loss_fn=loss_fn, description=description)
+    return PretrainingTask(
+        name=name, data_loader=loader, loss_fn=loss_fn, description=description
+    )
 
 
-def progressive_complexity_schedule(tasks: Sequence[PretrainingTask]) -> List[PretrainingTask]:
+def progressive_complexity_schedule(
+    tasks: Sequence[PretrainingTask],
+) -> List[PretrainingTask]:
     """Return tasks sorted by increasing ``weight`` to form a curriculum."""
 
     return sorted(tasks, key=lambda task: task.weight)
@@ -250,7 +286,10 @@ def create_linear_reference_task(
         return slope * x + intercept
 
     return build_simplified_pretraining_task(
-        name="linear_reference", solution_fn=solution_fn, description="Linearised PDE", **kwargs
+        name="linear_reference",
+        solution_fn=solution_fn,
+        description="Linearised PDE",
+        **kwargs,
     )
 
 

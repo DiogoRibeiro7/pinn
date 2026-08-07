@@ -33,7 +33,9 @@ class DomainAdaptationPINN:
     def __init__(
         self,
         source_model: torch.nn.Module,
-        feature_extractor: Optional[Callable[[torch.nn.Module, torch.Tensor], torch.Tensor]] = None,
+        feature_extractor: Optional[
+            Callable[[torch.nn.Module, torch.Tensor], torch.Tensor]
+        ] = None,
         config: Optional[DomainAdaptationConfig] = None,
     ) -> None:
         self.source_model = source_model
@@ -73,8 +75,12 @@ class DomainAdaptationPINN:
         device = torch.device(self.config.device)
         self.source_model.to(device)
         self.domain_discriminator.to(device)
-        feature_optimizer = torch.optim.Adam(self.source_model.parameters(), lr=self.config.lr)
-        discriminator_optimizer = torch.optim.Adam(self.domain_discriminator.parameters(), lr=self.config.lr)
+        feature_optimizer = torch.optim.Adam(
+            self.source_model.parameters(), lr=self.config.lr
+        )
+        discriminator_optimizer = torch.optim.Adam(
+            self.domain_discriminator.parameters(), lr=self.config.lr
+        )
         history = {"discriminator_loss": 0.0, "adversarial_loss": 0.0}
 
         target_iter = iter(target_loader)
@@ -86,12 +92,18 @@ class DomainAdaptationPINN:
                     target_iter = iter(target_loader)
                     target_batch = next(target_iter)
                 source_batch = move_batch_to_device(source_batch, device)
-                target_batch = move_batch_to_device(ensure_batch_dict(target_batch), device)
+                target_batch = move_batch_to_device(
+                    ensure_batch_dict(target_batch), device
+                )
 
                 # Train discriminator
                 discriminator_optimizer.zero_grad()
-                source_features = self.feature_extractor(self.source_model, source_batch["input"])
-                target_features = self.feature_extractor(self.source_model, target_batch["input"])
+                source_features = self.feature_extractor(
+                    self.source_model, source_batch["input"]
+                )
+                target_features = self.feature_extractor(
+                    self.source_model, target_batch["input"]
+                )
                 src_logits = self.domain_discriminator(source_features.detach())
                 tgt_logits = self.domain_discriminator(target_features.detach())
                 loss_src = torch.nn.functional.binary_cross_entropy_with_logits(
@@ -106,7 +118,9 @@ class DomainAdaptationPINN:
 
                 # Train feature extractor to fool discriminator
                 feature_optimizer.zero_grad()
-                target_features = self.feature_extractor(self.source_model, target_batch["input"])
+                target_features = self.feature_extractor(
+                    self.source_model, target_batch["input"]
+                )
                 fool_logits = self.domain_discriminator(target_features)
                 adversarial_loss = torch.nn.functional.binary_cross_entropy_with_logits(
                     fool_logits, torch.ones_like(fool_logits)
@@ -135,17 +149,25 @@ class DomainAdaptationPINN:
         optimizer = torch.optim.Adam(self.source_model.parameters(), lr=self.config.lr)
         history = {"coral_loss": 0.0, "task_loss": 0.0}
         for epoch in range(self.config.epochs):
-            for source_batch, target_batch in zip(_iterate_batches(source_loader), _iterate_batches(target_loader)):
+            for source_batch, target_batch in zip(
+                _iterate_batches(source_loader), _iterate_batches(target_loader)
+            ):
                 source_batch = move_batch_to_device(source_batch, device)
                 target_batch = move_batch_to_device(target_batch, device)
                 optimizer.zero_grad()
-                source_features = self.feature_extractor(self.source_model, source_batch["input"])
-                target_features = self.feature_extractor(self.source_model, target_batch["input"])
+                source_features = self.feature_extractor(
+                    self.source_model, source_batch["input"]
+                )
+                target_features = self.feature_extractor(
+                    self.source_model, target_batch["input"]
+                )
                 coral_loss = self._coral_loss(source_features, target_features)
                 preds = self.source_model(source_batch["input"])
                 task_loss = torch.tensor(0.0, device=device)
                 if "target" in source_batch:
-                    task_loss = torch.nn.functional.mse_loss(preds, source_batch["target"])
+                    task_loss = torch.nn.functional.mse_loss(
+                        preds, source_batch["target"]
+                    )
                 loss = task_loss + self.config.coral_lambda * coral_loss
                 loss.backward()
                 optimizer.step()
@@ -162,13 +184,21 @@ class DomainAdaptationPINN:
         optimizer = torch.optim.Adam(self.source_model.parameters(), lr=self.config.lr)
         history = {"mmd_loss": 0.0}
         for epoch in range(self.config.epochs):
-            for source_batch, target_batch in zip(_iterate_batches(source_loader), _iterate_batches(target_loader)):
+            for source_batch, target_batch in zip(
+                _iterate_batches(source_loader), _iterate_batches(target_loader)
+            ):
                 source_batch = move_batch_to_device(source_batch, device)
                 target_batch = move_batch_to_device(target_batch, device)
                 optimizer.zero_grad()
-                source_features = self.feature_extractor(self.source_model, source_batch["input"])
-                target_features = self.feature_extractor(self.source_model, target_batch["input"])
-                mmd_loss = self._maximum_mean_discrepancy(source_features, target_features)
+                source_features = self.feature_extractor(
+                    self.source_model, source_batch["input"]
+                )
+                target_features = self.feature_extractor(
+                    self.source_model, target_batch["input"]
+                )
+                mmd_loss = self._maximum_mean_discrepancy(
+                    source_features, target_features
+                )
                 mmd_loss.backward()
                 optimizer.step()
                 history["mmd_loss"] += mmd_loss.item()
@@ -185,7 +215,9 @@ class DomainAdaptationPINN:
         layers.append(nn.LazyLinear(1))
         return nn.Sequential(*layers)
 
-    def _default_feature_extractor(self, model: torch.nn.Module, inputs: torch.Tensor) -> torch.Tensor:
+    def _default_feature_extractor(
+        self, model: torch.nn.Module, inputs: torch.Tensor
+    ) -> torch.Tensor:
         if hasattr(model, "feature_extractor"):
             return model.feature_extractor(inputs)
         outputs = model(inputs)
@@ -194,7 +226,9 @@ class DomainAdaptationPINN:
         return outputs
 
     @staticmethod
-    def _coral_loss(source_features: torch.Tensor, target_features: torch.Tensor) -> torch.Tensor:
+    def _coral_loss(
+        source_features: torch.Tensor, target_features: torch.Tensor
+    ) -> torch.Tensor:
         source = source_features - source_features.mean(dim=0, keepdim=True)
         target = target_features - target_features.mean(dim=0, keepdim=True)
         cov_source = source.t() @ source / max(source.shape[0] - 1, 1)
@@ -211,7 +245,9 @@ class DomainAdaptationPINN:
         return kernel.mean()
 
     @staticmethod
-    def _gaussian_kernel(x: torch.Tensor, y: torch.Tensor, bandwidth: float) -> torch.Tensor:
+    def _gaussian_kernel(
+        x: torch.Tensor, y: torch.Tensor, bandwidth: float
+    ) -> torch.Tensor:
         diff = x.unsqueeze(1) - y.unsqueeze(0)
         return torch.exp(-diff.pow(2).sum(-1) / (2 * bandwidth**2))
 

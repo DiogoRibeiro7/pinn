@@ -7,6 +7,7 @@ group.  The implementations are intentionally lightweight so that they can
 be exercised from CPU-only unit tests while still providing the hooks needed
 for multi-GPU deployments.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -50,7 +51,9 @@ class CompressedGradient:
 class GradientCompression:
     """Top-k sparsification with optional uniform quantisation."""
 
-    def __init__(self, compression_ratio: float = 0.0, quantization_bits: Optional[int] = None) -> None:
+    def __init__(
+        self, compression_ratio: float = 0.0, quantization_bits: Optional[int] = None
+    ) -> None:
         if compression_ratio < 0 or compression_ratio >= 1:
             raise ValueError("compression_ratio must be in [0, 1)")
         if quantization_bits is not None and quantization_bits <= 1:
@@ -67,7 +70,9 @@ class GradientCompression:
         for name, grad in gradients.items():
             flat = grad.detach().flatten()
             if not self.enabled:
-                compressed[name] = CompressedGradient(None, flat.cpu(), grad.shape, None, None)
+                compressed[name] = CompressedGradient(
+                    None, flat.cpu(), grad.shape, None, None
+                )
                 continue
 
             k = int(max(1, flat.numel() * max(self.compression_ratio, 1e-12)))
@@ -83,9 +88,11 @@ class GradientCompression:
             bits = self.quantization_bits
             if bits is not None:
                 scale = values.abs().max().clamp(min=1e-12)
-                levels = 2 ** bits - 1
+                levels = 2**bits - 1
                 values = torch.round(values / scale * (levels / 2)).to(torch.int16)
-            compressed[name] = CompressedGradient(indices, values, grad.shape, scale, bits)
+            compressed[name] = CompressedGradient(
+                indices, values, grad.shape, scale, bits
+            )
         return compressed
 
     def decompress(self, compressed: Dict[str, CompressedGradient]) -> TensorDict:
@@ -94,7 +101,7 @@ class GradientCompression:
             if comp.indices is None:
                 values = comp.values
                 if comp.bits is not None:
-                    levels = 2 ** comp.bits - 1
+                    levels = 2**comp.bits - 1
                     assert comp.scale is not None
                     values = values.to(torch.float32) * comp.scale / (levels / 2)
                 grad = values.reshape(comp.shape)
@@ -106,7 +113,7 @@ class GradientCompression:
             values = comp.values
             if comp.bits is not None:
                 assert comp.scale is not None
-                levels = 2 ** comp.bits - 1
+                levels = 2**comp.bits - 1
                 values = values.to(torch.float32) * comp.scale / (levels / 2)
             tensor[comp.indices.long()] = values.to(torch.float32)
             gradients[name] = tensor.reshape(comp.shape)
@@ -167,7 +174,11 @@ def synchronise_gradients(
 
     if compression is not None:
         decompressed = compression.decompress(compression.compress(grads))
-        grads = {name: decompressed[name].to(param.grad.device) for name, param in model.named_parameters() if param.grad is not None}
+        grads = {
+            name: decompressed[name].to(param.grad.device)
+            for name, param in model.named_parameters()
+            if param.grad is not None
+        }
 
     world_size = 1
     if torch.distributed.is_available() and torch.distributed.is_initialized():

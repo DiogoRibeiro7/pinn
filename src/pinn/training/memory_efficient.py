@@ -23,7 +23,7 @@ from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-_MB = 1024 ** 2
+_MB = 1024**2
 
 
 @dataclass
@@ -196,7 +196,7 @@ class MemoryEfficientPINN(ContinuousPINN):
                     xf_sample,
                     self.cfg.nu,
                 )
-                loss = torch.mean(residual ** 2)
+                loss = torch.mean(residual**2)
             loss.backward()
             torch.cuda.synchronize(self.device)
             peak_bytes = torch.cuda.max_memory_allocated(self.device)
@@ -244,10 +244,15 @@ class MemoryEfficientPINN(ContinuousPINN):
             config.collocation_batch_size = batch_size
         if config.effective_batch_size is None:
             config.effective_batch_size = data["tf"].shape[0]
-        if config.memory_budget_mb is None and self.default_memory_budget_mb is not None:
+        if (
+            config.memory_budget_mb is None
+            and self.default_memory_budget_mb is not None
+        ):
             config.memory_budget_mb = self.default_memory_budget_mb
         if config.memory_profiler is None:
-            config.memory_profiler = self.default_profiler or MemoryProfiler(self.device)
+            config.memory_profiler = self.default_profiler or MemoryProfiler(
+                self.device
+            )
 
         logger.info(
             "Configured memory-efficient training",

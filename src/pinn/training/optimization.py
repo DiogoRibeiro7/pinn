@@ -7,7 +7,9 @@ from typing import Callable, Dict, Iterable, List
 import torch
 
 
-def adaptive_loss_weights(losses: Dict[str, torch.Tensor], temperature: float = 1.0) -> Dict[str, float]:
+def adaptive_loss_weights(
+    losses: Dict[str, torch.Tensor], temperature: float = 1.0
+) -> Dict[str, float]:
     """Return normalised weights for each loss term based on their magnitudes."""
 
     loss_vals = torch.tensor([v.detach() for v in losses.values()])
@@ -15,7 +17,9 @@ def adaptive_loss_weights(losses: Dict[str, torch.Tensor], temperature: float = 
     return {k: float(w) for k, w in zip(losses.keys(), weights)}
 
 
-def second_order_step(model: torch.nn.Module, loss_fn: Callable, x: torch.Tensor, y: torch.Tensor) -> float:
+def second_order_step(
+    model: torch.nn.Module, loss_fn: Callable, x: torch.Tensor, y: torch.Tensor
+) -> float:
     """Perform a single step of second-order optimisation using LBFGS."""
 
     opt = torch.optim.LBFGS(model.parameters(), max_iter=5)

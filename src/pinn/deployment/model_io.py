@@ -1,4 +1,5 @@
 """Utilities for serializing and loading trained PINN models."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,7 +16,9 @@ def _version_path(base: Path, version: Optional[str]) -> Path:
     return base
 
 
-def save_model(model: torch.nn.Module, path: str, version: Optional[str] = None) -> Path:
+def save_model(
+    model: torch.nn.Module, path: str, version: Optional[str] = None
+) -> Path:
     """Save ``model`` to ``path`` with optional ``version`` tagging.
 
     Parameters

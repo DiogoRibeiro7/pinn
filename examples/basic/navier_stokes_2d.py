@@ -8,7 +8,13 @@ import numpy as np
 import torch
 
 from pinn.models import MLP
-from pinn.solvers.navier_stokes import NSConfig, NavierStokesPINN, TrainConfig, tgv_u, tgv_v
+from pinn.solvers.navier_stokes import (
+    NSConfig,
+    NavierStokesPINN,
+    TrainConfig,
+    tgv_u,
+    tgv_v,
+)
 from pinn.utils.checkpointing import CheckpointManager
 from pinn.utils.logging import get_logger
 from pinn.utils.metrics import compute_error_metrics
@@ -34,7 +40,9 @@ def main() -> None:
     pinn = NavierStokesPINN(model=model, cfg=cfg, device=device)
 
     tcfg = TrainConfig(n_ic=200, n_f=2_000, n_per=400, lr=1e-3, adam_steps=2_000)
-    checkpoint_manager = CheckpointManager(out_dir / "checkpoints", save_frequency=1_000, keep_best_n=2)
+    checkpoint_manager = CheckpointManager(
+        out_dir / "checkpoints", save_frequency=1_000, keep_best_n=2
+    )
     pinn.train(tcfg, checkpoint_manager=checkpoint_manager)
 
     # Evaluation grid for Taylor-Green vortex
@@ -43,9 +51,15 @@ def main() -> None:
     y = np.linspace(cfg.ymin, cfg.ymax, 50, dtype=np.float32)
     TT, XX, YY = np.meshgrid(t, x, y, indexing="ij")
     with torch.no_grad():
-        pred = pinn.model(
-            torch.from_numpy(np.stack([TT.ravel(), XX.ravel(), YY.ravel()], axis=1)).to(device)
-        ).cpu().numpy()
+        pred = (
+            pinn.model(
+                torch.from_numpy(
+                    np.stack([TT.ravel(), XX.ravel(), YY.ravel()], axis=1)
+                ).to(device)
+            )
+            .cpu()
+            .numpy()
+        )
     pred_u = pred[:, 0].reshape(TT.shape)
     pred_v = pred[:, 1].reshape(TT.shape)
 

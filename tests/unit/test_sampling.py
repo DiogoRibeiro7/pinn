@@ -22,4 +22,3 @@ def test_latin_hypercube_bounds(n: int, d: int, low: float, high: float) -> None
     assert samples.shape == (n, d)
     assert np.all(samples >= low)
     assert np.all(samples <= high)
-

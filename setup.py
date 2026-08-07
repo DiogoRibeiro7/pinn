@@ -1,4 +1,5 @@
 """Setup script for the pinn package."""
+
 from setuptools import setup, find_packages
 
 install_requires = [

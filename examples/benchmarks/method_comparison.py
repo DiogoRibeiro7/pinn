@@ -22,8 +22,9 @@ from pinn.utils.logging import get_logger
 
 def build_pinn(cfg: BurgersConfig) -> ContinuousPINN:
     model = MLP(in_dim=2, hidden_layers=4, width=32, out_dim=1)
-    return ContinuousPINN(model=model, device="cpu", pde_residual_fn=burgers_residual,
-                          cfg_burgers=cfg)
+    return ContinuousPINN(
+        model=model, device="cpu", pde_residual_fn=burgers_residual, cfg_burgers=cfg
+    )
 
 
 def main() -> None:
@@ -35,8 +36,15 @@ def main() -> None:
 
     logger = get_logger(__name__)
     cfg = BurgersConfig()
-    tcfg = TrainConfig(n_u0=150, n_bc=100, n_f=1_500, adam_steps=args.adam_steps,
-                       lbfgs_max_iter=0, seed=123, track_losses=True)
+    tcfg = TrainConfig(
+        n_u0=150,
+        n_bc=100,
+        n_f=1_500,
+        adam_steps=args.adam_steps,
+        lbfgs_max_iter=0,
+        seed=123,
+        track_losses=True,
+    )
 
     logger.info("Training with equal weights (1, 1, 1)")
     hist_equal = build_pinn(cfg).train(tcfg, weights=(1.0, 1.0, 1.0))
@@ -53,8 +61,12 @@ def main() -> None:
             "weighted_ic": hist_weighted["ic"][-1],
         },
     )
-    print(f"Equal weights   : total {hist_equal['total'][-1]:.3e} | IC {hist_equal['ic'][-1]:.3e}")
-    print(f"IC up-weighted  : total {hist_weighted['total'][-1]:.3e} | IC {hist_weighted['ic'][-1]:.3e}")
+    print(
+        f"Equal weights   : total {hist_equal['total'][-1]:.3e} | IC {hist_equal['ic'][-1]:.3e}"
+    )
+    print(
+        f"IC up-weighted  : total {hist_weighted['total'][-1]:.3e} | IC {hist_weighted['ic'][-1]:.3e}"
+    )
 
 
 if __name__ == "__main__":

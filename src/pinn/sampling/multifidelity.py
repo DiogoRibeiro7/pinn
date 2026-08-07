@@ -95,7 +95,9 @@ class MultiFidelitySampler:
         return self._generate_samples(n_points, resolution)
 
     # ------------------------------------------------------------------
-    def hierarchical_sampling_schedule(self, total_budget: int) -> List[Tuple[int, int]]:
+    def hierarchical_sampling_schedule(
+        self, total_budget: int
+    ) -> List[Tuple[int, int]]:
         """Allocate a sampling budget across fidelity levels.
 
         The strategy follows a coarse-to-fine allocation where cheaper
@@ -117,7 +119,9 @@ class MultiFidelitySampler:
         return schedule
 
     # ------------------------------------------------------------------
-    def adaptive_next_fidelity(self, metrics: Sequence[float], threshold: float = 0.05) -> int:
+    def adaptive_next_fidelity(
+        self, metrics: Sequence[float], threshold: float = 0.05
+    ) -> int:
         """Select the next fidelity level based on validation metrics.
 
         Parameters

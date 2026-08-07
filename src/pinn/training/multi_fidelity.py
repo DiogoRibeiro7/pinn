@@ -21,6 +21,8 @@ def multi_fidelity_train(
 
     pred_high = model(high_fidelity[:, :-1])
     pred_low = model(low_fidelity[:, :-1])
-    loss = loss_fn(pred_high, high_fidelity[:, -1:]) + loss_fn(pred_low, low_fidelity[:, -1:])
+    loss = loss_fn(pred_high, high_fidelity[:, -1:]) + loss_fn(
+        pred_low, low_fidelity[:, -1:]
+    )
     loss.backward()
     return loss

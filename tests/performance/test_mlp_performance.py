@@ -24,4 +24,3 @@ def test_mlp_forward_speed(device):
 
     # Threshold generous for heterogeneous environments
     assert duration < 1.0
-

@@ -45,7 +45,12 @@ def analytic_burgers_solution(x: torch.Tensor) -> torch.Tensor:
     return torch.sin(torch.pi * x) + 0.1 * torch.sin(2 * torch.pi * x)
 
 
-def make_loader(func: Callable[[torch.Tensor], torch.Tensor], num_points: int, batch_size: int, noise: float) -> DataLoader:
+def make_loader(
+    func: Callable[[torch.Tensor], torch.Tensor],
+    num_points: int,
+    batch_size: int,
+    noise: float,
+) -> DataLoader:
     x = torch.linspace(0.0, 1.0, num_points).unsqueeze(-1)
     y = func(x)
     if noise:
@@ -54,7 +59,9 @@ def make_loader(func: Callable[[torch.Tensor], torch.Tensor], num_points: int, b
     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 
-def train_baseline(model: torch.nn.Module, loader: DataLoader, epochs: int, lr: float, device: str) -> float:
+def train_baseline(
+    model: torch.nn.Module, loader: DataLoader, epochs: int, lr: float, device: str
+) -> float:
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     model.to(device)
     for _ in range(epochs):
@@ -87,38 +94,58 @@ def run_benchmark(cfg: BenchmarkConfig) -> None:
     base_model = MLP(in_dim=1, hidden_layers=4, width=32, out_dim=1)
     transfer = TransferLearningPINN(base_model, device=device)
 
-    linear_task = create_linear_reference_task(num_points=256, batch_size=cfg.batch_size)
+    linear_task = create_linear_reference_task(
+        num_points=256, batch_size=cfg.batch_size
+    )
     linear_task.epochs = cfg.pretrain_epochs
     heat_task = build_simplified_pretraining_task(
-        "heat_equation", analytic_heat_solution, num_points=256, batch_size=cfg.batch_size, noise_std=cfg.noise
+        "heat_equation",
+        analytic_heat_solution,
+        num_points=256,
+        batch_size=cfg.batch_size,
+        noise_std=cfg.noise,
     )
     heat_task.epochs = cfg.pretrain_epochs
     diffusion_task = build_simplified_pretraining_task(
-        "diffusion_equation", analytic_diffusion_solution, num_points=256, batch_size=cfg.batch_size, noise_std=cfg.noise
+        "diffusion_equation",
+        analytic_diffusion_solution,
+        num_points=256,
+        batch_size=cfg.batch_size,
+        noise_std=cfg.noise,
     )
     diffusion_task.epochs = cfg.pretrain_epochs
 
     tasks = progressive_complexity_schedule([linear_task, heat_task, diffusion_task])
-    pretrain_cfg = PretrainingConfig(lr=cfg.lr_pretrain, device=device, log_frequency=cfg.pretrain_epochs)
+    pretrain_cfg = PretrainingConfig(
+        lr=cfg.lr_pretrain, device=device, log_frequency=cfg.pretrain_epochs
+    )
     manager = PretrainingManager(base_model, pretrain_cfg)
     for task in tasks:
         manager.register_task(task)
     manager.run()
 
-    burgers_loader = make_loader(analytic_burgers_solution, 512, cfg.batch_size, cfg.noise)
-    finetune_cfg = FineTuningConfig(epochs=cfg.finetune_epochs, lr=cfg.lr_finetune, device=device)
+    burgers_loader = make_loader(
+        analytic_burgers_solution, 512, cfg.batch_size, cfg.noise
+    )
+    finetune_cfg = FineTuningConfig(
+        epochs=cfg.finetune_epochs, lr=cfg.lr_finetune, device=device
+    )
     transfer.fine_tune(burgers_loader, finetune_cfg)
     transfer_error = evaluate(base_model, burgers_loader, device)
 
     baseline_model = MLP(in_dim=1, hidden_layers=4, width=32, out_dim=1)
-    baseline_error = train_baseline(baseline_model, burgers_loader, cfg.finetune_epochs, cfg.lr_finetune, device)
+    baseline_error = train_baseline(
+        baseline_model, burgers_loader, cfg.finetune_epochs, cfg.lr_finetune, device
+    )
 
     print("Transfer learning error:", transfer_error)
     print("Training from scratch error:", baseline_error)
 
 
 def parse_args() -> BenchmarkConfig:
-    parser = argparse.ArgumentParser(description="Transfer learning benchmark for PINNs")
+    parser = argparse.ArgumentParser(
+        description="Transfer learning benchmark for PINNs"
+    )
     parser.add_argument("--device", default="cpu", help="Device to run on")
     parser.add_argument("--pretrain-epochs", type=int, default=200)
     parser.add_argument("--finetune-epochs", type=int, default=200)

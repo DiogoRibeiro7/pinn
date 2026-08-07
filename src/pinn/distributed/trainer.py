@@ -24,7 +24,11 @@ import time
 import torch
 from torch import nn
 
-from .communication import GradientCompression, HierarchicalAverager, synchronise_gradients
+from .communication import (
+    GradientCompression,
+    HierarchicalAverager,
+    synchronise_gradients,
+)
 from .parallel import (
     DataParallelEngine,
     HybridParallelEngine,
@@ -93,7 +97,11 @@ class DistributedTrainer:
                 device_list = ["cpu"]
             first = device_list[0]
             if isinstance(first, int):
-                primary = torch.device(f"cuda:{first}") if torch.cuda.is_available() else torch.device("cpu")
+                primary = (
+                    torch.device(f"cuda:{first}")
+                    if torch.cuda.is_available()
+                    else torch.device("cpu")
+                )
             else:
                 primary = torch.device(first)
             env = _EnvInfo(device_list, primary)
@@ -104,7 +112,13 @@ class DistributedTrainer:
         self.pipeline_chunks = max(1, pipeline_chunks)
         self.compression = compression
         self.averager = averager or HierarchicalAverager()
-        self._engine: DataParallelEngine | ModelParallelEngine | PipelineParallelEngine | HybridParallelEngine | None = None
+        self._engine: (
+            DataParallelEngine
+            | ModelParallelEngine
+            | PipelineParallelEngine
+            | HybridParallelEngine
+            | None
+        ) = None
         self._current_model: nn.Module | None = None
         self._step_durations: list[float] = []
 
@@ -119,7 +133,9 @@ class DistributedTrainer:
         elif isinstance(model, nn.Module):
             self.model_ref = self.prepare_model(model)
         else:
-            raise TypeError("model must be an nn.Module or solver with a 'model' attribute")
+            raise TypeError(
+                "model must be an nn.Module or solver with a 'model' attribute"
+            )
 
     # ------------------------------------------------------------------ utils
     def prepare_model(self, model: nn.Module) -> nn.Module:
@@ -136,9 +152,13 @@ class DistributedTrainer:
         if self.strategy == "model_parallel":
             return ModelParallelEngine(model, devices)
         if self.strategy == "pipeline":
-            return PipelineParallelEngine(model, devices, microbatches=self.pipeline_chunks)
+            return PipelineParallelEngine(
+                model, devices, microbatches=self.pipeline_chunks
+            )
         if self.strategy == "hybrid":
-            return HybridParallelEngine(model, devices, microbatches=self.pipeline_chunks)
+            return HybridParallelEngine(
+                model, devices, microbatches=self.pipeline_chunks
+            )
         return DataParallelEngine(model, devices)
 
     # ---------------------------------------------------------------- fit

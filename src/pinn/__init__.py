@@ -1,7 +1,17 @@
 """Core package for Physics-Informed Neural Networks."""
+
 from importlib.metadata import PackageNotFoundError, version
 
-from . import config, deployment, models, optimization, solvers, transfer, utils, visualization
+from . import (
+    config,
+    deployment,
+    models,
+    optimization,
+    solvers,
+    transfer,
+    utils,
+    visualization,
+)
 from .models import (
     MLP,
     AttentionPINN,
@@ -34,7 +44,11 @@ from .solvers.raissi_improved import (
     TrainConfig,
     demo as burgers_demo,
 )
-from .solvers.navier_stokes import NSConfig, NavierStokesPINN, TrainConfig as NSTrainConfig
+from .solvers.navier_stokes import (
+    NSConfig,
+    NavierStokesPINN,
+    TrainConfig as NSTrainConfig,
+)
 from .utils import error_handling, logging, metrics, sampling, checkpointing, profiling
 from .utils.logging import get_logger, log_performance
 from .utils.checkpointing import CheckpointManager

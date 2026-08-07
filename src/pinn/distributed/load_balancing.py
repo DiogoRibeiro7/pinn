@@ -1,4 +1,5 @@
 """Dynamic workload distribution and fault tolerance helpers."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -32,7 +33,9 @@ class WorkerState:
         if self.throughput == 0.0:
             self.throughput = samples_per_sec
         else:
-            self.throughput = (1 - smoothing) * self.throughput + smoothing * samples_per_sec
+            self.throughput = (
+                1 - smoothing
+            ) * self.throughput + smoothing * samples_per_sec
         self.processed_batches += 1
         self.last_heartbeat = time.time()
 
@@ -53,7 +56,9 @@ class DynamicLoadBalancer:
         if not workers:
             raise ValueError("At least one worker must be provided")
         self.smoothing = smoothing
-        self.workers: MutableMapping[str, WorkerState] = {w: WorkerState(w) for w in workers}
+        self.workers: MutableMapping[str, WorkerState] = {
+            w: WorkerState(w) for w in workers
+        }
 
     def record_batch(self, worker: str, batch_size: int, duration: float) -> None:
         if worker not in self.workers:

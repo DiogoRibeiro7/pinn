@@ -29,6 +29,7 @@ class ValidationError(ValueError):
 # Primitive check functions
 # ---------------------------------------------------------------------------
 
+
 def _match_shape(actual: Sequence[int], expected: Sequence[int]) -> bool:
     if len(actual) != len(expected):
         return False
@@ -48,7 +49,9 @@ def check_array(
 ) -> None:
     """Validate numpy arrays or torch tensors."""
     if not isinstance(array, (np.ndarray, torch.Tensor)):
-        raise ValidationError(f"{name} must be a numpy array or torch Tensor; got {type(array)}")
+        raise ValidationError(
+            f"{name} must be a numpy array or torch Tensor; got {type(array)}"
+        )
 
     actual_shape = tuple(array.shape)
     if shape is not None and not _match_shape(actual_shape, shape):
@@ -116,6 +119,7 @@ def check_device(name: str, tensor: Any, device: str) -> None:
 # ---------------------------------------------------------------------------
 # Decorators
 # ---------------------------------------------------------------------------
+
 
 def validate_arrays(
     params: Sequence[str],

@@ -20,7 +20,9 @@ from pinn.solvers.raissi_improved import (
 )
 
 
-def run_training(use_cache: bool, repeats: int, steps: int, cache_dir: Path | None) -> list[float]:
+def run_training(
+    use_cache: bool, repeats: int, steps: int, cache_dir: Path | None
+) -> list[float]:
     durations: list[float] = []
     for _ in range(repeats):
         model = MLP(in_dim=2, hidden_layers=3, width=32, out_dim=1)
@@ -64,8 +66,12 @@ def run_training(use_cache: bool, repeats: int, steps: int, cache_dir: Path | No
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--steps", type=int, default=25, help="Training steps per trial")
-    parser.add_argument("--repeats", type=int, default=3, help="Number of trials to average")
+    parser.add_argument(
+        "--steps", type=int, default=25, help="Training steps per trial"
+    )
+    parser.add_argument(
+        "--repeats", type=int, default=3, help="Number of trials to average"
+    )
     parser.add_argument(
         "--cache-dir",
         type=Path,

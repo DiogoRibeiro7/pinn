@@ -1,4 +1,5 @@
 """Parallel execution strategies for PINN models."""
+
 from __future__ import annotations
 
 from typing import List, Sequence
@@ -30,10 +31,14 @@ def _normalise_devices(devices: Sequence[int | str] | None) -> List[str]:
 class ParallelEngine:
     """Base class for parallel strategies."""
 
-    def __init__(self, model: nn.Module, devices: Sequence[int | str] | None = None) -> None:
+    def __init__(
+        self, model: nn.Module, devices: Sequence[int | str] | None = None
+    ) -> None:
         self.model = model
         self.devices = _normalise_devices(devices)
-        self.primary_device = torch.device(self.devices[0]) if self.devices else torch.device("cpu")
+        self.primary_device = (
+            torch.device(self.devices[0]) if self.devices else torch.device("cpu")
+        )
 
     def prepare(self) -> nn.Module:
         return self.model.to(self.primary_device)
@@ -44,7 +49,9 @@ class DataParallelEngine(ParallelEngine):
 
     def prepare(self) -> nn.Module:
         model = super().prepare()
-        cuda_devices = [int(dev.split(":")[1]) for dev in self.devices if dev.startswith("cuda")]
+        cuda_devices = [
+            int(dev.split(":")[1]) for dev in self.devices if dev.startswith("cuda")
+        ]
         if cuda_devices and torch.cuda.is_available() and len(cuda_devices) > 1:
             return nn.DataParallel(model, device_ids=cuda_devices)
         return model
@@ -55,7 +62,9 @@ class ModelParallelEngine(ParallelEngine):
 
     def prepare(self) -> nn.Module:
         model = super().prepare()
-        cuda_devices = [torch.device(dev) for dev in self.devices if dev.startswith("cuda")]
+        cuda_devices = [
+            torch.device(dev) for dev in self.devices if dev.startswith("cuda")
+        ]
         if not cuda_devices or len(cuda_devices) == 1:
             return model
         modules = list(model.children())
@@ -71,7 +80,12 @@ class ModelParallelEngine(ParallelEngine):
 class PipelineParallelEngine(ParallelEngine):
     """Sequential micro-batch execution across devices."""
 
-    def __init__(self, model: nn.Module, devices: Sequence[int | str] | None = None, microbatches: int = 4) -> None:
+    def __init__(
+        self,
+        model: nn.Module,
+        devices: Sequence[int | str] | None = None,
+        microbatches: int = 4,
+    ) -> None:
         super().__init__(model, devices)
         self.microbatches = max(1, microbatches)
 
@@ -84,10 +98,17 @@ class PipelineParallelEngine(ParallelEngine):
         if not modules:
             return model
         stages = max(1, len(modules) // len(devices))
-        stage_devices = [devices[min(i // stages, len(devices) - 1)] for i in range(len(modules))]
+        stage_devices = [
+            devices[min(i // stages, len(devices) - 1)] for i in range(len(modules))
+        ]
 
         class _PipelineWrapper(nn.Module):
-            def __init__(self, modules: List[nn.Module], stage_devices: List[torch.device], microbatches: int) -> None:
+            def __init__(
+                self,
+                modules: List[nn.Module],
+                stage_devices: List[torch.device],
+                microbatches: int,
+            ) -> None:
                 super().__init__()
                 self.stages = nn.ModuleList(modules)
                 self.stage_devices = stage_devices
@@ -119,7 +140,9 @@ class HybridParallelEngine(ParallelEngine):
         self.microbatches = microbatches
 
     def prepare(self) -> nn.Module:
-        base = PipelineParallelEngine(self.model, self.devices, self.microbatches).prepare()
+        base = PipelineParallelEngine(
+            self.model, self.devices, self.microbatches
+        ).prepare()
         if isinstance(base, nn.DataParallel):
             return base
         return DataParallelEngine(base, self.devices).prepare()

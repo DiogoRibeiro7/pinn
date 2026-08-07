@@ -12,6 +12,7 @@ Sampling then proceeds from the non-uniform distribution defined by those
 weights.  The implementation is designed to be lightweight so that it can be
 used inside unit tests and small examples.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -80,7 +81,12 @@ class GradientBasedImportanceSampler:
     # ------------------------------------------------------------------
     # Importance weight computation
     # ------------------------------------------------------------------
-    def _compute_importance(self, model: torch.nn.Module, loss_fn: Callable[[torch.nn.Module, Tensor], Tensor], points: Tensor) -> Tensor:
+    def _compute_importance(
+        self,
+        model: torch.nn.Module,
+        loss_fn: Callable[[torch.nn.Module, Tensor], Tensor],
+        points: Tensor,
+    ) -> Tensor:
         """Compute unnormalised importance weights for ``points``."""
         if self.strategy == "gradient":
             points.requires_grad_(True)
@@ -109,10 +115,16 @@ class GradientBasedImportanceSampler:
         weights = metric / metric.sum()
         return weights.detach()
 
-    def update_importance_weights(self, model: torch.nn.Module, loss_fn: Callable[[torch.nn.Module, Tensor], Tensor]) -> None:
+    def update_importance_weights(
+        self,
+        model: torch.nn.Module,
+        loss_fn: Callable[[torch.nn.Module, Tensor], Tensor],
+    ) -> None:
         """Refresh the importance map using the current model parameters."""
         device = self.device or next(model.parameters()).device
-        candidates = torch.from_numpy(self.base_sampler.sample(self.n_candidates)).to(device)
+        candidates = torch.from_numpy(self.base_sampler.sample(self.n_candidates)).to(
+            device
+        )
         weights = self._compute_importance(model, loss_fn, candidates.clone())
         self._state = ImportanceState(points=candidates.detach(), weights=weights)
         self._steps = 0

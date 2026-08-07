@@ -921,12 +921,12 @@ class TestCompleteWorkflow:
 
         # All loss values should be positive and finite
         for name, values in loss_history.items():
-            assert all(v > 0 for v in values), (
-                f"Loss {name} contains non-positive values"
-            )
-            assert all(np.isfinite(v) for v in values), (
-                f"Loss {name} contains non-finite values"
-            )
+            assert all(
+                v > 0 for v in values
+            ), f"Loss {name} contains non-positive values"
+            assert all(
+                np.isfinite(v) for v in values
+            ), f"Loss {name} contains non-finite values"
 
         # If we had the actual implementation, we would test:
         # viz = PINNVisualizer()

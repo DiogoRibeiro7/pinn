@@ -33,24 +33,44 @@ def run_baseline(pinn: ContinuousPINN, config: TrainConfig) -> float:
 
 def build_pinn(cfg: BurgersConfig) -> ContinuousPINN:
     model = MLP(in_dim=2, hidden_layers=2, width=20, out_dim=1)
-    return ContinuousPINN(model=model, device="cpu", pde_residual_fn=burgers_residual, cfg_burgers=cfg)
+    return ContinuousPINN(
+        model=model, device="cpu", pde_residual_fn=burgers_residual, cfg_burgers=cfg
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Active learning benchmark for PINNs")
     parser.add_argument("--config", type=str, help="Burgers configuration file")
-    parser.add_argument("--output", type=str, default="./results", help="Directory to store logs")
-    parser.add_argument("--adam-steps", type=int, default=500, help="Number of Adam steps for each run")
-    parser.add_argument("--active-interval", type=int, default=100, help="Active learning update interval")
-    parser.add_argument("--active-points", type=int, default=64, help="Points added per active iteration")
-    parser.add_argument("--pool-size", type=int, default=512, help="Candidate pool size")
+    parser.add_argument(
+        "--output", type=str, default="./results", help="Directory to store logs"
+    )
+    parser.add_argument(
+        "--adam-steps", type=int, default=500, help="Number of Adam steps for each run"
+    )
+    parser.add_argument(
+        "--active-interval",
+        type=int,
+        default=100,
+        help="Active learning update interval",
+    )
+    parser.add_argument(
+        "--active-points",
+        type=int,
+        default=64,
+        help="Points added per active iteration",
+    )
+    parser.add_argument(
+        "--pool-size", type=int, default=512, help="Candidate pool size"
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.output)
     out_dir.mkdir(parents=True, exist_ok=True)
     logger = get_logger(__name__)
 
-    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
+    cfg = (
+        BurgersConfig()
+    )  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     baseline_pinn = build_pinn(cfg)
     active_pinn = build_pinn(cfg)
 
@@ -99,4 +119,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

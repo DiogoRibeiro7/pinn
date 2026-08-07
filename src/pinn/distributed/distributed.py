@@ -1,14 +1,28 @@
 """High level distributed orchestration for PINN training."""
+
 from __future__ import annotations
 
 import os
 import time
-from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+)
 
 import torch
 from torch import nn
 
-from .communication import AsyncGradientBuffer, GradientCompression, HierarchicalAverager
+from .communication import (
+    AsyncGradientBuffer,
+    GradientCompression,
+    HierarchicalAverager,
+)
 from .load_balancing import DynamicLoadBalancer, FailureTracker
 from .trainer import DistributedTrainer
 
@@ -47,11 +61,15 @@ class DistributedEnvironment:
             return
         if not self.auto_init:
             return
-        env_ready = {"RANK", "WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT"} <= set(os.environ)
+        env_ready = {"RANK", "WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT"} <= set(
+            os.environ
+        )
         if self.init_method == "env://" and not env_ready:
             return
         try:
-            torch.distributed.init_process_group(backend=self.backend, init_method=self.init_method)
+            torch.distributed.init_process_group(
+                backend=self.backend, init_method=self.init_method
+            )
         except (RuntimeError, ValueError):
             return
         self.initialised = True
@@ -63,7 +81,11 @@ class DistributedEnvironment:
             torch.distributed.barrier()
 
     def cleanup(self) -> None:
-        if self.initialised and torch.distributed.is_available() and torch.distributed.is_initialized():
+        if (
+            self.initialised
+            and torch.distributed.is_available()
+            and torch.distributed.is_initialized()
+        ):
             torch.distributed.destroy_process_group()
             self.initialised = False
             self.world_size = 1
@@ -190,7 +212,9 @@ class DistributedPINNTrainer(DistributedTrainer):
         if model is None:
             return None
         try:
-            model, _, step, _ = checkpoint_manager.load_latest(model=model, optimizer=None)
+            model, _, step, _ = checkpoint_manager.load_latest(
+                model=model, optimizer=None
+            )
         except FileNotFoundError:
             return None
         self.failure_tracker.reset(worker)

@@ -48,4 +48,3 @@ def test_burgers_end_to_end(device):
 
     history = pinn.train(tcfg)
     assert "total" in history and len(history["total"]) >= 1
-

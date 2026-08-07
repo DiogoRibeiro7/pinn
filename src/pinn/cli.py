@@ -1,4 +1,5 @@
 """Command-line interface for the pinn package."""
+
 import argparse
 
 from . import __version__

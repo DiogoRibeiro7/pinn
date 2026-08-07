@@ -22,7 +22,9 @@ def main() -> None:
     parser.add_argument("--config", type=str, help="Configuration file")
     parser.add_argument("--output-dir", type=str, default="./results")
     parser.add_argument("--strategy", type=str, default="data_parallel")
-    parser.add_argument("--devices", type=str, default="auto", help="e.g. '0,1' or 'auto'")
+    parser.add_argument(
+        "--devices", type=str, default="auto", help="e.g. '0,1' or 'auto'"
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.output_dir)
@@ -31,7 +33,9 @@ def main() -> None:
     logger = get_logger(__name__)
     logger.info("Starting distributed training example")
 
-    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
+    cfg = (
+        BurgersConfig()
+    )  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     model = MLP(in_dim=2, hidden_layers=2, width=20, out_dim=1)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     pinn = ContinuousPINN(model, device, burgers_residual, cfg)

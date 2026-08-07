@@ -7,7 +7,12 @@ import pytest
 import torch
 
 from pinn.models.mlp import MLP
-from pinn.solvers.raissi import BurgersConfig, ContinuousPINN, TrainConfig, burgers_residual
+from pinn.solvers.raissi import (
+    BurgersConfig,
+    ContinuousPINN,
+    TrainConfig,
+    burgers_residual,
+)
 from pinn.training.adaptive_weighting import (
     AdaptiveLossWeighting,
     AdaptiveWeightingConfig,
@@ -45,7 +50,9 @@ def test_gradnorm_updates_weights() -> None:
 def test_dwa_history_adjusts_weights() -> None:
     cfg = AdaptiveWeightingConfig(enabled=True, method="dwa", adaptation_frequency=1)
     weighting = AdaptiveLossWeighting(("ic", "bc", "pde"), cfg)
-    for step, (ic_val, pde_val) in enumerate([(0.6, 0.8), (0.5, 0.7), (0.4, 0.5)], start=1):
+    for step, (ic_val, pde_val) in enumerate(
+        [(0.6, 0.8), (0.5, 0.7), (0.4, 0.5)], start=1
+    ):
         losses = {
             "ic": torch.tensor(ic_val),
             "bc": torch.tensor(ic_val),
@@ -76,7 +83,9 @@ def test_compute_gradient_norms_returns_expected() -> None:
     assert norms["l1"].item() >= 0.0
 
 
-def test_continuous_pinn_uses_adaptive_weighting(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_continuous_pinn_uses_adaptive_weighting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     cfg = TrainConfig(
         n_u0=8,
         n_bc=8,
@@ -109,4 +118,3 @@ def test_continuous_pinn_uses_adaptive_weighting(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(AdaptiveLossWeighting, "update_weights", wrapped_update)
     pinn.train(cfg)
     assert calls, "adaptive weighting should be invoked at least once"
-

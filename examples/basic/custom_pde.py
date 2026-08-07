@@ -32,11 +32,15 @@ def main() -> None:
 
     # User would define model, residual function and training loop here
     model = MLP(in_dim=2, hidden_layers=2, width=16, out_dim=1)
-    logger.info("Created placeholder model", extra={"parameters": sum(p.numel() for p in model.parameters())})
+    logger.info(
+        "Created placeholder model",
+        extra={"parameters": sum(p.numel() for p in model.parameters())},
+    )
 
     logger.info(
         "This template is intended for customization. Define your PDE residual, "
-        "data sampling, training loop and evaluation in this file.")
+        "data sampling, training loop and evaluation in this file."
+    )
 
 
 if __name__ == "__main__":

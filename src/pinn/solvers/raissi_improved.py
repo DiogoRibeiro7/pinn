@@ -29,7 +29,17 @@ import math
 import random
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import torch
@@ -74,13 +84,14 @@ logger = get_logger(__name__)
 # Utility Functions
 # ============================================================
 
+
 def set_seed(seed: int = 123) -> None:
     """
     Set random seeds for reproducible results.
-    
+
     Args:
         seed: Random seed value for all random number generators
-        
+
     Note:
         Sets seeds for Python's random module, NumPy, and PyTorch (both CPU and GPU).
     """
@@ -90,31 +101,26 @@ def set_seed(seed: int = 123) -> None:
     torch.cuda.manual_seed_all(seed)
 
 
-def latin_hypercube(
-    n: int, 
-    d: int, 
-    low: float = 0.0, 
-    high: float = 1.0
-) -> np.ndarray:
+def latin_hypercube(n: int, d: int, low: float = 0.0, high: float = 1.0) -> np.ndarray:
     """
     Generate Latin Hypercube samples for efficient space-filling sampling.
-    
+
     Latin Hypercube Sampling (LHS) ensures good coverage of the parameter space
     by dividing each dimension into n equally probable intervals and sampling
     exactly once from each interval.
-    
+
     Args:
         n: Number of samples to generate
         d: Number of dimensions
         low: Lower bound for all dimensions
         high: Upper bound for all dimensions
-        
+
     Returns:
         Array of shape (n, d) containing the samples
-        
+
     Raises:
         ValueError: If n or d is not positive
-        
+
     Example:
         >>> samples = latin_hypercube(100, 2, 0.0, 1.0)
         >>> print(samples.shape)
@@ -122,7 +128,7 @@ def latin_hypercube(
     """
     if n <= 0 or d <= 0:
         raise ValueError("Number of samples (n) and dimensions (d) must be positive.")
-        
+
     # Create equally spaced intervals
     cut = np.linspace(0, 1, n + 1)
     u = np.random.rand(n, d)
@@ -131,13 +137,13 @@ def latin_hypercube(
     a = cut[:n][:, None]
     b = cut[1 : n + 1][:, None]
     rdpoints = a + (b - a) * u
-    
+
     # Apply random permutation to each dimension
     H = np.zeros_like(rdpoints)
     for j in range(d):
         order = np.random.permutation(n)
         H[:, j] = rdpoints[order, j]
-        
+
     return low + (high - low) * H
 
 
@@ -145,21 +151,23 @@ def latin_hypercube(
 # Problem Configuration
 # ============================================================
 
+
 @dataclass(frozen=True)
 class BurgersConfig:
     """
     Configuration for the 1D viscous Burgers equation problem.
-    
+
     Defines the computational domain and physical parameters for the PDE:
         u_t + u*u_x - ν*u_xx = 0
-        
+
     Attributes:
         tmin: Minimum time value
-        tmax: Maximum time value  
+        tmax: Maximum time value
         xmin: Minimum spatial coordinate
         xmax: Maximum spatial coordinate
         nu: Kinematic viscosity coefficient
     """
+
     tmin: float = 0.0
     tmax: float = 1.0
     xmin: float = -1.0
@@ -178,13 +186,14 @@ class BurgersConfig:
 class Domain1D:
     """
     Simple 1D domain specification.
-    
+
     Attributes:
         tmin: Minimum time value
         tmax: Maximum time value
-        xmin: Minimum spatial coordinate  
+        xmin: Minimum spatial coordinate
         xmax: Maximum spatial coordinate
     """
+
     tmin: float = 0.0
     tmax: float = 1.0
     xmin: float = -1.0
@@ -195,13 +204,14 @@ class Domain1D:
 # Analytical Solutions and Boundary Conditions
 # ============================================================
 
+
 def u0_true(x: np.ndarray) -> np.ndarray:
     """
     Initial condition for Burgers equation: u(0, x) = -sin(π*x).
-    
+
     Args:
         x: Spatial coordinates, shape (N,) or (N, 1)
-        
+
     Returns:
         Initial condition values, same shape as input
     """
@@ -211,10 +221,10 @@ def u0_true(x: np.ndarray) -> np.ndarray:
 def u_left_bc(t: np.ndarray) -> np.ndarray:
     """
     Left boundary condition: u(t, -1) = 0.
-    
+
     Args:
         t: Time coordinates, shape (N,) or (N, 1)
-        
+
     Returns:
         Boundary condition values (zeros), same shape as input
     """
@@ -224,10 +234,10 @@ def u_left_bc(t: np.ndarray) -> np.ndarray:
 def u_right_bc(t: np.ndarray) -> np.ndarray:
     """
     Right boundary condition: u(t, +1) = 0.
-    
+
     Args:
         t: Time coordinates, shape (N,) or (N, 1)
-        
+
     Returns:
         Boundary condition values (zeros), same shape as input
     """
@@ -286,6 +296,7 @@ class TrainConfig:
         Optional :class:`~pinn.optimization.caching.CacheConfig` describing
         caching and precomputation preferences for the training run.
     """
+
     n_u0: int = 100
     n_bc: int = 100
     n_f: int = 10_000
@@ -331,9 +342,13 @@ class TrainConfig:
         if self.active_convergence_tol < 0.0:
             raise ValidationError("active_convergence_tol must be non-negative")
         if self.active_initial_points is not None:
-            check_array("active_initial_points", self.active_initial_points, shape=(-1, 2))
+            check_array(
+                "active_initial_points", self.active_initial_points, shape=(-1, 2)
+            )
         if self.active_strategy is not None:
-            check_range("active_points_per_iteration", self.active_points_per_iteration, min=1)
+            check_range(
+                "active_points_per_iteration", self.active_points_per_iteration, min=1
+            )
             check_range("active_candidate_pool", self.active_candidate_pool, min=1)
             check_range("active_update_interval", self.active_update_interval, min=1)
             check_range("active_patience", self.active_patience, min=1)
@@ -342,7 +357,9 @@ class TrainConfig:
         if self.effective_batch_size is not None:
             check_range("effective_batch_size", self.effective_batch_size, min=1)
         if self.gradient_accumulation_steps is not None:
-            check_range("gradient_accumulation_steps", self.gradient_accumulation_steps, min=1)
+            check_range(
+                "gradient_accumulation_steps", self.gradient_accumulation_steps, min=1
+            )
         if self.memory_budget_mb is not None:
             check_range("memory_budget_mb", self.memory_budget_mb, min=1)
         if not 0.0 < self.memory_alert_fraction <= 1.0:
@@ -368,14 +385,15 @@ class TrainConfig:
 # Continuous-Time PINN Implementation
 # ============================================================
 
+
 class ContinuousPINN:
     """
     Physics-Informed Neural Network for continuous-time PDE solving.
-    
+
     This class implements the standard PINN approach where the PDE residual
     is enforced at collocation points throughout the domain, while initial
     and boundary conditions are enforced through supervised learning.
-    
+
     Attributes:
         model: Neural network model
         device: Computation device (CPU or CUDA)
@@ -394,7 +412,7 @@ class ContinuousPINN:
     ) -> None:
         """
         Initialize the continuous PINN.
-        
+
         Args:
             model: Neural network for u_theta(t, x)
             device: Computation device ('cpu' or 'cuda')
@@ -431,11 +449,7 @@ class ContinuousPINN:
         """Forward pass through the model with optional checkpointing."""
 
         cache = self._cache
-        if (
-            cache is not None
-            and cache.config.store_activations
-            and not requires_grad
-        ):
+        if cache is not None and cache.config.store_activations and not requires_grad:
             cached = cache.get_activation(inputs)
             if cached is not None:
                 return cached
@@ -445,11 +459,7 @@ class ContinuousPINN:
             output = checkpoint.checkpoint(lambda inp: self.model(inp), inputs)
         else:
             output = self.model(inputs)
-        if (
-            cache is not None
-            and cache.config.store_activations
-            and not requires_grad
-        ):
+        if cache is not None and cache.config.store_activations and not requires_grad:
             cache.store_activation(inputs, output)
         return output
 
@@ -470,16 +480,16 @@ class ContinuousPINN:
         """
         t, x = tx[:, :1], tx[:, 1:2]
         residual = self.pde_residual_fn(model, t, x, self.cfg.nu)
-        return torch.mean(residual ** 2)
+        return torch.mean(residual**2)
 
     @validate_config(TrainConfig, param="tcfg")
     def _make_training_points(self, tcfg: TrainConfig) -> Dict[str, Tensor]:
         """
         Generate training data points for IC, BC, and collocation.
-        
+
         Args:
             tcfg: Training configuration
-            
+
         Returns:
             Dictionary containing training points and target values
         """
@@ -516,14 +526,12 @@ class ContinuousPINN:
             x_f_tensor = tx[:, [1]].to(self.device)
         else:
             H = latin_hypercube(tcfg.n_f, 2, 0.0, 1.0)
-            t_f = (
-                self.cfg.tmin
-                + (self.cfg.tmax - self.cfg.tmin) * H[:, [0]]
-            ).astype(np.float32)
-            x_f = (
-                self.cfg.xmin
-                + (self.cfg.xmax - self.cfg.xmin) * H[:, [1]]
-            ).astype(np.float32)
+            t_f = (self.cfg.tmin + (self.cfg.tmax - self.cfg.tmin) * H[:, [0]]).astype(
+                np.float32
+            )
+            x_f = (self.cfg.xmin + (self.cfg.xmax - self.cfg.xmin) * H[:, [1]]).astype(
+                np.float32
+            )
             t_f_tensor = torch.from_numpy(t_f).to(self.device)
             x_f_tensor = torch.from_numpy(x_f).to(self.device)
 
@@ -531,10 +539,17 @@ class ContinuousPINN:
         to_tensor = lambda a: torch.from_numpy(a).to(self.device)
 
         data = {
-            "t0": to_tensor(t0), "x0": to_tensor(x0), "u0": to_tensor(u0),
-            "tl": to_tensor(tl), "xl": to_tensor(xl), "ul": to_tensor(ul),
-            "tr": to_tensor(tr), "xr": to_tensor(xr), "ur": to_tensor(ur),
-            "tf": t_f_tensor, "xf": x_f_tensor,
+            "t0": to_tensor(t0),
+            "x0": to_tensor(x0),
+            "u0": to_tensor(u0),
+            "tl": to_tensor(tl),
+            "xl": to_tensor(xl),
+            "ul": to_tensor(ul),
+            "tr": to_tensor(tr),
+            "xr": to_tensor(xr),
+            "ur": to_tensor(ur),
+            "tf": t_f_tensor,
+            "xf": x_f_tensor,
         }
         for key, arr in data.items():
             check_array(key, arr, shape=(-1, 1), strict=False)
@@ -608,7 +623,9 @@ class ContinuousPINN:
             if adaptive_cfg.visualize:
                 weight_visualizer = WeightEvolutionVisualizer(("ic", "bc", "pde"))
         else:
-            weights_vector = torch.tensor(weights, dtype=torch.float32, device=self.device)
+            weights_vector = torch.tensor(
+                weights, dtype=torch.float32, device=self.device
+            )
 
         w_ic, w_bc, w_pde = [float(v) for v in weights_vector]
 
@@ -742,14 +759,16 @@ class ContinuousPINN:
                 if residual is None:
                     with make_amp_context():
                         residual = self.pde_residual_fn(
-                            lambda tx: self._model_forward(tx, tcfg, requires_grad=True),
+                            lambda tx: self._model_forward(
+                                tx, tcfg, requires_grad=True
+                            ),
                             tf_batch,
                             xf_batch,
                             self.cfg.nu,
                         )
                     if grad_key is not None:
                         training_cache.store_gradient(grad_key, residual)
-                pde_batch = torch.mean(residual ** 2)
+                pde_batch = torch.mean(residual**2)
                 weight = tf_batch.shape[0] / total_points
                 total_loss_tensor = total_loss_tensor + w_pde * pde_batch * weight
                 pde_running += pde_batch.item() * weight
@@ -795,7 +814,9 @@ class ContinuousPINN:
 
         best_metric = float("inf")
         for step in pbar:
-            collocation_batch_size, accumulation_steps, collocation_total = collocation_params()
+            collocation_batch_size, accumulation_steps, collocation_total = (
+                collocation_params()
+            )
             optimizer.zero_grad(set_to_none=True)
 
             step_context = (
@@ -834,7 +855,9 @@ class ContinuousPINN:
                             adaptive_cfg.preview_collocation_points,
                             data["tf"].shape[0],
                         )
-                    preview_loss = torch.zeros((), device=self.device, dtype=ic_loss.dtype)
+                    preview_loss = torch.zeros(
+                        (), device=self.device, dtype=ic_loss.dtype
+                    )
                     if preview_points > 0:
                         indices = torch.randperm(
                             data["tf"].shape[0], device=self.device
@@ -848,7 +871,7 @@ class ContinuousPINN:
                                 data["xf"][indices],
                                 self.cfg.nu,
                             )
-                        preview_loss = torch.mean(preview_residual ** 2)
+                        preview_loss = torch.mean(preview_residual**2)
                     gradient_norms = compute_gradient_norms(
                         {"ic": ic_loss, "bc": bc_loss, "pde": preview_loss},
                         self.model.parameters(),
@@ -874,7 +897,10 @@ class ContinuousPINN:
                     xf_batch = data["xf"][indices]
                     residual_batch = None
                     grad_key = None
-                    if training_cache is not None and training_cache.config.store_gradients:
+                    if (
+                        training_cache is not None
+                        and training_cache.config.store_gradients
+                    ):
                         grad_key = training_cache.coordinates_key(tf_batch, xf_batch)
                         cached_residual = training_cache.get_gradient(grad_key)
                         if cached_residual is not None:
@@ -891,7 +917,7 @@ class ContinuousPINN:
                             )
                         if grad_key is not None:
                             training_cache.store_gradient(grad_key, residual_batch)
-                    pde_batch = torch.mean(residual_batch ** 2)
+                    pde_batch = torch.mean(residual_batch**2)
                     backward((w_pde * pde_batch) / accumulation_steps)
 
                     batch_size_actual = tf_batch.shape[0]
@@ -1118,9 +1144,11 @@ class ContinuousPINN:
         logger.info(
             "Training finished",
             extra={
-                "final_loss": self.loss_history.get("total", [None])[-1]
-                if self.loss_history.get("total")
-                else None
+                "final_loss": (
+                    self.loss_history.get("total", [None])[-1]
+                    if self.loss_history.get("total")
+                    else None
+                )
             },
         )
         if training_cache is not None:
@@ -1130,45 +1158,42 @@ class ContinuousPINN:
 
     @torch.no_grad()
     def predict(
-        self, 
-        t: np.ndarray, 
-        x: np.ndarray, 
-        batch_size: int = 4096
+        self, t: np.ndarray, x: np.ndarray, batch_size: int = 4096
     ) -> np.ndarray:
         """
         Predict solution values at given (t, x) points.
-        
+
         Args:
             t: Time coordinates, must have same shape as x
             x: Spatial coordinates, must have same shape as t
             batch_size: Batch size for prediction to manage memory
-            
+
         Returns:
             Predicted solution values with same shape as input arrays
-            
+
         Raises:
             ValueError: If t and x don't have the same shape
         """
         if t.shape != x.shape:
             raise ValueError("Time and spatial coordinates must have the same shape.")
-            
+
         # Flatten inputs for batched processing
         original_shape = t.shape
         flat_t = t.reshape(-1, 1).astype(np.float32)
         flat_x = x.reshape(-1, 1).astype(np.float32)
-        
+
         self.model.eval()
         predictions = []
-        
+
         # Process in batches to manage memory
         for i in range(0, flat_t.shape[0], batch_size):
-            batch_t = torch.from_numpy(flat_t[i:i+batch_size]).to(self.device)
-            batch_x = torch.from_numpy(flat_x[i:i+batch_size]).to(self.device)
+            batch_t = torch.from_numpy(flat_t[i : i + batch_size]).to(self.device)
+            batch_x = torch.from_numpy(flat_x[i : i + batch_size]).to(self.device)
             batch_input = torch.cat([batch_t, batch_x], dim=1)
-            
+
             batch_pred = self.model(batch_input).cpu().numpy()
             predictions.append(batch_pred)
-        
+
         # Concatenate and reshape to original form
         full_prediction = np.vstack(predictions)
         return full_prediction.reshape(original_shape)
@@ -1176,7 +1201,7 @@ class ContinuousPINN:
     def get_loss_history(self) -> Dict[str, List[float]]:
         """
         Get the training loss history.
-        
+
         Returns:
             Dictionary with loss component names as keys and loss values as lists
         """
@@ -1187,35 +1212,31 @@ class ContinuousPINN:
 # PDE Residual Functions
 # ============================================================
 
-def burgers_residual(
-    model: nn.Module, 
-    t: Tensor, 
-    x: Tensor, 
-    nu: float
-) -> Tensor:
+
+def burgers_residual(model: nn.Module, t: Tensor, x: Tensor, nu: float) -> Tensor:
     """
     Compute the Burgers equation residual using automatic differentiation.
-    
+
     The Burgers equation is:
         u_t + u*u_x - ν*u_xx = 0
-        
+
     This function computes: f = u_t + u*u_x - ν*u_xx
-    
+
     Args:
         model: Neural network model
         t: Time coordinates, shape (N, 1)
         x: Spatial coordinates, shape (N, 1)
         nu: Viscosity parameter
-        
+
     Returns:
         PDE residual values, shape (N, 1)
-        
+
     Raises:
         ValueError: If t and x don't have compatible shapes
     """
     if t.shape != x.shape or t.ndim != 2 or t.shape[1] != 1:
         raise ValueError("t and x must be (N,1) tensors with identical shapes.")
-        
+
     # Enable gradient computation
     t = t.clone().detach().requires_grad_(True)
     x = x.clone().detach().requires_grad_(True)
@@ -1223,7 +1244,7 @@ def burgers_residual(
     # Network prediction
     tx = torch.cat([t, x], dim=1)
     u = model(tx)
-    
+
     # Compute first derivatives using autograd
     ones = torch.ones_like(u)
     u_t = torch.autograd.grad(
@@ -1232,13 +1253,12 @@ def burgers_residual(
     u_x = torch.autograd.grad(
         u, x, grad_outputs=ones, retain_graph=True, create_graph=True
     )[0]
-    
+
     # Compute second derivative u_xx
     u_xx = torch.autograd.grad(
-        u_x, x, grad_outputs=torch.ones_like(u_x), 
-        retain_graph=True, create_graph=True
+        u_x, x, grad_outputs=torch.ones_like(u_x), retain_graph=True, create_graph=True
     )[0]
-    
+
     # Burgers equation residual: u_t + u*u_x - ν*u_xx
     f = u_t + u * u_x - nu * u_xx
     return f
@@ -1248,16 +1268,18 @@ def burgers_residual(
 # Discrete-Time RK-PINN Implementation
 # ============================================================
 
+
 @dataclass(frozen=True)
 class RKTableau:
     """
     Runge-Kutta Butcher tableau for time integration schemes.
-    
+
     Attributes:
         A: Coefficient matrix, shape (s, s) - lower triangular for explicit RK
         b: Weights vector, shape (s,)
         c: Nodes vector, shape (s,)
     """
+
     A: np.ndarray
     b: np.ndarray
     c: np.ndarray
@@ -1266,35 +1288,38 @@ class RKTableau:
 def rk4_tableau() -> RKTableau:
     """
     Create the classical 4th-order Runge-Kutta tableau.
-    
+
     Returns:
         RK4 Butcher tableau
     """
-    A = np.array([
-        [0.0, 0.0, 0.0, 0.0],
-        [0.5, 0.0, 0.0, 0.0],
-        [0.0, 0.5, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-    ], dtype=np.float32)
-    
-    b = np.array([1/6, 1/3, 1/3, 1/6], dtype=np.float32)
+    A = np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0],
+            [0.5, 0.0, 0.0, 0.0],
+            [0.0, 0.5, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+        ],
+        dtype=np.float32,
+    )
+
+    b = np.array([1 / 6, 1 / 3, 1 / 3, 1 / 6], dtype=np.float32)
     c = np.array([0.0, 0.5, 0.5, 1.0], dtype=np.float32)
-    
+
     return RKTableau(A=A, b=b, c=c)
 
 
 def burgers_rhs(u: Tensor, u_x: Tensor, u_xx: Tensor, nu: float) -> Tensor:
     """
     Spatial operator for Burgers equation: N[u] = -u*u_x + ν*u_xx.
-    
+
     The time derivative is: u_t = N[u]
-    
+
     Args:
         u: Solution values
         u_x: First spatial derivative
         u_xx: Second spatial derivative
         nu: Viscosity parameter
-        
+
     Returns:
         Right-hand side of the ODE system
     """
@@ -1304,11 +1329,11 @@ def burgers_rhs(u: Tensor, u_x: Tensor, u_xx: Tensor, nu: float) -> Tensor:
 class DiscreteRKPINN:
     """
     Discrete-time PINN using Runge-Kutta time integration.
-    
+
     This approach enforces the RK time-stepping relations as part of the
     physics constraints, allowing for large time steps while maintaining
     temporal accuracy.
-    
+
     Attributes:
         net: Neural network model
         device: Computation device
@@ -1325,7 +1350,7 @@ class DiscreteRKPINN:
     ) -> None:
         """
         Initialize the discrete RK-PINN.
-        
+
         Args:
             stage_net: Network U_theta(t, x) for stage predictions
             device: Computation device
@@ -1340,34 +1365,34 @@ class DiscreteRKPINN:
     def _compute_derivatives(self, u: Tensor, x: Tensor) -> Tuple[Tensor, Tensor]:
         """
         Compute spatial derivatives u_x and u_xx using autograd.
-        
+
         Args:
             u: Solution values, shape (N, 1)
             x: Spatial coordinates, shape (N, 1)
-            
+
         Returns:
             Tuple of (u_x, u_xx) with same shape as u
         """
         x = x.clone().detach().requires_grad_(True)
-        
+
         u_x = torch.autograd.grad(
             u, x, torch.ones_like(u), retain_graph=True, create_graph=True
         )[0]
-        
+
         u_xx = torch.autograd.grad(
             u_x, x, torch.ones_like(u_x), retain_graph=True, create_graph=True
         )[0]
-        
+
         return u_x, u_xx
 
     def _stage_prediction(self, x: Tensor, t_stage: Tensor) -> Tensor:
         """
         Get network prediction at stage time.
-        
+
         Args:
             x: Spatial coordinates
             t_stage: Stage time coordinates
-            
+
         Returns:
             Network prediction U_theta(t_stage, x)
         """
@@ -1390,7 +1415,7 @@ class DiscreteRKPINN:
     ) -> Dict[str, List[float]]:
         """
         Train RK-PINN for a single time step from t0 to t1.
-        
+
         Args:
             x_colloc: Spatial collocation points
             t0: Initial time
@@ -1401,7 +1426,7 @@ class DiscreteRKPINN:
             seed: Random seed
             cache_config: Optional caching configuration controlling reuse of
                 intermediate values and persistent diagnostics
-            
+
         Returns:
             Dictionary containing training loss history
         """
@@ -1410,26 +1435,26 @@ class DiscreteRKPINN:
         training_cache: Optional[TrainingCache] = None
         if cache_config is not None and cache_config.enabled:
             training_cache = TrainingCache(cache_config, rng_seed=seed)
-        
+
         # Prepare data
         x_np = x_colloc.astype(np.float32).reshape(-1, 1)
         x_tensor = torch.from_numpy(x_np).to(self.device)
-        
+
         h = float(t1 - t0)
         if h <= 0:
             raise ValueError("Final time must be greater than initial time.")
-            
+
         s = len(self.tableau.b)  # Number of stages
-        
+
         # Stage times: t_i = t0 + c_i * h
         t_stages = (t0 + self.tableau.c * h).astype(np.float32).reshape(1, -1)
         t_stage_tensor = torch.from_numpy(
             np.repeat(t_stages, x_tensor.shape[0], axis=0)
         ).to(self.device)
-        
+
         # Initial condition
         u0 = torch.from_numpy(u0_fn(x_np)).to(self.device)
-        
+
         # Training loop
         optimizer = torch.optim.Adam(self.net.parameters(), lr=lr)
         self.net.train()
@@ -1443,7 +1468,9 @@ class DiscreteRKPINN:
         start_step = 1
         if checkpoint_manager and resume:
             try:
-                _, optimizer, start_step, _ = checkpoint_manager.load_latest(self.net, optimizer)
+                _, optimizer, start_step, _ = checkpoint_manager.load_latest(
+                    self.net, optimizer
+                )
                 start_step += 1
             except FileNotFoundError:
                 start_step = 1
@@ -1451,42 +1478,42 @@ class DiscreteRKPINN:
 
         for step in pbar:
             optimizer.zero_grad(set_to_none=True)
-            
+
             # Stage predictions
             stage_solutions = []
             stage_derivatives = []
-            
+
             for i in range(s):
                 U_i = self._stage_prediction(x_tensor, t_stage_tensor[:, [i]])
                 stage_solutions.append(U_i)
-                
+
                 # Compute spatial derivatives for RHS evaluation
                 u_x, u_xx = self._compute_derivatives(U_i, x_tensor)
                 k_i = burgers_rhs(U_i, u_x, u_xx, self.cfg.nu)
                 stage_derivatives.append(k_i)
-            
+
             # RK constraints
             # First stage should equal initial condition
             stage_loss = torch.mean((stage_solutions[0] - u0) ** 2)
-            
+
             # Final solution from RK formula
             u1_pred = u0 + h * sum(
                 self.tableau.b[j] * stage_derivatives[j] for j in range(s)
             )
-            
+
             # Consistency: final stage should match RK prediction
             consistency_loss = torch.mean((stage_solutions[-1] - u1_pred) ** 2)
-            
+
             # Smoothness regularization between stages
             smoothness_loss = 0.0
             for i in range(1, s):
                 smoothness_loss += torch.mean(
-                    (stage_solutions[i] - stage_solutions[i-1]) ** 2
+                    (stage_solutions[i] - stage_solutions[i - 1]) ** 2
                 )
-            
+
             # Total loss
             total_loss = stage_loss + consistency_loss + 1e-3 * smoothness_loss
-            
+
             total_loss.backward()
             optimizer.step()
 
@@ -1501,22 +1528,26 @@ class DiscreteRKPINN:
                 if training_cache.config.store_losses:
                     training_cache.record_loss(step, loss_components)
                 training_cache.advance_model_version()
-            
+
             for key, value in loss_components.items():
                 loss_history[key].append(value)
-            
+
             if checkpoint_manager:
-                checkpoint_manager.maybe_save(self.net, optimizer, step, {"loss": loss_components["total"]})
+                checkpoint_manager.maybe_save(
+                    self.net, optimizer, step, {"loss": loss_components["total"]}
+                )
                 if checkpoint_manager.should_stop():
                     checkpoint_manager.restore_best(self.net, optimizer)
                     logger.info("Early stopping triggered", extra={"step": step})
                     break
 
             if step % 500 == 0 or step == start_step:
-                pbar.set_postfix({
-                    "Total": f"{loss_components['total']:.2e}",
-                    "Stage": f"{loss_components['stage']:.2e}",
-                })
+                pbar.set_postfix(
+                    {
+                        "Total": f"{loss_components['total']:.2e}",
+                        "Stage": f"{loss_components['stage']:.2e}",
+                    }
+                )
                 logger.info(
                     "RK training progress",
                     extra={"step": step, **loss_components},
@@ -1532,29 +1563,29 @@ class DiscreteRKPINN:
     def predict(self, t: np.ndarray, x: np.ndarray) -> np.ndarray:
         """
         Evaluate the trained network at arbitrary (t, x) points.
-        
+
         Args:
             t: Time coordinates
             x: Spatial coordinates
-            
+
         Returns:
             Network predictions
         """
         if t.shape != x.shape:
             raise ValueError("Time and spatial coordinates must have the same shape.")
-            
+
         flat_t = t.reshape(-1, 1).astype(np.float32)
         flat_x = x.reshape(-1, 1).astype(np.float32)
-        
+
         self.net.eval()
         predictions = []
-        
+
         for i in range(0, flat_t.shape[0], 4096):
-            batch_t = torch.from_numpy(flat_t[i:i+4096]).to(self.device)
-            batch_x = torch.from_numpy(flat_x[i:i+4096]).to(self.device)
+            batch_t = torch.from_numpy(flat_t[i : i + 4096]).to(self.device)
+            batch_x = torch.from_numpy(flat_x[i : i + 4096]).to(self.device)
             batch_pred = self.net(torch.cat([batch_t, batch_x], dim=1))
             predictions.append(batch_pred.cpu().numpy())
-            
+
         return np.vstack(predictions).reshape(t.shape)
 
 
@@ -1562,23 +1593,24 @@ class DiscreteRKPINN:
 # Demonstration Functions
 # ============================================================
 
+
 def demo() -> None:
     """
     Demonstrate both continuous and discrete PINN implementations.
-    
+
     This function trains both types of PINNs on the Burgers equation
     and shows basic usage patterns.
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
-    
+
     cfg = BurgersConfig()
-    
+
     # Continuous-time PINN demonstration
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("CONTINUOUS-TIME PINN DEMONSTRATION")
-    print("="*50)
-    
+    print("=" * 50)
+
     model_cont = MLP(in_dim=2, hidden_layers=9, width=20, out_dim=1)
     pinn = ContinuousPINN(
         model=model_cont,
@@ -1586,7 +1618,7 @@ def demo() -> None:
         pde_residual_fn=burgers_residual,
         cfg_burgers=cfg,
     )
-    
+
     tcfg = TrainConfig(
         n_u0=100,
         n_bc=100,
@@ -1595,25 +1627,25 @@ def demo() -> None:
         adam_steps=8_000,
         lbfgs_max_iter=200,
         seed=123,
-        track_losses=True
+        track_losses=True,
     )
-    
+
     loss_history = pinn.train(tcfg, weights=(1.0, 1.0, 1.0))
-    
+
     # Test prediction
     t_test = np.linspace(cfg.tmin, cfg.tmax, 51, dtype=np.float32)
     x_test = np.linspace(cfg.xmin, cfg.xmax, 101, dtype=np.float32)
     TT, XX = np.meshgrid(t_test, x_test, indexing="ij")
     U_cont = pinn.predict(TT, XX)
-    
+
     print(f"Continuous PINN - Final loss: {loss_history['total'][-1]:.2e}")
     print(f"Solution range: [{U_cont.min():.3f}, {U_cont.max():.3f}]")
-    
+
     # Discrete-time RK-PINN demonstration
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("DISCRETE-TIME RK-PINN DEMONSTRATION")
-    print("="*50)
-    
+    print("=" * 50)
+
     stage_net = MLP(in_dim=2, hidden_layers=6, width=32, out_dim=1)
     rk_pinn = DiscreteRKPINN(
         stage_net=stage_net,
@@ -1621,11 +1653,11 @@ def demo() -> None:
         cfg=cfg,
         tableau=rk4_tableau(),
     )
-    
+
     # Train for a large time step
     x_colloc = np.linspace(cfg.xmin, cfg.xmax, 256, dtype=np.float32)
     t0, t1 = 0.10, 0.90
-    
+
     rk_loss_history = rk_pinn.train_one_step(
         x_colloc=x_colloc,
         t0=t0,
@@ -1635,14 +1667,14 @@ def demo() -> None:
         steps=4000,
         seed=123,
     )
-    
+
     # Test RK prediction
     T1 = np.full_like(x_colloc, t1)
     U_rk = rk_pinn.predict(T1, x_colloc)
-    
+
     print(f"RK-PINN - Final loss: {rk_loss_history['total'][-1]:.2e}")
     print(f"Solution range: [{U_rk.min():.3f}, {U_rk.max():.3f}]")
-    
+
     print("\nDemonstration completed successfully!")
 
 

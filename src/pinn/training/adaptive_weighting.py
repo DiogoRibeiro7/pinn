@@ -156,7 +156,9 @@ class AdaptiveWeightingConfig:
 # ---------------------------------------------------------------------------
 
 
-def _parameters_list(parameters: Iterable[torch.nn.Parameter]) -> List[torch.nn.Parameter]:
+def _parameters_list(
+    parameters: Iterable[torch.nn.Parameter],
+) -> List[torch.nn.Parameter]:
     return [p for p in parameters if p.requires_grad]
 
 
@@ -232,13 +234,19 @@ class AdaptiveLossWeighting:
             raise ValueError("loss_names must contain at least one entry")
         self.loss_names = tuple(loss_names)
         self.config = config
-        self.device = torch.device(device) if device is not None else torch.device("cpu")
+        self.device = (
+            torch.device(device) if device is not None else torch.device("cpu")
+        )
         self.config.validate(len(self.loss_names))
 
         init = (
             list(initial_weights)
             if initial_weights is not None
-            else (list(config.initial_weights) if config.initial_weights is not None else None)
+            else (
+                list(config.initial_weights)
+                if config.initial_weights is not None
+                else None
+            )
         )
         if init is None:
             init = [1.0 / len(self.loss_names)] * len(self.loss_names)
@@ -251,10 +259,16 @@ class AdaptiveLossWeighting:
         self._initial_losses: Optional[Tensor] = None
         self._meta_network: Optional[nn.Module] = None
         self._meta_optim: Optional[torch.optim.Optimizer] = None
-        self._rl_values = torch.zeros(len(self.loss_names), dtype=torch.float32, device=self.device)
+        self._rl_values = torch.zeros(
+            len(self.loss_names), dtype=torch.float32, device=self.device
+        )
         self._prev_total_loss: Optional[float] = None
-        self._bo_precision = torch.full((len(self.loss_names),), 1e-3, dtype=torch.float32, device=self.device)
-        self._bo_mean = torch.zeros(len(self.loss_names), dtype=torch.float32, device=self.device)
+        self._bo_precision = torch.full(
+            (len(self.loss_names),), 1e-3, dtype=torch.float32, device=self.device
+        )
+        self._bo_mean = torch.zeros(
+            len(self.loss_names), dtype=torch.float32, device=self.device
+        )
         self._multi_objective: Optional[MultiObjectiveOptimizer] = None
 
     # ------------------------------------------------------------------
@@ -264,7 +278,14 @@ class AdaptiveLossWeighting:
     @property
     def requires_gradients(self) -> bool:
         method = self.config.method.lower()
-        return method in {"gradnorm", "pareto", "pareto_mtl", "mgda", "meta", "meta_learning"}
+        return method in {
+            "gradnorm",
+            "pareto",
+            "pareto_mtl",
+            "mgda",
+            "meta",
+            "meta_learning",
+        }
 
     # ------------------------------------------------------------------
     # Public API
@@ -294,7 +315,9 @@ class AdaptiveLossWeighting:
             self.weight_history = [np.asarray(t.cpu().numpy()) for t in stored]
         prev = state.get("prev_total")
         self._prev_total_loss = float(prev.item()) if prev is not None else None
-        self._bo_precision = state.get("bo_precision", self._bo_precision).to(self.device)
+        self._bo_precision = state.get("bo_precision", self._bo_precision).to(
+            self.device
+        )
         self._bo_mean = state.get("bo_mean", self._bo_mean).to(self.device)
         self._rl_values = state.get("rl_values", self._rl_values).to(self.device)
 
@@ -332,7 +355,10 @@ class AdaptiveLossWeighting:
 
         method = self.config.method.lower()
         formatted_grads = (
-            {k: torch.as_tensor(v, device=self.device, dtype=torch.float32) for k, v in (gradient_norms or {}).items()}
+            {
+                k: torch.as_tensor(v, device=self.device, dtype=torch.float32)
+                for k, v in (gradient_norms or {}).items()
+            }
             if gradient_norms is not None
             else None
         )
@@ -384,7 +410,11 @@ class AdaptiveLossWeighting:
             if name not in losses:
                 continue
             value = losses[name]
-            scalar = float(value.detach().cpu().item()) if torch.is_tensor(value) else float(value)
+            scalar = (
+                float(value.detach().cpu().item())
+                if torch.is_tensor(value)
+                else float(value)
+            )
             self.loss_history[name].append(scalar)
             window = self.loss_history[name]
             if len(window) > self.config.history_window:
@@ -393,13 +423,20 @@ class AdaptiveLossWeighting:
     def _current_losses_tensor(self, losses: MutableMapping[str, Tensor]) -> Tensor:
         return torch.stack([self._loss_tensor(losses, n) for n in self.loss_names])
 
-    def _gradnorm(self, losses: MutableMapping[str, Tensor], gradient_norms: Optional[Dict[str, Tensor]]) -> Tensor:
+    def _gradnorm(
+        self,
+        losses: MutableMapping[str, Tensor],
+        gradient_norms: Optional[Dict[str, Tensor]],
+    ) -> Tensor:
         if gradient_norms is None:
             return self._magnitude_update(losses)
 
-        grads = torch.stack([
-            gradient_norms.get(name, torch.tensor(0.0, device=self.device)) for name in self.loss_names
-        ])
+        grads = torch.stack(
+            [
+                gradient_norms.get(name, torch.tensor(0.0, device=self.device))
+                for name in self.loss_names
+            ]
+        )
         current_losses = self._current_losses_tensor(losses)
         if self._initial_losses is None:
             self._initial_losses = current_losses.clone()
@@ -416,14 +453,21 @@ class AdaptiveLossWeighting:
         if any(len(self.loss_history[name]) < 2 for name in self.loss_names):
             return self.weights
         prev = torch.tensor(
-            [self.loss_history[name][-2] for name in self.loss_names], device=self.device, dtype=torch.float32
+            [self.loss_history[name][-2] for name in self.loss_names],
+            device=self.device,
+            dtype=torch.float32,
         )
         current = torch.tensor(
-            [self.loss_history[name][-1] for name in self.loss_names], device=self.device, dtype=torch.float32
+            [self.loss_history[name][-1] for name in self.loss_names],
+            device=self.device,
+            dtype=torch.float32,
         )
         ratios = prev / (current + 1e-8)
         raw = torch.softmax(ratios / self.config.temperature, dim=0)
-        return self.config.dwa_momentum * self.weights + (1 - self.config.dwa_momentum) * raw
+        return (
+            self.config.dwa_momentum * self.weights
+            + (1 - self.config.dwa_momentum) * raw
+        )
 
     def _uncertainty(self) -> Tensor:
         variances = []
@@ -447,12 +491,19 @@ class AdaptiveLossWeighting:
         if gradient_norms is None:
             return self._magnitude_update(losses)
         if self._multi_objective is None:
-            self._multi_objective = MultiObjectiveOptimizer(list(self.loss_names), method=method)
-        grads = torch.stack([
-            gradient_norms.get(name, torch.tensor(0.0, device=self.device)) for name in self.loss_names
-        ])
+            self._multi_objective = MultiObjectiveOptimizer(
+                list(self.loss_names), method=method
+            )
+        grads = torch.stack(
+            [
+                gradient_norms.get(name, torch.tensor(0.0, device=self.device))
+                for name in self.loss_names
+            ]
+        )
         losses_tensor = self._current_losses_tensor(losses)
-        return self._multi_objective.compute_weights(losses_tensor, grads).to(self.device)
+        return self._multi_objective.compute_weights(losses_tensor, grads).to(
+            self.device
+        )
 
     def _meta_learning_update(
         self,
@@ -463,9 +514,12 @@ class AdaptiveLossWeighting:
         current_losses = self._current_losses_tensor(losses)
         features.append(current_losses)
         if gradient_norms is not None:
-            grads = torch.stack([
-                gradient_norms.get(name, torch.tensor(0.0, device=self.device)) for name in self.loss_names
-            ])
+            grads = torch.stack(
+                [
+                    gradient_norms.get(name, torch.tensor(0.0, device=self.device))
+                    for name in self.loss_names
+                ]
+            )
             features.append(grads)
         feature_vec = torch.cat(features)
         if self._meta_network is None:
@@ -475,16 +529,21 @@ class AdaptiveLossWeighting:
                 nn.ReLU(),
                 nn.Linear(hidden, len(self.loss_names)),
             ).to(self.device)
-            self._meta_optim = torch.optim.Adam(self._meta_network.parameters(), lr=1e-3)
+            self._meta_optim = torch.optim.Adam(
+                self._meta_network.parameters(), lr=1e-3
+            )
 
         assert self._meta_network is not None and self._meta_optim is not None
         logits = self._meta_network(feature_vec)
         weights = torch.softmax(logits, dim=0)
 
         if gradient_norms is not None:
-            grads = torch.stack([
-                gradient_norms.get(name, torch.tensor(0.0, device=self.device)) for name in self.loss_names
-            ])
+            grads = torch.stack(
+                [
+                    gradient_norms.get(name, torch.tensor(0.0, device=self.device))
+                    for name in self.loss_names
+                ]
+            )
             target = grads.mean()
             meta_loss = torch.mean((weights * grads - target).pow(2))
         else:
@@ -502,7 +561,9 @@ class AdaptiveLossWeighting:
         if self._prev_total_loss is not None:
             reward = self._prev_total_loss - total
         self._prev_total_loss = total
-        self._rl_values = (1 - self.config.rl_learning_rate) * self._rl_values + self.config.rl_learning_rate * (
+        self._rl_values = (
+            1 - self.config.rl_learning_rate
+        ) * self._rl_values + self.config.rl_learning_rate * (
             reward + self.config.rl_discount * self._rl_values
         )
         if np.random.rand() < self.config.rl_epsilon:
@@ -519,7 +580,8 @@ class AdaptiveLossWeighting:
 
         self._bo_precision = self._bo_precision + self.weights.pow(2)
         self._bo_mean = (
-            self._bo_mean * (self._bo_precision - self.weights.pow(2)) + reward * self.weights
+            self._bo_mean * (self._bo_precision - self.weights.pow(2))
+            + reward * self.weights
         ) / (self._bo_precision + 1e-8)
 
         exploration = torch.normal(
@@ -704,13 +766,21 @@ class AdaptivePINNTrainer:
         if self.weighting.requires_gradients:
             grads = compute_gradient_norms(losses, parameters, retain_graph=True)
         weights = self.weighting.update_weights(losses, step=step, gradient_norms=grads)
-        total = sum(weights[idx] * losses[name] for idx, name in enumerate(self.weighting.loss_names))
+        total = sum(
+            weights[idx] * losses[name]
+            for idx, name in enumerate(self.weighting.loss_names)
+        )
         self.optimizer.zero_grad(set_to_none=True)
         total.backward()
         self.optimizer.step()
         record = {name: float(losses[name].detach()) for name in losses}
         record["total"] = float(total.detach())
-        record.update({f"w_{n}": float(weights[idx]) for idx, n in enumerate(self.weighting.loss_names)})
+        record.update(
+            {
+                f"w_{n}": float(weights[idx])
+                for idx, n in enumerate(self.weighting.loss_names)
+            }
+        )
         self.history.append(record)
         return total
 
@@ -725,4 +795,3 @@ __all__ = [
     "LossBalancingAnalyzer",
     "MultiObjectiveOptimizer",
 ]
-

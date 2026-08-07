@@ -7,7 +7,13 @@ from typing import Callable
 import torch
 
 
-def adversarial_training_step(model: torch.nn.Module, loss_fn: Callable, x: torch.Tensor, y: torch.Tensor, epsilon: float = 1e-2) -> torch.Tensor:
+def adversarial_training_step(
+    model: torch.nn.Module,
+    loss_fn: Callable,
+    x: torch.Tensor,
+    y: torch.Tensor,
+    epsilon: float = 1e-2,
+) -> torch.Tensor:
     """Perform a single adversarial training step using FGSM.
 
     Parameters

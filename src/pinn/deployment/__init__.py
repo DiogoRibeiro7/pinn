@@ -4,6 +4,7 @@ FastAPI and gRPC dependencies are optional to keep the core package lightweight.
 The objects are imported lazily so that unit tests can run without the optional
 dependencies being installed.
 """
+
 from .model_io import load_model, save_model
 
 try:  # pragma: no cover - optional dependency

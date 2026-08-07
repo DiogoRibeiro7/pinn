@@ -120,9 +120,7 @@ def configure_logging(
 
     formatter = "json" if json_format else "plain"
     formatters: Dict[str, Any] = {
-        "plain": {
-            "format": "%(asctime)s %(levelname)s %(name)s: %(message)s"
-        },
+        "plain": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"},
         "json": {"()": JsonFormatter},
     }
 
@@ -195,7 +193,7 @@ def log_memory_usage(logger: logging.Logger) -> None:
     if psutil is None:  # pragma: no cover - optional dependency
         return
     process = psutil.Process()
-    mem_mb = process.memory_info().rss / (1024 ** 2)
+    mem_mb = process.memory_info().rss / (1024**2)
     logger.debug("Memory usage", extra={"memory_mb": round(mem_mb, 2)})
 
 
@@ -203,8 +201,8 @@ def log_gpu_usage(logger: logging.Logger) -> None:
     """Log current GPU utilisation if available."""
     if torch is None or not torch.cuda.is_available():  # pragma: no cover - optional
         return
-    allocated = torch.cuda.memory_allocated() / (1024 ** 2)
-    reserved = torch.cuda.memory_reserved() / (1024 ** 2)
+    allocated = torch.cuda.memory_allocated() / (1024**2)
+    reserved = torch.cuda.memory_reserved() / (1024**2)
     extra = {
         "gpu_mem_allocated_mb": round(allocated, 2),
         "gpu_mem_reserved_mb": round(reserved, 2),
@@ -212,7 +210,7 @@ def log_gpu_usage(logger: logging.Logger) -> None:
     try:  # pragma: no cover - device properties
         prop = torch.cuda.get_device_properties(0)
         extra["gpu_name"] = prop.name
-        extra["gpu_total_mem_mb"] = round(prop.total_memory / (1024 ** 2), 2)
+        extra["gpu_total_mem_mb"] = round(prop.total_memory / (1024**2), 2)
     except Exception:
         pass
     logger.debug("GPU usage", extra=extra)
@@ -234,7 +232,10 @@ def log_performance(func):
             duration = time.perf_counter() - start
             logger.info(
                 "Performance",
-                extra={"function": func.__qualname__, "duration_sec": round(duration, 4)},
+                extra={
+                    "function": func.__qualname__,
+                    "duration_sec": round(duration, 4),
+                },
             )
             log_memory_usage(logger)
             log_gpu_usage(logger)

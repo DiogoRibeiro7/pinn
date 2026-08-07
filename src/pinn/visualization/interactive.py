@@ -69,7 +69,11 @@ class TrainingDashboard:
         # which still supports interactive rendering in notebooks and Dash.
         self.loss_fig = go.Figure(
             data=[go.Scatter(x=[], y=[], mode="lines", name="loss")],
-            layout={"title": "Training loss", "xaxis": {"title": "step"}, "yaxis": {"title": "loss"}},
+            layout={
+                "title": "Training loss",
+                "xaxis": {"title": "step"},
+                "yaxis": {"title": "loss"},
+            },
         )
 
     # ------------------------------------------------------------------ update
@@ -117,7 +121,10 @@ class TrainingDashboard:
         )
 
         # Dash callbacks update the graph from stored history
-        @app.callback(dash.dependencies.Output("loss", "figure"), [dash.dependencies.Input("interval", "n_intervals")])
+        @app.callback(
+            dash.dependencies.Output("loss", "figure"),
+            [dash.dependencies.Input("interval", "n_intervals")],
+        )
         def _refresh(_: int) -> go.Figure:
             return self.loss_fig
 

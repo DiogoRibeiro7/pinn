@@ -22,7 +22,9 @@ def test_checkpoint_save_load(tmp_path, device):
 def test_checkpoint_prune(tmp_path, device):
     model = nn.Linear(1, 1).to(device)
     opt = torch.optim.SGD(model.parameters(), lr=0.1)
-    mgr = CheckpointManager(tmp_path, save_frequency=1, keep_best_n=2, metric_key="loss")
+    mgr = CheckpointManager(
+        tmp_path, save_frequency=1, keep_best_n=2, metric_key="loss"
+    )
     for i in range(5):
         mgr.save(model, opt, step=i, metrics={"loss": float(5 - i)})
     json_files = list(tmp_path.glob("checkpoint_*.json"))

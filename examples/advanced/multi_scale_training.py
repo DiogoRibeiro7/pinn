@@ -27,7 +27,9 @@ def main() -> None:
     logger = get_logger(__name__)
     logger.info("Starting multi-scale training example")
 
-    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
+    cfg = (
+        BurgersConfig()
+    )  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = MLP(in_dim=2, hidden_layers=4, width=32, out_dim=1)
     pinn = ContinuousPINN(model, device, burgers_residual, cfg)
@@ -38,7 +40,9 @@ def main() -> None:
     pinn.train(tcfg1)
 
     # Phase 2: fine training with more collocation points
-    tcfg2 = TrainConfig(n_u0=64, n_bc=64, n_f=5_000, adam_steps=1_000, lbfgs_max_iter=50)
+    tcfg2 = TrainConfig(
+        n_u0=64, n_bc=64, n_f=5_000, adam_steps=1_000, lbfgs_max_iter=50
+    )
     logger.info("Phase 2: fine training")
     pinn.train(tcfg2)
 

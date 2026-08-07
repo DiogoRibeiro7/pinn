@@ -22,11 +22,13 @@ def main() -> None:
         memory_budget_mb=512,
     )
 
-    config = TrainConfig(adam_steps=5, lbfgs_max_iter=0, track_losses=False, n_u0=10, n_bc=10, n_f=200)
+    config = TrainConfig(
+        adam_steps=5, lbfgs_max_iter=0, track_losses=False, n_u0=10, n_bc=10, n_f=200
+    )
     pinn.train(config)
 
     summary = profiler.summary()
-    recommendations = profiler.recommendations(512 * 1024 ** 2)
+    recommendations = profiler.recommendations(512 * 1024**2)
 
     payload = {"summary": summary, "recommendations": recommendations}
     path = Path("memory_benchmark.json")

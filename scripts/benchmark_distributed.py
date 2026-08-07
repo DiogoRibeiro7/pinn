@@ -12,7 +12,12 @@ import torch
 
 from pinn.config.management import ConfigFactory
 from pinn.models import MLP
-from pinn.solvers.raissi_improved import BurgersConfig, TrainConfig, ContinuousPINN, burgers_residual
+from pinn.solvers.raissi_improved import (
+    BurgersConfig,
+    TrainConfig,
+    ContinuousPINN,
+    burgers_residual,
+)
 from pinn.distributed import DistributedPINNTrainer, DistributedTrainer
 
 
@@ -40,7 +45,9 @@ def run_with_devices(num_devices: int) -> tuple[float, DistributedTrainer]:
         trainer = DistributedTrainer(pinn, devices=[dev])
     else:
         devices = list(range(num_devices))
-        trainer = DistributedPINNTrainer(pinn, devices=devices, strategy="data_parallel")
+        trainer = DistributedPINNTrainer(
+            pinn, devices=devices, strategy="data_parallel"
+        )
     tcfg = TrainConfig(n_u0=16, n_bc=16, n_f=500, adam_steps=50, lbfgs_max_iter=0)
     start = time.time()
     trainer.fit(tcfg)
@@ -66,13 +73,13 @@ def main() -> None:
                 f"speedup {speedup:.2f}x | efficiency {efficiency:.2%}"
             )
     else:
-        print("GPU not available or only one GPU detected; skipping multi-GPU benchmark.")
+        print(
+            "GPU not available or only one GPU detected; skipping multi-GPU benchmark."
+        )
 
     if len(results) > 1:
         best = max(results.items(), key=lambda kv: kv[1][1])
-        print(
-            f"Best scaling: {best[0]} devices with efficiency {best[1][1]:.2%}"
-        )
+        print(f"Best scaling: {best[0]} devices with efficiency {best[1][1]:.2%}")
 
 
 if __name__ == "__main__":

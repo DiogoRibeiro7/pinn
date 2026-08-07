@@ -1,4 +1,5 @@
 """gRPC serving helpers for PINN models (minimal example)."""
+
 from __future__ import annotations
 
 

@@ -10,7 +10,13 @@ import torch
 from torch.utils.data import DataLoader
 
 from ..utils.logging import get_logger
-from .pretrain import PretrainingConfig, PretrainingManager, PretrainingTask, ensure_batch_dict, move_batch_to_device
+from .pretrain import (
+    PretrainingConfig,
+    PretrainingManager,
+    PretrainingTask,
+    ensure_batch_dict,
+    move_batch_to_device,
+)
 
 BatchType = MutableMapping[str, torch.Tensor]
 
@@ -38,7 +44,11 @@ class ContinualLearningBuffer:
         self._storage: List[BatchType] = []
 
     def add_batch(self, batch: BatchType) -> None:
-        clone = {key: value.detach().cpu() for key, value in batch.items() if torch.is_tensor(value)}
+        clone = {
+            key: value.detach().cpu()
+            for key, value in batch.items()
+            if torch.is_tensor(value)
+        }
         self._storage.append(clone)
         if len(self._storage) > self.memory_size:
             self._storage = self._storage[-self.memory_size :]
@@ -73,7 +83,11 @@ class TransferLearningPINN:
     # ------------------------------------------------------------------
     # Pre-training and registration helpers
     # ------------------------------------------------------------------
-    def pretrain(self, tasks: Sequence[PretrainingTask], config: Optional[PretrainingConfig] = None) -> Dict[str, Dict[str, float]]:
+    def pretrain(
+        self,
+        tasks: Sequence[PretrainingTask],
+        config: Optional[PretrainingConfig] = None,
+    ) -> Dict[str, Dict[str, float]]:
         """Run pre-training using :class:`PretrainingManager`."""
 
         manager = PretrainingManager(self.base_model, config)
@@ -101,7 +115,9 @@ class TransferLearningPINN:
         self.logger.info("Transferred %d parameters from source model", transferred)
         return transferred
 
-    def transfer_features(self, source: torch.nn.Module, freeze: bool = True, depth: int = 2) -> List[str]:
+    def transfer_features(
+        self, source: torch.nn.Module, freeze: bool = True, depth: int = 2
+    ) -> List[str]:
         """Transfer the first ``depth`` layers and optionally freeze them."""
 
         transferred_layers: List[str] = []
@@ -147,7 +163,10 @@ class TransferLearningPINN:
     ) -> None:
         """Perform knowledge distillation from ``teacher`` using the provided data."""
 
-        from .knowledge_distillation import DistillationConfig, KnowledgeDistillationTrainer
+        from .knowledge_distillation import (
+            DistillationConfig,
+            KnowledgeDistillationTrainer,
+        )
 
         config = DistillationConfig(temperature=temperature, alpha=alpha, epochs=epochs)
         trainer = KnowledgeDistillationTrainer(teacher, self.base_model, config)
@@ -160,8 +179,10 @@ class TransferLearningPINN:
         self,
         data_loader: Iterable[BatchType] | DataLoader,
         config: Optional[FineTuningConfig] = None,
-        optimizer_factory: Callable[[Iterable[torch.nn.Parameter], float], torch.optim.Optimizer]
-        | None = None,
+        optimizer_factory: (
+            Callable[[Iterable[torch.nn.Parameter], float], torch.optim.Optimizer]
+            | None
+        ) = None,
     ) -> Dict[str, float]:
         """Fine-tune the base model on ``data_loader``."""
 
@@ -169,7 +190,9 @@ class TransferLearningPINN:
         self.base_model.to(self.device)
         if cfg.freeze_layers:
             self._set_frozen(cfg.freeze_layers, True)
-        optimizer_factory = optimizer_factory or (lambda params, lr: torch.optim.Adam(params, lr=lr))
+        optimizer_factory = optimizer_factory or (
+            lambda params, lr: torch.optim.Adam(params, lr=lr)
+        )
         params = [p for p in self.base_model.parameters() if p.requires_grad]
         optimizer = optimizer_factory(params, cfg.lr)
         scaler = torch.cuda.amp.GradScaler(enabled=cfg.use_amp)
@@ -187,7 +210,9 @@ class TransferLearningPINN:
                     target = batch.get("target")
                     loss_fn = cfg.loss_fn or torch.nn.functional.mse_loss
                     if target is None:
-                        raise ValueError("Fine-tuning requires batches to provide a 'target' tensor")
+                        raise ValueError(
+                            "Fine-tuning requires batches to provide a 'target' tensor"
+                        )
                     loss = loss_fn(preds, target)
                 scaler.scale(loss).backward()
                 if cfg.gradient_clip is not None:
@@ -198,8 +223,14 @@ class TransferLearningPINN:
                 running += loss.item()
                 steps += 1
             epoch_loss = running / max(steps, 1)
-            self.logger.debug("Fine-tune epoch %d/%d loss %.4e", epoch + 1, cfg.epochs, epoch_loss)
-            if cfg.unfreeze_interval and cfg.freeze_layers and (epoch + 1) % cfg.unfreeze_interval == 0:
+            self.logger.debug(
+                "Fine-tune epoch %d/%d loss %.4e", epoch + 1, cfg.epochs, epoch_loss
+            )
+            if (
+                cfg.unfreeze_interval
+                and cfg.freeze_layers
+                and (epoch + 1) % cfg.unfreeze_interval == 0
+            ):
                 self._gradually_unfreeze()
             if epoch_loss + 1e-8 < best_loss:
                 best_loss = epoch_loss
@@ -207,7 +238,9 @@ class TransferLearningPINN:
             else:
                 epochs_without_improve += 1
                 if cfg.patience is not None and epochs_without_improve >= cfg.patience:
-                    self.logger.info("Early stopping fine-tuning after %d epochs", epoch + 1)
+                    self.logger.info(
+                        "Early stopping fine-tuning after %d epochs", epoch + 1
+                    )
                     break
         return {"loss": best_loss}
 
@@ -329,7 +362,10 @@ class TransferLearningPINN:
                 break
 
     def _capture_reference_parameters(self) -> None:
-        self._reference_params = {name: param.detach().clone() for name, param in self.base_model.named_parameters()}
+        self._reference_params = {
+            name: param.detach().clone()
+            for name, param in self.base_model.named_parameters()
+        }
 
     def _update_fisher_information(self) -> None:
         for name, param in self.base_model.named_parameters():
@@ -339,7 +375,9 @@ class TransferLearningPINN:
             if name not in self._fisher_information:
                 self._fisher_information[name] = grad_sq
             else:
-                self._fisher_information[name] = 0.5 * (self._fisher_information[name] + grad_sq)
+                self._fisher_information[name] = 0.5 * (
+                    self._fisher_information[name] + grad_sq
+                )
 
 
 def _iterate_batches(loader: Iterable[BatchType] | DataLoader) -> Iterable[BatchType]:

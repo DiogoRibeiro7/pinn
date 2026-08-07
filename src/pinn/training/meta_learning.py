@@ -8,7 +8,12 @@ import torch
 import copy
 
 
-def meta_learning_step(model: torch.nn.Module, task_batch: Iterable[tuple[torch.Tensor, torch.Tensor]], inner_steps: int = 1, lr: float = 1e-2) -> None:
+def meta_learning_step(
+    model: torch.nn.Module,
+    task_batch: Iterable[tuple[torch.Tensor, torch.Tensor]],
+    inner_steps: int = 1,
+    lr: float = 1e-2,
+) -> None:
     """Perform a simple MAML-style meta-learning update.
 
     Parameters

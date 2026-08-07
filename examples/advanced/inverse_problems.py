@@ -14,7 +14,7 @@ from pinn.utils.metrics import compute_error_metrics
 
 
 def analytical_solution(t: np.ndarray, x: np.ndarray, nu: float) -> np.ndarray:
-    return -np.sin(np.pi * x) * np.exp(-nu * np.pi ** 2 * t)
+    return -np.sin(np.pi * x) * np.exp(-nu * np.pi**2 * t)
 
 
 def main() -> None:
@@ -28,7 +28,9 @@ def main() -> None:
     logger = get_logger(__name__)
     logger.info("Estimating viscosity parameter nu from data")
 
-    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
+    cfg = (
+        BurgersConfig()
+    )  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = MLP(in_dim=2, hidden_layers=4, width=32, out_dim=1).to(device)
@@ -62,7 +64,8 @@ def main() -> None:
 
         if step % 500 == 0:
             logger.info(
-                "Training step", extra={"step": step, "loss": loss.item(), "nu": nu.item()}
+                "Training step",
+                extra={"step": step, "loss": loss.item(), "nu": nu.item()},
             )
 
     logger.info("Estimated nu", extra={"nu": nu.item()})

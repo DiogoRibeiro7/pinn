@@ -7,7 +7,12 @@ from pathlib import Path
 import torch
 
 from pinn.models import MLP
-from pinn.solvers.raissi_improved import BurgersConfig, TrainConfig, ContinuousPINN, burgers_residual
+from pinn.solvers.raissi_improved import (
+    BurgersConfig,
+    TrainConfig,
+    ContinuousPINN,
+    burgers_residual,
+)
 from pinn.utils.logging import get_logger
 
 
@@ -20,7 +25,9 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     logger = get_logger(__name__)
-    cfg = BurgersConfig()  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
+    cfg = (
+        BurgersConfig()
+    )  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tcfg = TrainConfig(n_u0=32, n_bc=32, n_f=1_000, adam_steps=1_000, lbfgs_max_iter=0)
 
@@ -30,7 +37,9 @@ def main() -> None:
         pinn = ContinuousPINN(model, device, burgers_residual, cfg)
         history = pinn.train(tcfg)
         results[width] = history["total"][-1]
-        logger.info("Finished training", extra={"width": width, "loss": history["total"][-1]})
+        logger.info(
+            "Finished training", extra={"width": width, "loss": history["total"][-1]}
+        )
 
     logger.info("Convergence results", extra=results)
 

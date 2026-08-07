@@ -114,7 +114,9 @@ class UncertaintyAcquisition:
         mode: str = "variance",
         mc_passes: int = 16,
         ensemble: Optional[Sequence[nn.Module]] = None,
-        custom_predict: Optional[Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]] = None,
+        custom_predict: Optional[
+            Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]
+        ] = None,
     ) -> None:
         self.mode = mode
         self.mc_passes = mc_passes
@@ -133,7 +135,7 @@ class UncertaintyAcquisition:
         if self.mode == "std":
             score = std
         elif self.mode == "variance":
-            score = std ** 2
+            score = std**2
         else:  # pragma: no cover - defensive
             raise ValueError(f"Unsupported uncertainty mode '{self.mode}'")
         return _flatten_scores(score)
@@ -149,7 +151,9 @@ class ExpectedImprovementAcquisition:
         xi: float = 0.01,
         maximize: bool = False,
         mc_passes: int = 16,
-        custom_predict: Optional[Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]] = None,
+        custom_predict: Optional[
+            Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]
+        ] = None,
     ) -> None:
         self.best_value = best_value
         self.xi = xi
@@ -158,14 +162,16 @@ class ExpectedImprovementAcquisition:
         self.custom_predict = custom_predict
 
     def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
-        mean, std = _predict_mean_std(model, points, custom=self.custom_predict, mc_passes=self.mc_passes)
+        mean, std = _predict_mean_std(
+            model, points, custom=self.custom_predict, mc_passes=self.mc_passes
+        )
         std = _ensure_std(std)
         if self.maximize:
             improvement = mean - self.best_value - self.xi
         else:
             improvement = self.best_value - mean - self.xi
         z = improvement / std
-        pdf = torch.exp(-0.5 * z ** 2) / math.sqrt(2.0 * math.pi)
+        pdf = torch.exp(-0.5 * z**2) / math.sqrt(2.0 * math.pi)
         cdf = _normal_cdf(z)
         ei = torch.clamp(improvement, min=0.0) * cdf + std * pdf
         return _flatten_scores(ei)
@@ -180,7 +186,9 @@ class UpperConfidenceBoundAcquisition:
         beta: float = 2.0,
         maximize: bool = False,
         mc_passes: int = 16,
-        custom_predict: Optional[Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]] = None,
+        custom_predict: Optional[
+            Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]
+        ] = None,
     ) -> None:
         self.beta = beta
         self.maximize = maximize
@@ -188,7 +196,9 @@ class UpperConfidenceBoundAcquisition:
         self.custom_predict = custom_predict
 
     def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
-        mean, std = _predict_mean_std(model, points, custom=self.custom_predict, mc_passes=self.mc_passes)
+        mean, std = _predict_mean_std(
+            model, points, custom=self.custom_predict, mc_passes=self.mc_passes
+        )
         if self.maximize:
             score = mean + self.beta * std
         else:
@@ -205,8 +215,8 @@ class InformationGainAcquisition:
 
     def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
         _, std = _predict_mean_std(model, points, mc_passes=self.mc_passes)
-        var = std ** 2
-        score = 0.5 * torch.log1p(var / (self.noise ** 2))
+        var = std**2
+        score = 0.5 * torch.log1p(var / (self.noise**2))
         return _flatten_scores(score)
 
 
@@ -216,8 +226,12 @@ class QueryByCommitteeAcquisition:
     def __init__(self, committee: Optional[Sequence[nn.Module]] = None) -> None:
         self.committee = committee
 
-    def __call__(self, points: Tensor, *, model: nn.Module | Sequence[nn.Module], **_: dict) -> Tensor:
-        committee = self.committee or (model if isinstance(model, Sequence) else (model,))
+    def __call__(
+        self, points: Tensor, *, model: nn.Module | Sequence[nn.Module], **_: dict
+    ) -> Tensor:
+        committee = self.committee or (
+            model if isinstance(model, Sequence) else (model,)
+        )
         _, std = deep_ensemble_predict(committee, points)
         return _flatten_scores(std)
 
@@ -243,7 +257,9 @@ class ActiveLearningStrategy:
         self.last_scores: Optional[Tensor] = None
 
     # ------------------------------------------------------------------
-    def score_candidates(self, candidate_points: Tensor, *, model: nn.Module, **kwargs: dict) -> Tensor:
+    def score_candidates(
+        self, candidate_points: Tensor, *, model: nn.Module, **kwargs: dict
+    ) -> Tensor:
         points = _as_tensor(candidate_points)
         with torch.no_grad():
             scores = self.acquisition_function(points, model=model, **kwargs)
@@ -252,7 +268,9 @@ class ActiveLearningStrategy:
         return self.last_scores
 
     # ------------------------------------------------------------------
-    def _diverse_batch_selection(self, points: Tensor, scores: Tensor, n_select: int) -> Tensor:
+    def _diverse_batch_selection(
+        self, points: Tensor, scores: Tensor, n_select: int
+    ) -> Tensor:
         n_select = min(n_select, points.shape[0])
         if n_select <= 0:
             return points.new_empty((0, points.shape[1]))
@@ -315,7 +333,9 @@ class StreamActiveLearning(ActiveLearningStrategy):
         super().__init__(acquisition_function, batch_size=batch_size)
         self.threshold = threshold
 
-    def select_from_stream(self, stream: Iterable[Tensor], model: nn.Module, n_select: int) -> Tensor:
+    def select_from_stream(
+        self, stream: Iterable[Tensor], model: nn.Module, n_select: int
+    ) -> Tensor:
         selected: list[Tensor] = []
         for chunk in stream:
             points = _as_tensor(chunk)
@@ -414,7 +434,9 @@ class ActivePINNTrainer:
             active_max_iterations=config.max_active_iterations,
         )
         if config.candidate_sampler is not None:
-            updated = replace(updated, active_candidate_sampler=config.candidate_sampler)
+            updated = replace(
+                updated, active_candidate_sampler=config.candidate_sampler
+            )
 
         logger.info(
             "Starting active learning training",
@@ -439,4 +461,3 @@ __all__ = [
     "ActivePINNTrainer",
     "ActiveLearningConfig",
 ]
-

@@ -1,4 +1,5 @@
 """FastAPI-based serving utilities for trained PINN models."""
+
 from __future__ import annotations
 
 import os
@@ -14,7 +15,9 @@ class PINNModelServer:
     """In-memory model server with basic caching and batching support."""
 
     def __init__(
-        self, model: Optional[torch.jit.ScriptModule] = None, model_path: Optional[str] = None
+        self,
+        model: Optional[torch.jit.ScriptModule] = None,
+        model_path: Optional[str] = None,
     ) -> None:
         if model is None and model_path is None:
             raise ValueError("Either model or model_path must be provided")

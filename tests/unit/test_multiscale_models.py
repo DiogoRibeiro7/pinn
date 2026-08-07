@@ -38,7 +38,9 @@ def test_multiscale_attention_weights_sum_to_one():
     )
     x = torch.randn(4, 1)
     _, _, weights = model.forward_with_details(x)
-    assert torch.allclose(weights.sum(dim=1), torch.ones_like(weights.sum(dim=1)), atol=1e-5)
+    assert torch.allclose(
+        weights.sum(dim=1), torch.ones_like(weights.sum(dim=1)), atol=1e-5
+    )
 
 
 def test_multiscale_trainer_progressive_updates():
@@ -97,7 +99,9 @@ def test_hierarchical_and_wavelet_models_forward():
 
 
 def test_fourier_multiscale_inherits_behaviour():
-    model = FourierMultiScalePINN(in_features=1, scales=(1.0, 2.0), combination_method="uniform")
+    model = FourierMultiScalePINN(
+        in_features=1, scales=(1.0, 2.0), combination_method="uniform"
+    )
     x = torch.randn(3, 1)
     out = model(x)
     assert out.shape == (3, 1)

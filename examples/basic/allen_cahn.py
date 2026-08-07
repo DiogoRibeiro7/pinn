@@ -20,9 +20,15 @@ def allen_cahn_residual(model: MLP, t: Tensor, x: Tensor, eps: float) -> Tensor:
     t = t.clone().detach().requires_grad_(True)
     x = x.clone().detach().requires_grad_(True)
     u = model(torch.cat([t, x], dim=1))
-    u_t = torch.autograd.grad(u, t, torch.ones_like(u), retain_graph=True, create_graph=True)[0]
-    u_x = torch.autograd.grad(u, x, torch.ones_like(u), retain_graph=True, create_graph=True)[0]
-    u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x), retain_graph=True, create_graph=True)[0]
+    u_t = torch.autograd.grad(
+        u, t, torch.ones_like(u), retain_graph=True, create_graph=True
+    )[0]
+    u_x = torch.autograd.grad(
+        u, x, torch.ones_like(u), retain_graph=True, create_graph=True
+    )[0]
+    u_xx = torch.autograd.grad(
+        u_x, x, torch.ones_like(u_x), retain_graph=True, create_graph=True
+    )[0]
     return u_t - eps * u_xx + (u**3 - u) / eps
 
 
@@ -51,7 +57,9 @@ def main() -> None:
     model = MLP(in_dim=2, hidden_layers=3, width=32, out_dim=1).to(device)
 
     opt = torch.optim.Adam(model.parameters(), lr=1e-3)
-    checkpoint_manager = CheckpointManager(out_dir / "checkpoints", save_frequency=500, keep_best_n=2)
+    checkpoint_manager = CheckpointManager(
+        out_dir / "checkpoints", save_frequency=500, keep_best_n=2
+    )
 
     for step in range(1, 3001):
         # sample collocation points
@@ -80,7 +88,11 @@ def main() -> None:
     x = torch.linspace(cfg.xmin, cfg.xmax, 100)
     TT, XX = torch.meshgrid(t, x, indexing="ij")
     with torch.no_grad():
-        UU = model(torch.stack([TT.flatten(), XX.flatten()], dim=1).to(device)).cpu().numpy()
+        UU = (
+            model(torch.stack([TT.flatten(), XX.flatten()], dim=1).to(device))
+            .cpu()
+            .numpy()
+        )
     viz = PINNVisualizer()
     viz.plot_2d_field(
         XX.numpy(),

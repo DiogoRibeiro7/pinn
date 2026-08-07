@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import Callable, Iterable
 
 
-def curriculum_train(train_fn: Callable[[Iterable], None], curricula: Iterable[Iterable]) -> None:
+def curriculum_train(
+    train_fn: Callable[[Iterable], None], curricula: Iterable[Iterable]
+) -> None:
     """Train a model over an increasing sequence of curricula.
 
     Parameters

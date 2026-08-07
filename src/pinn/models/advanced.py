@@ -27,9 +27,17 @@ class FourierFeaturePINN(nn.Module):
     components are difficult to learn with standard networks.
     """
 
-    def __init__(self, in_features: int = 1, mapping_size: int = 256, sigma: float = 1.0, base_network=MLP):
+    def __init__(
+        self,
+        in_features: int = 1,
+        mapping_size: int = 256,
+        sigma: float = 1.0,
+        base_network=MLP,
+    ):
         super().__init__()
-        self.B = nn.Parameter(sigma * torch.randn(in_features, mapping_size), requires_grad=False)
+        self.B = nn.Parameter(
+            sigma * torch.randn(in_features, mapping_size), requires_grad=False
+        )
         self.network = base_network(in_dim=2 * mapping_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # pragma: no cover - trivial
@@ -47,7 +55,13 @@ class AttentionPINN(nn.Module):
     showcase the idea rather than provide a highly optimised transformer.
     """
 
-    def __init__(self, in_features: int = 2, embed_dim: int = 32, num_heads: int = 4, base_network=MLP):
+    def __init__(
+        self,
+        in_features: int = 2,
+        embed_dim: int = 32,
+        num_heads: int = 4,
+        base_network=MLP,
+    ):
         super().__init__()
         self.embed = nn.Linear(in_features, embed_dim)
         self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
@@ -80,7 +94,9 @@ class EnsemblePINN(nn.Module):
         preds = [net(x) for net in self.networks]
         return torch.stack(preds).mean(dim=0)
 
-    def predict_with_uncertainty(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def predict_with_uncertainty(
+        self, x: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Return mean and standard deviation of ensemble predictions."""
 
         preds = torch.stack([net(x) for net in self.networks])

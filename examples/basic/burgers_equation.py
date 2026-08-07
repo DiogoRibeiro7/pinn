@@ -23,7 +23,7 @@ from pinn.distributed import DistributedTrainer
 
 def analytical_solution(t: np.ndarray, x: np.ndarray, nu: float) -> np.ndarray:
     """Approximate analytical solution for demonstration."""
-    return -np.sin(np.pi * x) * np.exp(-nu * np.pi ** 2 * t)
+    return -np.sin(np.pi * x) * np.exp(-nu * np.pi**2 * t)
 
 
 def main() -> None:
@@ -34,7 +34,9 @@ def main() -> None:
     parser.add_argument(
         "--output-dir", type=str, default="./results", help="Directory for results"
     )
-    parser.add_argument("--distributed", action="store_true", help="Enable multi-GPU training")
+    parser.add_argument(
+        "--distributed", action="store_true", help="Enable multi-GPU training"
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)

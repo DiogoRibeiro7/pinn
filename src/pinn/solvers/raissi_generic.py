@@ -12,6 +12,7 @@ Usage
 Other PDEs: Replace `*_residual` with your PDE residual f(t,x) using autograd
 (e.g., Schrödinger or Allen–Cahn). Then reuse `ContinuousPINNGeneric`.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -45,8 +46,10 @@ logger = get_logger(__name__)
 # Small Utils
 # ============================================================
 
+
 def set_seed(seed: int = 123) -> None:
     import random
+
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -70,6 +73,7 @@ def latin_hypercube(n: int, d: int, low: float = 0.0, high: float = 1.0) -> np.n
 # Domain/PDE config
 # ============================================================
 
+
 @dataclass(frozen=True)
 class Domain1D:
     tmin: float = 0.0
@@ -82,6 +86,7 @@ class Domain1D:
 # MLP (supports multi-output)
 # ============================================================
 # ============================================================
+
 
 class ContinuousPINNGeneric:
     """
@@ -96,10 +101,12 @@ class ContinuousPINNGeneric:
         device: str | torch.device,
         domain: Domain1D,
         u_dim: int,
-        u0_fn: Callable[[np.ndarray], np.ndarray],            # x -> u0 (N, u_dim)
-        bc_left_fn: Callable[[np.ndarray], np.ndarray],       # t -> u(t, xmin) (N, u_dim)
-        bc_right_fn: Callable[[np.ndarray], np.ndarray],      # t -> u(t, xmax) (N, u_dim)
-        residual_fn: Callable[[nn.Module, Tensor, Tensor], Tensor],  # returns (N, u_dim)
+        u0_fn: Callable[[np.ndarray], np.ndarray],  # x -> u0 (N, u_dim)
+        bc_left_fn: Callable[[np.ndarray], np.ndarray],  # t -> u(t, xmin) (N, u_dim)
+        bc_right_fn: Callable[[np.ndarray], np.ndarray],  # t -> u(t, xmax) (N, u_dim)
+        residual_fn: Callable[
+            [nn.Module, Tensor, Tensor], Tensor
+        ],  # returns (N, u_dim)
     ) -> None:
         self.model = model.to(device)
         self.device = torch.device(device)
@@ -114,22 +121,32 @@ class ContinuousPINNGeneric:
 
     def _make_data(self, n_u0: int, n_bc: int, n_f: int) -> Dict[str, Tensor]:
         # IC points (t=0)
-        x0 = np.random.uniform(self.domain.xmin, self.domain.xmax, size=(n_u0, 1)).astype(np.float32)
+        x0 = np.random.uniform(
+            self.domain.xmin, self.domain.xmax, size=(n_u0, 1)
+        ).astype(np.float32)
         t0 = np.zeros_like(x0, dtype=np.float32)
         u0 = self.u0_fn(x0.astype(np.float32)).astype(np.float32)  # (n_u0, u_dim)
 
         # BC points (left/right boundaries)
-        tl = np.random.uniform(self.domain.tmin, self.domain.tmax, size=(n_bc, 1)).astype(np.float32)
-        tr = np.random.uniform(self.domain.tmin, self.domain.tmax, size=(n_bc, 1)).astype(np.float32)
+        tl = np.random.uniform(
+            self.domain.tmin, self.domain.tmax, size=(n_bc, 1)
+        ).astype(np.float32)
+        tr = np.random.uniform(
+            self.domain.tmin, self.domain.tmax, size=(n_bc, 1)
+        ).astype(np.float32)
         xl = np.full_like(tl, self.domain.xmin, dtype=np.float32)
         xr = np.full_like(tr, self.domain.xmax, dtype=np.float32)
-        ul = self.bc_left_fn(tl).astype(np.float32)    # (n_bc, u_dim)
-        ur = self.bc_right_fn(tr).astype(np.float32)   # (n_bc, u_dim)
+        ul = self.bc_left_fn(tl).astype(np.float32)  # (n_bc, u_dim)
+        ur = self.bc_right_fn(tr).astype(np.float32)  # (n_bc, u_dim)
 
         # Collocation points (t, x)
         H = latin_hypercube(n_f, 2, 0.0, 1.0)
-        tf = (self.domain.tmin + (self.domain.tmax - self.domain.tmin) * H[:, [0]]).astype(np.float32)
-        xf = (self.domain.xmin + (self.domain.xmax - self.domain.xmin) * H[:, [1]]).astype(np.float32)
+        tf = (
+            self.domain.tmin + (self.domain.tmax - self.domain.tmin) * H[:, [0]]
+        ).astype(np.float32)
+        xf = (
+            self.domain.xmin + (self.domain.xmax - self.domain.xmin) * H[:, [1]]
+        ).astype(np.float32)
 
         to_t = lambda a: torch.from_numpy(a).to(self.device)
         return {
@@ -182,7 +199,9 @@ class ContinuousPINNGeneric:
             if adaptive_weighting.visualize:
                 weight_visualizer = WeightEvolutionVisualizer(("ic", "bc", "pde"))
         else:
-            weights_vector = torch.tensor(loss_weights, dtype=torch.float32, device=self.device)
+            weights_vector = torch.tensor(
+                loss_weights, dtype=torch.float32, device=self.device
+            )
 
         def compute_components() -> Dict[str, Tensor]:
             u_pred0 = self.model(torch.cat([data["t0"], data["x0"]], dim=1))
@@ -190,10 +209,12 @@ class ContinuousPINNGeneric:
 
             u_left = self.model(torch.cat([data["tl"], data["xl"]], dim=1))
             u_right = self.model(torch.cat([data["tr"], data["xr"]], dim=1))
-            bc = torch.mean((u_left - data["ul"]) ** 2) + torch.mean((u_right - data["ur"]) ** 2)
+            bc = torch.mean((u_left - data["ul"]) ** 2) + torch.mean(
+                (u_right - data["ur"]) ** 2
+            )
 
             f = self.residual_fn(self.model, data["tf"], data["xf"])  # (n_f, u_dim)
-            pde = torch.mean(f ** 2)
+            pde = torch.mean(f**2)
             return {"ic": ic, "bc": bc, "pde": pde}
 
         def loss_fn() -> Tuple[Tensor, Dict[str, Tensor]]:
@@ -238,7 +259,9 @@ class ContinuousPINNGeneric:
             loss_value = float(total_loss.detach())
             final_loss_value = loss_value
             if adaptive_manager is not None:
-                adaptive_losses = {name: tensor.detach() for name, tensor in components.items()}
+                adaptive_losses = {
+                    name: tensor.detach() for name, tensor in components.items()
+                }
                 adaptive_losses["total"] = total_loss.detach()
                 weights_vector = adaptive_manager.update_weights(
                     adaptive_losses,
@@ -253,7 +276,9 @@ class ContinuousPINNGeneric:
                 log_memory_usage(logger)
                 log_gpu_usage(logger)
             if checkpoint_manager:
-                checkpoint_manager.maybe_save(self.model, opt, step, {"loss": loss_value})
+                checkpoint_manager.maybe_save(
+                    self.model, opt, step, {"loss": loss_value}
+                )
                 if checkpoint_manager.should_stop():
                     checkpoint_manager.restore_best(self.model, opt)
                     logger.info("Early stopping triggered", extra={"step": step})
@@ -265,7 +290,9 @@ class ContinuousPINNGeneric:
         # Optional L-BFGS
         self.last_loss_weights = tuple(float(v) for v in weights_vector)
         if adaptive_manager is not None:
-            self.adaptive_weight_history = [list(w) for w in adaptive_manager.weight_history]
+            self.adaptive_weight_history = [
+                list(w) for w in adaptive_manager.weight_history
+            ]
             analyzer = LossBalancingAnalyzer(adaptive_manager)
             logger.info("Adaptive weighting summary", extra=analyzer.summary())
             if weight_visualizer is not None:
@@ -276,7 +303,7 @@ class ContinuousPINNGeneric:
                 if isinstance(payload, dict):
                     logger.debug(
                         "Adaptive weighting evolution captured",
-                        extra={"updates": len(payload["steps"])}
+                        extra={"updates": len(payload["steps"])},
                     )
 
         if not stopped_early and lbfgs_max_iter > 0:
@@ -313,8 +340,8 @@ class ContinuousPINNGeneric:
         self.model.eval()
         out = []
         for i in range(0, T.shape[0], batch):
-            tb = torch.from_numpy(T[i:i+batch]).to(self.device)
-            xb = torch.from_numpy(X[i:i+batch]).to(self.device)
+            tb = torch.from_numpy(T[i : i + batch]).to(self.device)
+            xb = torch.from_numpy(X[i : i + batch]).to(self.device)
             ub = self.model(torch.cat([tb, xb], dim=1)).cpu().numpy()
             out.append(ub)
         return np.vstack(out).reshape(t.shape + (self.u_dim,))
@@ -326,7 +353,10 @@ class ContinuousPINNGeneric:
 
 # 1) Allen–Cahn: u_t - nu u_xx + (u^3 - u) = 0  (scalar)
 
-def allen_cahn_residual_factory(nu: float) -> Callable[[nn.Module, Tensor, Tensor], Tensor]:
+
+def allen_cahn_residual_factory(
+    nu: float,
+) -> Callable[[nn.Module, Tensor, Tensor], Tensor]:
     def residual(model: nn.Module, t: Tensor, x: Tensor) -> Tensor:
         if t.shape != x.shape or t.ndim != 2 or t.shape[1] != 1:
             raise ValueError("t and x must be (N,1) with same shape.")
@@ -336,14 +366,18 @@ def allen_cahn_residual_factory(nu: float) -> Callable[[nn.Module, Tensor, Tenso
         ones = torch.ones_like(u)
         u_t = torch.autograd.grad(u, t, ones, retain_graph=True, create_graph=True)[0]
         u_x = torch.autograd.grad(u, x, ones, retain_graph=True, create_graph=True)[0]
-        u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x), retain_graph=True, create_graph=True)[0]
+        u_xx = torch.autograd.grad(
+            u_x, x, torch.ones_like(u_x), retain_graph=True, create_graph=True
+        )[0]
         f = u_t - nu * u_xx + (u**3 - u)
         return f  # (N,1)
+
     return residual
 
 
 # 2) Nonlinear Schrödinger (cubic focusing): i u_t + 0.5 u_xx + |u|^2 u = 0
 #    Represent u = a + i b (two outputs). Residual returns (N,2): [Re, Im].
+
 
 def schrodinger_residual(model: nn.Module, t: Tensor, x: Tensor) -> Tensor:
     if t.shape != x.shape or t.ndim != 2 or t.shape[1] != 1:
@@ -363,20 +397,25 @@ def schrodinger_residual(model: nn.Module, t: Tensor, x: Tensor) -> Tensor:
     b_t = torch.autograd.grad(b, t, ones_b, retain_graph=True, create_graph=True)[0]
     a_x = torch.autograd.grad(a, x, ones_a, retain_graph=True, create_graph=True)[0]
     b_x = torch.autograd.grad(b, x, ones_b, retain_graph=True, create_graph=True)[0]
-    a_xx = torch.autograd.grad(a_x, x, torch.ones_like(a_x), retain_graph=True, create_graph=True)[0]
-    b_xx = torch.autograd.grad(b_x, x, torch.ones_like(b_x), retain_graph=True, create_graph=True)[0]
+    a_xx = torch.autograd.grad(
+        a_x, x, torch.ones_like(a_x), retain_graph=True, create_graph=True
+    )[0]
+    b_xx = torch.autograd.grad(
+        b_x, x, torch.ones_like(b_x), retain_graph=True, create_graph=True
+    )[0]
 
     mod2 = a**2 + b**2
     # Re: -b_t + 0.5 a_xx + |u|^2 a = 0
     # Im:  a_t + 0.5 b_xx + |u|^2 b = 0
     res_re = -b_t + 0.5 * a_xx + mod2 * a
-    res_im =  a_t + 0.5 * b_xx + mod2 * b
+    res_im = a_t + 0.5 * b_xx + mod2 * b
     return torch.cat([res_re, res_im], dim=1)  # (N,2)
 
 
 # ============================================================
 # Demos
 # ============================================================
+
 
 def demo_allen_cahn() -> None:
     """Quick demo for Allen–Cahn on [-1,1]×[0,1] with zero Dirichlet BCs."""
@@ -402,7 +441,15 @@ def demo_allen_cahn() -> None:
         residual_fn=allen_cahn_residual_factory(nu=1e-2),  # diffusion coeff
     )
 
-    pinn.train(n_u0=200, n_bc=200, n_f=20_000, lr=1e-3, steps=6000, lbfgs_max_iter=200, seed=123)
+    pinn.train(
+        n_u0=200,
+        n_bc=200,
+        n_f=20_000,
+        lr=1e-3,
+        steps=6000,
+        lbfgs_max_iter=200,
+        seed=123,
+    )
 
     # Predict on grid
     t = np.linspace(domain.tmin, domain.tmax, 41, dtype=np.float32)
@@ -419,7 +466,7 @@ def demo_schrodinger() -> None:
 
     # IC: Gaussian wave packet (real), zero imaginary part
     def u0(x: np.ndarray) -> np.ndarray:
-        a0 = np.exp(-x**2).astype(np.float32)
+        a0 = np.exp(-(x**2)).astype(np.float32)
         b0 = np.zeros_like(a0, dtype=np.float32)
         return np.concatenate([a0, b0], axis=1)  # (N,2)
 
@@ -439,7 +486,15 @@ def demo_schrodinger() -> None:
         residual_fn=schrodinger_residual,
     )
 
-    pinn.train(n_u0=200, n_bc=200, n_f=30_000, lr=1e-3, steps=8000, lbfgs_max_iter=200, seed=123)
+    pinn.train(
+        n_u0=200,
+        n_bc=200,
+        n_f=30_000,
+        lr=1e-3,
+        steps=8000,
+        lbfgs_max_iter=200,
+        seed=123,
+    )
 
     # Predict on grid
     t = np.linspace(domain.tmin, domain.tmax, 21, dtype=np.float32)

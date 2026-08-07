@@ -80,7 +80,9 @@ def test_knowledge_distillation_improves_student() -> None:
     trainer = KnowledgeDistillationTrainer(
         teacher,
         student,
-        DistillationConfig(epochs=10, temperature=2.0, alpha=0.7, lr=1e-2, device="cpu"),
+        DistillationConfig(
+            epochs=10, temperature=2.0, alpha=0.7, lr=1e-2, device="cpu"
+        ),
     )
     trainer.train(loader)
     after = evaluate_model(student, loader)
@@ -91,8 +93,8 @@ def test_domain_adaptation_returns_metrics() -> None:
     model = MLP(in_dim=1, hidden_layers=2, width=16, out_dim=1)
     source_loader = _make_linear_loader(1.0, 0.0)
     target_loader = _make_linear_loader(1.5, 0.5)
-    adapter = DomainAdaptationPINN(model, config=DomainAdaptationConfig(method="coral", epochs=5, lr=1e-2))
+    adapter = DomainAdaptationPINN(
+        model, config=DomainAdaptationConfig(method="coral", epochs=5, lr=1e-2)
+    )
     history = adapter.adapt(source_loader, target_loader)
     assert "coral_loss" in history
-
-

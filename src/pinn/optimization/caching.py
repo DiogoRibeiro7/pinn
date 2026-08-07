@@ -124,7 +124,9 @@ class AdaptiveCache:
         if isinstance(obj, str):
             return len(obj.encode("utf-8"))
         if isinstance(obj, dict):
-            return sum(self._estimate_size(k) + self._estimate_size(v) for k, v in obj.items())
+            return sum(
+                self._estimate_size(k) + self._estimate_size(v) for k, v in obj.items()
+            )
         if isinstance(obj, (list, tuple, set)):
             return sum(self._estimate_size(v) for v in obj)
         return sys.getsizeof(obj)
@@ -374,7 +376,9 @@ class PrecomputationManager:
         self._futures: Dict[str, Any] = {}
         self._lock = threading.Lock()
 
-    def submit(self, key: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+    def submit(
+        self, key: str, fn: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> None:
         from concurrent.futures import Future
 
         with self._lock:
@@ -417,26 +421,42 @@ class TrainingCache:
         self.config = config
         self.config.validate()
         self._rng = np.random.default_rng(rng_seed)
-        self._sample_cache = AdaptiveCache(
-            max_memory_mb=config.max_memory_mb,
-            compression=config.compression,
-            namespace="samples",
-        ) if config.store_samples else None
-        self._gradient_cache = AdaptiveCache(
-            max_memory_mb=max(16, config.max_memory_mb // 4),
-            compression=config.compression,
-            namespace="gradients",
-        ) if config.store_gradients else None
-        self._loss_cache = AdaptiveCache(
-            max_memory_mb=64,
-            compression=False,
-            namespace="losses",
-        ) if config.store_losses else None
-        self._activation_cache = AdaptiveCache(
-            max_memory_mb=max(64, config.max_memory_mb // 2),
-            compression=config.compression,
-            namespace="activations",
-        ) if config.store_activations else None
+        self._sample_cache = (
+            AdaptiveCache(
+                max_memory_mb=config.max_memory_mb,
+                compression=config.compression,
+                namespace="samples",
+            )
+            if config.store_samples
+            else None
+        )
+        self._gradient_cache = (
+            AdaptiveCache(
+                max_memory_mb=max(16, config.max_memory_mb // 4),
+                compression=config.compression,
+                namespace="gradients",
+            )
+            if config.store_gradients
+            else None
+        )
+        self._loss_cache = (
+            AdaptiveCache(
+                max_memory_mb=64,
+                compression=False,
+                namespace="losses",
+            )
+            if config.store_losses
+            else None
+        )
+        self._activation_cache = (
+            AdaptiveCache(
+                max_memory_mb=max(64, config.max_memory_mb // 2),
+                compression=config.compression,
+                namespace="activations",
+            )
+            if config.store_activations
+            else None
+        )
         self._precompute = (
             PrecomputationManager(config.precompute_workers)
             if config.async_precompute
@@ -567,7 +587,9 @@ class TrainingCache:
         if self._gradient_cache is None:
             return
         metadata = {"version": self.model_version}
-        self._gradient_cache.put(key, value.detach().cpu(), priority=1, metadata=metadata)
+        self._gradient_cache.put(
+            key, value.detach().cpu(), priority=1, metadata=metadata
+        )
 
     # ------------------------------------------------------------------
     # Loss history caching
@@ -584,7 +606,9 @@ class TrainingCache:
         if self._loss_cache is None:
             return {}
         history: Dict[int, Dict[str, float]] = {}
-        for key in list(self._loss_cache._entries.keys()):  # pragma: no cover - debug path
+        for key in list(
+            self._loss_cache._entries.keys()
+        ):  # pragma: no cover - debug path
             value_meta = self._loss_cache.get_with_metadata(key)
             if value_meta is None:
                 continue
@@ -676,7 +700,9 @@ class CachedSampler:
 
     def _key(self, n_points: int, **kwargs: Any) -> str:
         payload = {"n_points": n_points, **kwargs}
-        digest = hashlib.blake2b(json.dumps(payload, sort_keys=True).encode("utf-8"), digest_size=16)
+        digest = hashlib.blake2b(
+            json.dumps(payload, sort_keys=True).encode("utf-8"), digest_size=16
+        )
         return digest.hexdigest()
 
     def sample(self, n_points: int, **kwargs: Any) -> np.ndarray:
@@ -742,9 +768,21 @@ def _hashable_args(args: Tuple[Any, ...]) -> Any:
     result = []
     for value in args:
         if torch.is_tensor(value):
-            result.append({"tensor": hashlib.blake2b(value.detach().cpu().numpy().tobytes(), digest_size=16).hexdigest()})
+            result.append(
+                {
+                    "tensor": hashlib.blake2b(
+                        value.detach().cpu().numpy().tobytes(), digest_size=16
+                    ).hexdigest()
+                }
+            )
         elif isinstance(value, np.ndarray):
-            result.append({"ndarray": hashlib.blake2b(value.tobytes(), digest_size=16).hexdigest()})
+            result.append(
+                {
+                    "ndarray": hashlib.blake2b(
+                        value.tobytes(), digest_size=16
+                    ).hexdigest()
+                }
+            )
         elif isinstance(value, (list, tuple)):
             result.append(_hashable_args(tuple(value)))
         elif isinstance(value, dict):
@@ -755,8 +793,4 @@ def _hashable_args(args: Tuple[Any, ...]) -> Any:
 
 
 def _hashable_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
-    return {
-        key: _hashable_args((value,))[0]
-        for key, value in sorted(kwargs.items())
-    }
-
+    return {key: _hashable_args((value,))[0] for key, value in sorted(kwargs.items())}

@@ -10,4 +10,3 @@ def simple_mlp() -> MLP:
 
 
 __all__ = ["simple_mlp"]
-

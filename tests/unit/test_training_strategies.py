@@ -62,5 +62,7 @@ def test_second_order_step_and_optimisation():
     param = torch.nn.Parameter(torch.tensor(1.0))
     gradient_hyperparam_search(param, lambda p: (p - 1) ** 2)
 
-    arch = architecture_search([lambda: MLP(in_dim=1, hidden_layers=1, width=4, out_dim=1)], lambda m: 0.0)
+    arch = architecture_search(
+        [lambda: MLP(in_dim=1, hidden_layers=1, width=4, out_dim=1)], lambda m: 0.0
+    )
     assert isinstance(arch, MLP)

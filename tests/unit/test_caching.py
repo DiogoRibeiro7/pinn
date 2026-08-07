@@ -50,8 +50,12 @@ def test_training_cache_prepare_points(tmp_path: Path) -> None:
             "xf": torch.ones(2, 1),
         }
 
-    first = cache.prepare_training_points(tcfg, factory, device=torch.device("cpu"), context=context)
-    second = cache.prepare_training_points(tcfg, factory, device=torch.device("cpu"), context=context)
+    first = cache.prepare_training_points(
+        tcfg, factory, device=torch.device("cpu"), context=context
+    )
+    second = cache.prepare_training_points(
+        tcfg, factory, device=torch.device("cpu"), context=context
+    )
 
     assert len(calls) == 1
     assert torch.equal(first["tf"], second["tf"])

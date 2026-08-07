@@ -16,7 +16,9 @@ from pinn.utils.sampling import Domain, LatinHypercubeSampler
 
 def test_hierarchical_schedule_allocates_more_to_low_fidelity() -> None:
     domain = Domain([(0.0, 1.0)])
-    sampler = MultiFidelitySampler(domain, [5, 20], [1.0, 4.0], base_sampler=LatinHypercubeSampler(domain, seed=1))
+    sampler = MultiFidelitySampler(
+        domain, [5, 20], [1.0, 4.0], base_sampler=LatinHypercubeSampler(domain, seed=1)
+    )
     schedule = sampler.hierarchical_sampling_schedule(100)
     assert len(schedule) == 2
     # first level should receive more points than the second
@@ -34,11 +36,15 @@ def _make_model() -> torch.nn.Module:
 def test_hierarchical_training_improves_accuracy() -> None:
     torch.manual_seed(0)
     domain = Domain([(0.0, np.pi)])
-    sampler = MultiFidelitySampler(domain, [5, 20], [1.0, 4.0], base_sampler=LatinHypercubeSampler(domain, seed=2))
+    sampler = MultiFidelitySampler(
+        domain, [5, 20], [1.0, 4.0], base_sampler=LatinHypercubeSampler(domain, seed=2)
+    )
     models = [_make_model(), _make_model()]
     analytic_fn = lambda x: torch.sin(x)
     trainer = HierarchicalPINNTrainer(models, sampler, analytic_fn)
-    trainer.train_hierarchical(HierarchicalConfig(total_budget=40, epochs=50, validate_points=20))
+    trainer.train_hierarchical(
+        HierarchicalConfig(total_budget=40, epochs=50, validate_points=20)
+    )
     err_low = trainer.validate(0, 20)
     err_high = trainer.validate(1, 20)
     assert err_high < err_low

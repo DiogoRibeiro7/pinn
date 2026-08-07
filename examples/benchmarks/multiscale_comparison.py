@@ -16,13 +16,17 @@ from pinn.models import (
 from pinn.utils.logging import get_logger
 
 
-def create_dataset(num_points: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
+def create_dataset(
+    num_points: int, device: torch.device
+) -> tuple[torch.Tensor, torch.Tensor]:
     x = torch.linspace(0.0, 1.0, num_points, device=device).unsqueeze(1)
     target = torch.sin(2 * torch.pi * x) + 0.5 * torch.sin(10 * torch.pi * x)
     return x, target
 
 
-def evaluate(model: torch.nn.Module, coords: torch.Tensor, targets: torch.Tensor) -> float:
+def evaluate(
+    model: torch.nn.Module, coords: torch.Tensor, targets: torch.Tensor
+) -> float:
     with torch.no_grad():
         preds = model(coords)
         return torch.mean((preds - targets) ** 2).item()
@@ -82,9 +86,15 @@ def train_multi_scale(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compare multi-scale and baseline PINNs")
-    parser.add_argument("--epochs", type=int, default=300, help="Training epochs for baseline model")
-    parser.add_argument("--num-points", type=int, default=512, help="Number of collocation points")
+    parser = argparse.ArgumentParser(
+        description="Compare multi-scale and baseline PINNs"
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=300, help="Training epochs for baseline model"
+    )
+    parser.add_argument(
+        "--num-points", type=int, default=512, help="Number of collocation points"
+    )
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument(
         "--scales",
@@ -101,7 +111,9 @@ def main() -> None:
     coords, targets = create_dataset(args.num_points, device)
 
     logger.info("Training single-scale baseline", extra={"epochs": args.epochs})
-    baseline_model, baseline_losses, baseline_time = train_single_scale(coords, targets, epochs=args.epochs, lr=args.lr)
+    baseline_model, baseline_losses, baseline_time = train_single_scale(
+        coords, targets, epochs=args.epochs, lr=args.lr
+    )
     baseline_mse = evaluate(baseline_model, coords, targets)
 
     logger.info(

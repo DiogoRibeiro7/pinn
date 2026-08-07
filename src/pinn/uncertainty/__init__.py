@@ -8,7 +8,9 @@ import torch
 from torch import nn
 
 
-def mc_dropout_predict(model: nn.Module, x: torch.Tensor, passes: int = 20) -> Tuple[torch.Tensor, torch.Tensor]:
+def mc_dropout_predict(
+    model: nn.Module, x: torch.Tensor, passes: int = 20
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """Estimate prediction mean and std using Monte Carlo dropout."""
 
     model.train()  # enable dropout
@@ -19,7 +21,9 @@ def mc_dropout_predict(model: nn.Module, x: torch.Tensor, passes: int = 20) -> T
     return preds.mean(dim=0), preds.std(dim=0)
 
 
-def deep_ensemble_predict(models: Sequence[nn.Module], x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+def deep_ensemble_predict(
+    models: Sequence[nn.Module], x: torch.Tensor
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """Aggregate predictions from an ensemble of models."""
 
     preds = torch.stack([m(x) for m in models])

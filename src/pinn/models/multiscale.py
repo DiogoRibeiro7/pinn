@@ -33,7 +33,9 @@ def _resolve_factory(
         return factory
 
     def _default_factory() -> nn.Module:
-        return MLP(in_dim=in_dim, hidden_layers=hidden_layers, width=width, out_dim=out_dim)
+        return MLP(
+            in_dim=in_dim, hidden_layers=hidden_layers, width=width, out_dim=out_dim
+        )
 
     return _default_factory
 
@@ -41,13 +43,19 @@ def _resolve_factory(
 class MultiScaleAttention(nn.Module):
     """Attention mechanism that scores features from multiple scales."""
 
-    def __init__(self, num_scales: int, feature_dim: int = 16, hidden_dim: int = 32) -> None:
+    def __init__(
+        self, num_scales: int, feature_dim: int = 16, hidden_dim: int = 32
+    ) -> None:
         super().__init__()
         self.num_scales = num_scales
         self.feature_dim = feature_dim
         self.query_network = nn.Linear(feature_dim, hidden_dim)
-        self.key_networks = nn.ModuleList(nn.Linear(feature_dim, hidden_dim) for _ in range(num_scales))
-        self.value_networks = nn.ModuleList(nn.Linear(feature_dim, hidden_dim) for _ in range(num_scales))
+        self.key_networks = nn.ModuleList(
+            nn.Linear(feature_dim, hidden_dim) for _ in range(num_scales)
+        )
+        self.value_networks = nn.ModuleList(
+            nn.Linear(feature_dim, hidden_dim) for _ in range(num_scales)
+        )
         self.projection = nn.Linear(hidden_dim, 1)
 
     def forward(self, scale_features: Sequence[Tensor]) -> Tensor:
@@ -58,12 +66,20 @@ class MultiScaleAttention(nn.Module):
 
         stacked = torch.stack(scale_features, dim=1)  # (batch, num_scales, feature_dim)
         query = self.query_network(stacked.mean(dim=1))  # (batch, hidden_dim)
-        keys = torch.stack([layer(feat) for layer, feat in zip(self.key_networks, scale_features)], dim=1)
-        values = torch.stack([layer(feat) for layer, feat in zip(self.value_networks, scale_features)], dim=1)
+        keys = torch.stack(
+            [layer(feat) for layer, feat in zip(self.key_networks, scale_features)],
+            dim=1,
+        )
+        values = torch.stack(
+            [layer(feat) for layer, feat in zip(self.value_networks, scale_features)],
+            dim=1,
+        )
         scores = torch.einsum("bd,bkd->bk", query, keys)
         attention = torch.softmax(scores, dim=1)
         attended = torch.einsum("bk,bkd->bd", attention, values)
-        _ = self.projection(attended)  # included for completeness, output not used directly
+        _ = self.projection(
+            attended
+        )  # included for completeness, output not used directly
         return attention
 
 
@@ -107,7 +123,9 @@ class MultiScalePINN(nn.Module):
             hidden_layers=hidden_layers,
             width=width,
         )
-        self.scale_networks = nn.ModuleList(factory() for _ in range(scale_values.numel()))
+        self.scale_networks = nn.ModuleList(
+            factory() for _ in range(scale_values.numel())
+        )
         self.scale_feature_extractors = nn.ModuleList(
             nn.Sequential(
                 nn.Linear(in_features, feature_dim),
@@ -119,7 +137,12 @@ class MultiScalePINN(nn.Module):
             for _ in range(scale_values.numel())
         )
 
-        if combination_method not in {"learned", "attention", "weighted_average", "uniform"}:
+        if combination_method not in {
+            "learned",
+            "attention",
+            "weighted_average",
+            "uniform",
+        }:
             raise ValueError("Unknown combination method")
 
         if combination_method == "learned":
@@ -129,18 +152,24 @@ class MultiScalePINN(nn.Module):
                 nn.Linear(max(feature_dim, 32), scale_values.numel()),
             )
         elif combination_method == "attention":
-            self.attention = MultiScaleAttention(scale_values.numel(), feature_dim=feature_dim)
+            self.attention = MultiScaleAttention(
+                scale_values.numel(), feature_dim=feature_dim
+            )
         elif combination_method == "weighted_average":
             self.combination_logits = nn.Parameter(torch.zeros(scale_values.numel()))
 
         self.dropout = nn.Dropout(p=dropout)
-        self.register_buffer("_scale_usage", torch.zeros(scale_values.numel()), persistent=False)
+        self.register_buffer(
+            "_scale_usage", torch.zeros(scale_values.numel()), persistent=False
+        )
 
     def extra_repr(self) -> str:  # pragma: no cover - representation helper
         return f"scales={self.get_scales().tolist()}, combination='{self._combination_method}'"
 
     def get_scales(self) -> Tensor:
-        return torch.exp(self.log_scales) if self.learnable_scales else self.scales_tensor
+        return (
+            torch.exp(self.log_scales) if self.learnable_scales else self.scales_tensor
+        )
 
     def forward(self, x: Tensor) -> Tensor:
         combined, _, _ = self.forward_with_details(x)
@@ -152,7 +181,9 @@ class MultiScalePINN(nn.Module):
         scales = self.get_scales().to(x.device)
         outputs: List[Tensor] = []
         features: List[Tensor] = []
-        for scale, network, extractor in zip(scales, self.scale_networks, self.scale_feature_extractors):
+        for scale, network, extractor in zip(
+            scales, self.scale_networks, self.scale_feature_extractors
+        ):
             scaled_input = x * scale
             feat = extractor(scaled_input)
             features.append(feat)
@@ -161,10 +192,14 @@ class MultiScalePINN(nn.Module):
         weights = self._combine(outputs, features, x)
         stacked = torch.stack(outputs, dim=-1)  # (batch, out_features, num_scales)
         combined = torch.einsum("bon,bn->bo", stacked, weights)
-        self._scale_usage = 0.95 * self._scale_usage + 0.05 * weights.mean(dim=0).detach()
+        self._scale_usage = (
+            0.95 * self._scale_usage + 0.05 * weights.mean(dim=0).detach()
+        )
         return combined, outputs, weights
 
-    def _combine(self, outputs: Sequence[Tensor], features: Sequence[Tensor], x: Tensor) -> Tensor:
+    def _combine(
+        self, outputs: Sequence[Tensor], features: Sequence[Tensor], x: Tensor
+    ) -> Tensor:
         num_scales = len(outputs)
         if self._combination_method == "learned":
             combined_features = torch.cat(features, dim=-1)
@@ -173,8 +208,12 @@ class MultiScalePINN(nn.Module):
         if self._combination_method == "attention":
             return self.attention(features)
         if self._combination_method == "weighted_average":
-            return torch.softmax(self.combination_logits, dim=0).expand(x.shape[0], num_scales)
-        return torch.full((x.shape[0], num_scales), 1.0 / num_scales, device=x.device, dtype=x.dtype)
+            return torch.softmax(self.combination_logits, dim=0).expand(
+                x.shape[0], num_scales
+            )
+        return torch.full(
+            (x.shape[0], num_scales), 1.0 / num_scales, device=x.device, dtype=x.dtype
+        )
 
     def predict_with_uncertainty(self, x: Tensor) -> Tuple[Tensor, Tensor]:
         combined, outputs, weights = self.forward_with_details(x)
@@ -204,7 +243,14 @@ class MultiScalePINN(nn.Module):
 class HierarchicalPINN(nn.Module):
     """Coarse-to-fine hierarchy where each level refines the previous output."""
 
-    def __init__(self, *, in_features: int = 2, levels: int = 3, base_width: int = 32, growth: float = 2.0) -> None:
+    def __init__(
+        self,
+        *,
+        in_features: int = 2,
+        levels: int = 3,
+        base_width: int = 32,
+        growth: float = 2.0,
+    ) -> None:
         super().__init__()
         if levels < 1:
             raise ValueError("levels must be >= 1")
@@ -212,14 +258,19 @@ class HierarchicalPINN(nn.Module):
         self.level_networks = nn.ModuleList()
         width = base_width
         for level in range(levels):
-            net = MLP(in_dim=in_features, hidden_layers=3 + level, width=int(width), out_dim=1)
+            net = MLP(
+                in_dim=in_features, hidden_layers=3 + level, width=int(width), out_dim=1
+            )
             self.level_networks.append(net)
             width *= growth
         self.correction_layers = nn.ModuleList(
-            nn.Sequential(nn.Linear(1, 16), nn.Tanh(), nn.Linear(16, 1)) for _ in range(levels - 1)
+            nn.Sequential(nn.Linear(1, 16), nn.Tanh(), nn.Linear(16, 1))
+            for _ in range(levels - 1)
         )
 
-    def forward(self, x: Tensor, *, return_all: bool = False) -> Tensor | Tuple[List[Tensor], Tensor]:
+    def forward(
+        self, x: Tensor, *, return_all: bool = False
+    ) -> Tensor | Tuple[List[Tensor], Tensor]:
         outputs: List[Tensor] = []
         for idx, net in enumerate(self.level_networks):
             prediction = net(x)
@@ -233,7 +284,13 @@ class HierarchicalPINN(nn.Module):
 class WaveletPINN(nn.Module):
     """Multi-resolution network that augments inputs with wavelet responses."""
 
-    def __init__(self, *, in_features: int = 2, wavelet_levels: int = 3, wavelet_type: str = "mexican_hat") -> None:
+    def __init__(
+        self,
+        *,
+        in_features: int = 2,
+        wavelet_levels: int = 3,
+        wavelet_type: str = "mexican_hat",
+    ) -> None:
         super().__init__()
         self.in_features = in_features
         self.wavelet_levels = wavelet_levels
@@ -254,18 +311,22 @@ class WaveletPINN(nn.Module):
             for _ in range(wavelet_levels)
         )
         total_features = in_features + wavelet_levels * 8
-        self.main_network = MLP(in_dim=total_features, hidden_layers=6, width=64, out_dim=1)
+        self.main_network = MLP(
+            in_dim=total_features, hidden_layers=6, width=64, out_dim=1
+        )
 
     def forward(self, x: Tensor) -> Tensor:
         features = [x]
         for level in range(self.wavelet_levels):
-            scale = 2 ** level
+            scale = 2**level
             scaled = x * scale
             norm = scaled.pow(2).sum(dim=1, keepdim=True)
             if self.wavelet_type == "mexican_hat":
                 wavelet = (1 - norm) * torch.exp(-0.5 * norm)
             else:
-                wavelet = torch.cos(5 * scaled).prod(dim=1, keepdim=True) * torch.exp(-0.5 * norm)
+                wavelet = torch.cos(5 * scaled).prod(dim=1, keepdim=True) * torch.exp(
+                    -0.5 * norm
+                )
             augmented = torch.cat([x, wavelet], dim=1)
             features.append(self.feature_extractors[level](augmented))
         return self.main_network(torch.cat(features, dim=1))
@@ -289,7 +350,9 @@ class FourierMultiScalePINN(MultiScalePINN):
                 def __init__(self) -> None:
                     super().__init__()
                     self.register_buffer("B", B, persistent=False)
-                    self.mlp = MLP(in_dim=2 * mapping_size, hidden_layers=4, width=64, out_dim=1)
+                    self.mlp = MLP(
+                        in_dim=2 * mapping_size, hidden_layers=4, width=64, out_dim=1
+                    )
 
                 def forward(self, x: Tensor) -> Tensor:
                     proj = 2 * torch.pi * x @ self.B
@@ -358,7 +421,9 @@ class MultiScaleTrainer:
                 loss = mse + self.config.consistency_weight * consistency
                 loss.backward()
                 if self.config.gradient_clip is not None:
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.gradient_clip)
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), self.config.gradient_clip
+                    )
                 self.optimizer.step()
                 self.state.losses.append(loss.item())
                 self.state.consistency.append(consistency.item())
@@ -381,7 +446,10 @@ def multiscale_loss(
     else:
         consistency = torch.tensor(0.0, device=prediction.device)
     total = mse + consistency_weight * consistency
-    return total, {"mse": float(mse.detach()), "consistency": float(consistency.detach())}
+    return total, {
+        "mse": float(mse.detach()),
+        "consistency": float(consistency.detach()),
+    }
 
 
 def scale_adaptive_sampling(

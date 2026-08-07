@@ -61,22 +61,37 @@ class KnowledgeDistillationTrainer:
                 if "target" in batch and batch["target"] is not None:
                     loss_fn = self.config.loss_fn or torch.nn.functional.mse_loss
                     task_loss = loss_fn(student_logits, batch["target"])
-                loss = self.config.alpha * distill_loss + (1 - self.config.alpha) * task_loss
+                loss = (
+                    self.config.alpha * distill_loss
+                    + (1 - self.config.alpha) * task_loss
+                )
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
                 steps += 1
             avg_loss = total_loss / max(steps, 1)
-            if epoch % max(self.config.epochs // 10, 1) == 0 or epoch == self.config.epochs - 1:
+            if (
+                epoch % max(self.config.epochs // 10, 1) == 0
+                or epoch == self.config.epochs - 1
+            ):
                 self.logger.debug(
-                    "Distillation epoch %d/%d loss %.4e", epoch + 1, self.config.epochs, avg_loss
+                    "Distillation epoch %d/%d loss %.4e",
+                    epoch + 1,
+                    self.config.epochs,
+                    avg_loss,
                 )
 
-    def _distillation_loss(self, student_logits: torch.Tensor, teacher_logits: torch.Tensor) -> torch.Tensor:
+    def _distillation_loss(
+        self, student_logits: torch.Tensor, teacher_logits: torch.Tensor
+    ) -> torch.Tensor:
         temperature = self.config.temperature
-        student_soft = torch.nn.functional.log_softmax(student_logits / temperature, dim=-1)
+        student_soft = torch.nn.functional.log_softmax(
+            student_logits / temperature, dim=-1
+        )
         teacher_soft = torch.nn.functional.softmax(teacher_logits / temperature, dim=-1)
-        loss = torch.nn.functional.kl_div(student_soft, teacher_soft, reduction="batchmean")
+        loss = torch.nn.functional.kl_div(
+            student_soft, teacher_soft, reduction="batchmean"
+        )
         return loss * (temperature**2)
 
 

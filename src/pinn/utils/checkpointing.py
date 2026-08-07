@@ -1,4 +1,5 @@
 """Checkpointing utilities for PINN training."""
+
 from __future__ import annotations
 
 import gzip
@@ -135,7 +136,9 @@ class CheckpointManager:
         Returns the provided ``model`` and ``optimizer`` populated with loaded
         state, the training step, and metadata.
         """
-        files = sorted(self.checkpoint_dir.glob("checkpoint_*.pt*"), key=self._step_from_name)
+        files = sorted(
+            self.checkpoint_dir.glob("checkpoint_*.pt*"), key=self._step_from_name
+        )
         if not files:
             raise FileNotFoundError("No checkpoints found")
         latest = files[-1]

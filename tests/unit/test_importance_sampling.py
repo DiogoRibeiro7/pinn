@@ -1,4 +1,5 @@
 """Tests for importance sampling utilities."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -28,7 +29,9 @@ def simple_loss(model: torch.nn.Module, pts: torch.Tensor) -> torch.Tensor:
 def test_importance_sampler_updates_and_samples() -> None:
     domain = Domain([(0.0, 1.0)])
     base = LatinHypercubeSampler(domain, seed=0)
-    sampler = GradientBasedImportanceSampler(domain, base, update_frequency=1, n_candidates=32)
+    sampler = GradientBasedImportanceSampler(
+        domain, base, update_frequency=1, n_candidates=32
+    )
 
     model = IdentityModel()
     pts = sampler.sample(8, model=model, loss_fn=simple_loss)

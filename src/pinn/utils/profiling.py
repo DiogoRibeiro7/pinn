@@ -104,24 +104,24 @@ class MemoryTracker:
 
     def __exit__(self, exc_type, exc, tb) -> None:  # type: ignore[override]
         current, peak = tracemalloc.get_traced_memory()
-        self.peak_memory = peak / (1024 ** 2)
+        self.peak_memory = peak / (1024**2)
         tracemalloc.stop()
         if torch is not None and torch.cuda.is_available():
             peak_gpu = torch.cuda.max_memory_allocated() - (self.gpu_start or 0)
-            self.gpu_peak_memory = peak_gpu / (1024 ** 2)
+            self.gpu_peak_memory = peak_gpu / (1024**2)
 
 
 def _current_memory_mb() -> Optional[float]:
     if psutil is None:
         return None
     process = psutil.Process()
-    return process.memory_info().rss / (1024 ** 2)
+    return process.memory_info().rss / (1024**2)
 
 
 def _current_gpu_memory_mb() -> Optional[float]:
     if torch is None or not torch.cuda.is_available():
         return None
-    return torch.cuda.memory_allocated() / (1024 ** 2)
+    return torch.cuda.memory_allocated() / (1024**2)
 
 
 def profile_performance(
