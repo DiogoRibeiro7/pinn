@@ -17,6 +17,11 @@ authors:
     orcid: "https://orcid.org/0009-0001-2022-7072"
     affiliation: "ESMAD - School of Media Arts and Design, Polytechnic of Porto"
     email: diogo.debastos.ribeiro@gmail.com
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21844101
+    description: >-
+      Concept DOI for the software, resolving to the latest archived version.
 repository-code: "https://github.com/DiogoRibeiro7/pinn"
 url: "https://github.com/DiogoRibeiro7/pinn"
 license: MIT

@@ -8,6 +8,11 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+- Recorded the Zenodo concept DOI (`10.5281/zenodo.21844101`) in `CITATION.cff`, the
+  README citation block and a README badge.
+- Corrected the README badges, which still advertised Python 3.8+ and PyTorch 1.9+, and
+  added a CI status badge.
+
 ## [0.1.0] - 2026-08-07
 
 First tagged release. The library has been in development for some time; this

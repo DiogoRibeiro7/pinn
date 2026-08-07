@@ -1,6 +1,6 @@
 # Physics-Informed Neural Networks (PINNs) 🧠⚡
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/) [![PyTorch](https://img.shields.io/badge/PyTorch-1.9%2B-red)](https://pytorch.org/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen)](docs/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21844101.svg)](https://doi.org/10.5281/zenodo.21844101) [![CI](https://github.com/DiogoRibeiro7/pinn/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/pinn/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/) [![PyTorch](https://img.shields.io/badge/PyTorch-2.13%2B-red)](https://pytorch.org/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen)](docs/)
 
 A comprehensive, production-ready PyTorch implementation of Physics-Informed Neural Networks for solving partial differential equations (PDEs). This repository provides modular implementations with advanced visualization, comprehensive error analysis, and state-of-the-art sampling strategies.
 
@@ -498,10 +498,11 @@ u_xx = torch.autograd.grad(u_x, x, torch.ones_like(u_x),
 
 ### Citing This Software
 
-If you use this library in academic work, please cite it. Machine-readable metadata is
-provided in [`CITATION.cff`](CITATION.cff) (GitHub renders a "Cite this repository" button
-from it) and [`.zenodo.json`](.zenodo.json) (used when a tagged release is archived to
-Zenodo).
+If you use this library in academic work, please cite it. Each release is archived on
+Zenodo, and the DOI below is the *concept DOI*: it always resolves to the most recent
+version, so it is the right one to cite when you mean the software in general.
+
+**DOI: [10.5281/zenodo.21844101](https://doi.org/10.5281/zenodo.21844101)**
 
 ```bibtex
 @software{ribeiro_pinn,
@@ -510,22 +511,18 @@ Zenodo).
   year      = {2026},
   version   = {0.1.0},
   publisher = {Zenodo},
-  url       = {https://github.com/DiogoRibeiro7/pinn}
+  doi       = {10.5281/zenodo.21844101},
+  url       = {https://doi.org/10.5281/zenodo.21844101}
 }
 ```
 
-> Once the first release is archived on Zenodo, add the minted `doi` field to the entry
-> above and the DOI badge to the top of this README. See
-> [Zenodo setup](#zenodo-archiving-setup) below.
+To cite the exact version you used rather than the software as a whole, take the
+version-specific DOI from that release's
+[Zenodo record](https://doi.org/10.5281/zenodo.21844101) and substitute it above.
 
-#### Zenodo archiving setup
-
-1. Sign in to [zenodo.org](https://zenodo.org) with GitHub and grant repository access.
-2. Under **GitHub**, flip the toggle for `DiogoRibeiro7/pinn` to **On**.
-3. Publish a tagged GitHub release (e.g. `v0.1.0`). Zenodo archives the tarball and mints
-   a version DOI plus a *concept DOI* that always resolves to the latest version.
-4. Add the concept-DOI badge to this README and the DOI to `CITATION.cff` / the BibTeX
-   entry above.
+Machine-readable metadata is provided in [`CITATION.cff`](CITATION.cff), from which GitHub
+renders a "Cite this repository" button, and in [`.zenodo.json`](.zenodo.json), which
+Zenodo reads when it archives a tagged release. Both are validated in CI.
 
 ### Primary References
 
