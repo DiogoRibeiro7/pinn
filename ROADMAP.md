@@ -72,9 +72,10 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Clear the ~91 `mypy` errors across 25 modules. The type-check step in
     `.github/workflows/ci.yml` is `continue-on-error: true` until then; make it
     blocking once the backlog is gone
-  - Audit the remaining test modules for the same defect fixed in
-    `tests/unit/test_visualization.py`, which asserted against locally defined test
-    doubles rather than the real implementations
+  - Keep tests pointed at the real implementations. `tests/unit/test_visualization.py`
+    once shadowed every name it imported with a local test double, so its assertions
+    never reached the library; an AST sweep of the suite found no other module doing
+    this, and it is worth re-checking when new tests land
 
 ---
 
