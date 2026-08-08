@@ -11,6 +11,12 @@ from .adaptive_weighting import (
     compute_gradient_norms,
 )
 from .adversarial import adversarial_training_step
+from .causal_weighting import (
+    CausalWeightConfig,
+    causal_residual_loss,
+    causal_weights,
+    temporal_chunk_index,
+)
 from .curriculum import curriculum_train
 from .memory_efficient import MemoryEfficientPINN, MemoryProfiler, MemoryUsageRecord
 from .meta_learning import meta_learning_step
@@ -23,6 +29,10 @@ from .optimization import (
 )
 
 __all__ = [
+    "CausalWeightConfig",
+    "causal_residual_loss",
+    "causal_weights",
+    "temporal_chunk_index",
     "curriculum_train",
     "adversarial_training_step",
     "meta_learning_step",
