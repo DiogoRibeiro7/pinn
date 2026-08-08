@@ -64,7 +64,7 @@ dev = [
     "pytest-benchmark>=3.4.0",
 ]
 gpu = ["cupy-cuda11x"]
-deploy = ["fastapi>=0.95", "uvicorn>=0.20", "grpcio>=1.54"]
+deploy = ["fastapi>=0.141.1", "uvicorn>=0.20", "grpcio>=1.54"]
 
 [project.scripts]
 pinn = "pinn.cli:main"
