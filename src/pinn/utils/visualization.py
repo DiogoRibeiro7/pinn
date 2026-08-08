@@ -792,14 +792,25 @@ class PINNVisualizer:
             )
 
     def _save_figure(self, fig: Figure, save_path: Union[str, Path]) -> None:
-        """Save figure with error handling."""
+        """Save figure with error handling.
+
+        The output format follows the extension of ``save_path``. Forcing
+        ``config.save_format`` here instead would write, say, PNG bytes into a
+        file named ``.pdf`` -- and ``_validate_save_path`` advertises pdf, eps,
+        svg and jpeg as supported. ``config.save_format`` is the fallback for a
+        path with no extension.
+        """
+        suffix = Path(save_path).suffix.lstrip(".").lower()
+        # matplotlib registers the format as "jpeg"; ".jpg" is the common spelling.
+        fmt = {"jpg": "jpeg"}.get(suffix, suffix) or self.config.save_format
+
         try:
-            logger.info("Saving figure", extra={"path": str(save_path)})
+            logger.info("Saving figure", extra={"path": str(save_path), "format": fmt})
             fig.savefig(
                 save_path,
                 dpi=self.config.save_dpi,
                 bbox_inches=self.config.save_bbox_inches,
-                format=self.config.save_format,
+                format=fmt,
             )
         except Exception as e:
             raise VisualizationError(

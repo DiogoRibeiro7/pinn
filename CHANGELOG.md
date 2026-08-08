@@ -8,18 +8,39 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
-- Unified the maintainer contact address on `dfr@esmad.ipp.pt`, matching the ESMAD
-  affiliation declared in the citation metadata.
-- Added the project governance and contribution files: `CONTRIBUTING.md`,
+### Added
+
+- The project governance and contribution files: `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md`, `SECURITY.md` (including a threat model), issue and pull
   request templates, `CODEOWNERS`, `.gitattributes`, `.editorconfig` and a
   `.pre-commit-config.yaml` pinned to the same tool versions as CI.
-- Corrected the README development setup, which told contributors to install from a
+- The Zenodo concept DOI (`10.5281/zenodo.21844101`) in `CITATION.cff`, the README
+  citation block and a README badge.
+
+### Changed
+
+- Rewrote `tests/unit/test_visualization.py` to exercise the real implementations.
+  It previously defined local stand-ins for `PINNVisualizer`, `VisualizationConfig`,
+  `VisualizationError` and `create_custom_config`, shadowing the imports, so its
+  assertions ran against its own test doubles and passed regardless of the
+  library's behaviour. Coverage of `pinn/utils/visualization.py` rose from 14% to
+  82%, and the save-format defect below is what the new tests caught first.
+- `tests/conftest.py` selects the headless matplotlib backend before anything
+  imports pyplot, so the plotting tests do not depend on an available display.
+- Raised the coverage ratchet from 50% to 55%; measured coverage is now 58%.
+- Unified the maintainer contact address on `dfr@esmad.ipp.pt`, matching the ESMAD
+  affiliation declared in the citation metadata.
+
+### Fixed
+
+- Figures are saved in the format implied by the file extension. `_save_figure`
+  forced `config.save_format` for every path, so a figure saved to `.pdf`, `.svg`
+  or `.eps` contained PNG bytes under a misleading extension — despite
+  `_validate_save_path` accepting exactly those extensions without warning.
+- The README development setup told contributors to install from a
   `requirements-dev.txt` that does not exist.
-- Recorded the Zenodo concept DOI (`10.5281/zenodo.21844101`) in `CITATION.cff`, the
-  README citation block and a README badge.
-- Corrected the README badges, which still advertised Python 3.8+ and PyTorch 1.9+, and
-  added a CI status badge.
+- The README badges still advertised Python 3.8+ and PyTorch 1.9+; added a CI
+  status badge alongside the corrected ones.
 
 ## [0.1.0] - 2026-08-07
 

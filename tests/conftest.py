@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
-import pytest
-import torch
-from hypothesis import HealthCheck, settings
+import matplotlib
+
+# Select a headless backend before anything imports pyplot. Without this the
+# visualisation tests pick up whatever interactive backend is available and
+# fail on a machine with no display, or with a broken Tk installation.
+matplotlib.use("Agg")
+
+import pytest  # noqa: E402
+import torch  # noqa: E402
+from hypothesis import HealthCheck, settings  # noqa: E402
 
 # Hypothesis' ``too_slow`` health check and per-example deadline both measure
 # wall-clock time while inputs are generated, so they report on the machine
