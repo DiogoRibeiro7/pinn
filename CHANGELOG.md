@@ -8,6 +8,8 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+- Unified the maintainer contact address on `dfr@esmad.ipp.pt`, matching the ESMAD
+  affiliation declared in the citation metadata.
 - Added the project governance and contribution files: `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md`, `SECURITY.md` (including a threat model), issue and pull
   request templates, `CODEOWNERS`, `.gitattributes`, `.editorconfig` and a

@@ -17,7 +17,7 @@ receives security fixes.
 Report it through GitHub's private vulnerability reporting, on the
 [Security tab](https://github.com/DiogoRibeiro7/pinn/security/advisories/new) of
 this repository. If that is unavailable to you, email
-**diogo.debastos.ribeiro@gmail.com** with `[pinn security]` in the subject.
+**dfr@esmad.ipp.pt** with `[pinn security]` in the subject.
 
 Please include enough detail to reproduce: the version or commit, the affected
 entry point, and a minimal example. A description of the impact you believe it has

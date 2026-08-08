@@ -27,7 +27,7 @@ if __name__ == "__main__":
         name="pinn",
         version="0.1.0",
         author="Diogo Ribeiro",
-        author_email="diogo.debastos.ribeiro@gmail.com",
+        author_email="dfr@esmad.ipp.pt",
         description="Physics-Informed Neural Network implementations",
         packages=find_packages("src"),
         package_dir={"": "src"},

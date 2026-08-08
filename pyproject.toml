@@ -6,8 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "pinn"
 version = "0.1.0"
 description = "Physics-Informed Neural Network implementations"
-authors = [{name = "Diogo Ribeiro", email = "diogo.debastos.ribeiro@gmail.com"}]
-maintainers = [{name = "Diogo Ribeiro", email = "diogo.debastos.ribeiro@gmail.com"}]
+authors = [{name = "Diogo Ribeiro", email = "dfr@esmad.ipp.pt"}]
+maintainers = [{name = "Diogo Ribeiro", email = "dfr@esmad.ipp.pt"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
