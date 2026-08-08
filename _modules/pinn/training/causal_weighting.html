@@ -54,6 +54,26 @@
 
 <span class="sd">``eps`` controls the strictness: as ``eps -&gt; 0`` the scheme degenerates to the</span>
 <span class="sd">unweighted loss, and larger values enforce a sharper front.</span>
+
+<span class="sd">A note on what has actually been measured here</span>
+<span class="sd">----------------------------------------------</span>
+<span class="sd">The weighting itself is verified against the formula above in</span>
+<span class="sd">``tests/unit/test_exact_solvers.py``, including the closed-form weights for a</span>
+<span class="sd">uniform residual. What is *not* established is an accuracy benefit on the</span>
+<span class="sd">problems currently in this package. On the 1-D wave equation it made no useful</span>
+<span class="sd">difference: over a single period the error was 4.3e-2 with weighting against</span>
+<span class="sd">4.0e-2 without, and over three periods every configuration tried landed between</span>
+<span class="sd">0.85 and 0.88 (plain 0.865; eps of 1, 10 and 100 with 24 windows giving 0.880,</span>
+<span class="sd">0.873 and 0.849), which is failure across the board -- the network was</span>
+<span class="sd">under-trained at that horizon rather than mis-ordered in time.</span>
+
+<span class="sd">That is not evidence against the method. The published gains are reported on</span>
+<span class="sd">harder problems -- Allen-Cahn, Kuramoto-Sivashinsky -- with larger budgets and</span>
+<span class="sd">tuned architectures, where the failure this fixes actually bites. It does mean</span>
+<span class="sd">you should treat ``eps`` and ``n_chunks`` as parameters to tune and measure on</span>
+<span class="sd">your own problem, not as a setting that improves things by being switched on.</span>
+<span class="sd">See ``examples/advanced/causal_weighting.py``, which reports both errors rather</span>
+<span class="sd">than assuming the weighted one wins.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
