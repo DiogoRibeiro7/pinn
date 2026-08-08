@@ -61,7 +61,7 @@ dev = [
     "bandit==1.9.4",
     "sphinx>=5.0",
     "sphinx-autodoc-typehints>=1.19",
-    "pytest-benchmark>=3.4.0",
+    "pytest-benchmark>=5.2.3",
 ]
 gpu = ["cupy-cuda11x"]
 deploy = ["fastapi>=0.95", "uvicorn>=0.20", "grpcio>=1.54"]
