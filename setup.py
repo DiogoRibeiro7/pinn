@@ -25,7 +25,7 @@ extras_require = {
 if __name__ == "__main__":
     setup(
         name="pinn",
-        version="0.1.1",
+        version="0.2.0",
         author="Diogo Ribeiro",
         author_email="dfr@esmad.ipp.pt",
         description="Physics-Informed Neural Network implementations",

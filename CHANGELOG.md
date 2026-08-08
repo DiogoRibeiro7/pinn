@@ -8,6 +8,8 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-08
+
 ### Added
 
 - Exactly-solvable solvers, so accuracy is a number rather than a plot.
@@ -132,6 +134,7 @@ Python version, and citable.
 - Documented the trust boundary on the cache's `pickle` loads, which only ever
   deserialise data the cache itself wrote.
 
-[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/DiogoRibeiro7/pinn/releases/tag/v0.1.0
