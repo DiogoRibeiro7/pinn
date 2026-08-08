@@ -59,7 +59,7 @@ dev = [
     "mypy",
     "flake8==7.3.0",
     "bandit==1.9.4",
-    "sphinx>=5.0",
+    "sphinx>=8.1.3",
     "sphinx-autodoc-typehints>=3.0.1",
     "pytest-benchmark>=3.4.0",
 ]
