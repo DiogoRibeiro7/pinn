@@ -60,7 +60,7 @@ dev = [
     "flake8==7.3.0",
     "bandit==1.9.4",
     "sphinx>=5.0",
-    "sphinx-autodoc-typehints>=1.19",
+    "sphinx-autodoc-typehints>=3.0.1",
     "pytest-benchmark>=3.4.0",
 ]
 gpu = ["cupy-cuda11x"]
