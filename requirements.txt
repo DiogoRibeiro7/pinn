@@ -13,7 +13,7 @@ plotly>=6.9.0
 
 # Deployment
 fastapi>=0.95
-uvicorn>=0.20
+uvicorn>=0.52.1
 grpcio>=1.54
 
 # Development and testing (optional)
