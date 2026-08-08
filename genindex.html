@@ -294,6 +294,12 @@
 </li>
       <li><a href="api/index.html#pinn.ActiveLearningConfig.candidate_sampler">candidate_sampler (pinn.ActiveLearningConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.training.causal_residual_loss">causal_residual_loss() (in module pinn.training)</a>
+</li>
+      <li><a href="api/index.html#pinn.training.causal_weights">causal_weights() (in module pinn.training)</a>
+</li>
+      <li><a href="api/index.html#pinn.training.CausalWeightConfig">CausalWeightConfig (class in pinn.training)</a>
+</li>
       <li><a href="api/index.html#pinn.ContinuousPINN.cfg">cfg (pinn.ContinuousPINN attribute)</a>
 
       <ul>
@@ -539,6 +545,8 @@
 </li>
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.enabled">(pinn.training.AdaptiveWeightingConfig attribute)</a>
 </li>
+        <li><a href="api/index.html#id45">(pinn.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinn.training.CausalWeightConfig.enabled">[1]</a>
+</li>
       </ul></li>
       <li><a href="api/index.html#pinn.EnsemblePINN">EnsemblePINN (class in pinn)</a>
 
@@ -563,6 +571,8 @@
 </li>
       </ul></li>
       <li><a href="api/index.html#pinn.MultiScaleTrainingConfig.epochs_per_scale">epochs_per_scale (pinn.MultiScaleTrainingConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#id46">eps (pinn.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinn.training.CausalWeightConfig.eps">[1]</a>
 </li>
       <li><a href="api/index.html#pinn.ExpectedImprovementAcquisition">ExpectedImprovementAcquisition (class in pinn)</a>
 </li>
@@ -1051,6 +1061,8 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.n_boundary_condition">n_boundary_condition (pinn.config.management.SamplingConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#id47">n_chunks (pinn.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinn.training.CausalWeightConfig.n_chunks">[1]</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.n_collocation">n_collocation (pinn.config.management.SamplingConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.TrainConfig.n_f">n_f (pinn.TrainConfig attribute)</a>
@@ -1065,10 +1077,10 @@
 </li>
       <li><a href="api/index.html#pinn.DiscreteRKPINN.net">net (pinn.DiscreteRKPINN attribute)</a>
 </li>
-      <li><a href="config_reference.html#pinn.config.management.PINNConfig.network">network (pinn.config.management.PINNConfig attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="config_reference.html#pinn.config.management.PINNConfig.network">network (pinn.config.management.PINNConfig attribute)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.NetworkConfig">NetworkConfig (class in pinn.config.management)</a>
 </li>
       <li><a href="api/index.html#pinn.TrainingCache.next_permutation">next_permutation() (pinn.TrainingCache method)</a>
@@ -1589,6 +1601,8 @@
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.temperature">(pinn.training.AdaptiveWeightingConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.training.temporal_chunk_index">temporal_chunk_index() (in module pinn.training)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.tensorboard_log_dir">tensorboard_log_dir (pinn.config.management.LoggingConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.Environment.TESTING">TESTING (pinn.config.management.Environment attribute)</a>
@@ -1629,12 +1643,14 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.BaseConfig.to_yaml">to_yaml() (pinn.config.management.BaseConfig method)</a>
 </li>
-      <li><a href="config_reference.html#pinn.config.management.TrainingConfig.total_steps">total_steps (pinn.config.management.TrainingConfig attribute)</a>
+      <li><a href="api/index.html#id48">tol (pinn.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinn.training.CausalWeightConfig.tol">[1]</a>
 </li>
-      <li><a href="api/index.html#pinn.training.MemoryProfiler.track">track() (pinn.training.MemoryProfiler method)</a>
+      <li><a href="config_reference.html#pinn.config.management.TrainingConfig.total_steps">total_steps (pinn.config.management.TrainingConfig attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.training.MemoryProfiler.track">track() (pinn.training.MemoryProfiler method)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.track_computational_time">track_computational_time (pinn.config.management.LoggingConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.track_gradients">track_gradients (pinn.config.management.LoggingConfig attribute)</a>
@@ -1760,6 +1776,8 @@
 </li>
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.validate">(pinn.training.AdaptiveWeightingConfig method)</a>
 </li>
+        <li><a href="api/index.html#pinn.training.CausalWeightConfig.validate">(pinn.training.CausalWeightConfig method)</a>
+</li>
       </ul></li>
       <li><a href="api/index.html#pinn.validate_arrays">validate_arrays() (in module pinn)</a>
 </li>
@@ -1767,10 +1785,10 @@
 </li>
       <li><a href="api/index.html#pinn.validate_config">validate_config() (in module pinn)</a>
 </li>
-      <li><a href="api/index.html#pinn.validate_device">validate_device() (in module pinn)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.validate_device">validate_device() (in module pinn)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.validate_frequency">validate_frequency (pinn.config.management.TrainingConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.ValidationError">ValidationError</a>
