@@ -35,6 +35,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 - **Discrete-time PINNs**: Runge-Kutta integration schemes
 - **Composable Core API**: Problem, geometry, constraint, residual and trainer
   abstractions for equation-agnostic heat/wave training
+- **Nondimensionalization**: Characteristic physical scales, derivative scale
+  factors and FP32/FP64-preserving transforms for the composable trainer
 - **Generic Framework**: Easy extension to new PDEs
 - **GPU Acceleration**: CUDA support with automatic detection
 - **Distributed Training**: Data-parallel scaling across multiple GPUs

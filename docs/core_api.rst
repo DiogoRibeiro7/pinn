@@ -34,6 +34,48 @@ Minimal Heat Example
    result = trainer.train(problem, model)
    print(result.final_loss)
 
+Nondimensionalized Training
+---------------------------
+
+The composable trainer can run a model in dimensionless coordinates while
+sampling constraints and residual points in physical coordinates. Pass a
+``Nondimensionalizer`` to ``TrainerConfig.scaling`` to scale inputs before the
+network sees them and scale outputs back before losses are evaluated.
+
+.. code-block:: python
+
+   import torch
+
+   from pinn.models import MLP
+   from pinn.problems import HeatProblem
+   from pinn.scaling import CharacteristicScales, Nondimensionalizer, ScaledModel
+   from pinn.solvers.heat import HeatConfig
+   from pinn.training import OptimizerConfig, Trainer, TrainerConfig
+
+   problem = HeatProblem(HeatConfig(alpha=0.1, length=2.0), t_final=5.0)
+   scales = CharacteristicScales(
+       input_scales=(5.0, 2.0),
+       output_scales=(1.0,),
+       parameter_scales={"alpha": 2.0**2 / 5.0},
+   )
+   scaling = Nondimensionalizer(scales)
+
+   model = MLP(in_dim=problem.input_dim, hidden_layers=2, width=32,
+               out_dim=problem.output_dim)
+   trainer = Trainer(
+       TrainerConfig(
+           dtype=torch.float64,
+           scaling=scaling,
+           collocation_count=512,
+           optimizer=OptimizerConfig(adam_steps=500, lr=1e-3),
+       )
+   )
+   trainer.train(problem, model)
+
+   # The trained model itself accepts dimensionless inputs. Wrap it when
+   # evaluating with physical coordinates.
+   physical_model = ScaledModel(model, scaling)
+
 Design Responsibilities
 -----------------------
 
@@ -56,6 +98,12 @@ Design Responsibilities
     Provides ``StrongFormResidual`` and the initial autograd derivative backend.
     A later migration can replace the backend without changing problem or
     trainer contracts.
+
+``pinn.scaling``
+    Provides physical characteristic scales, nondimensional input/output
+    transforms, derivative scale factors and ``ScaledModel``. The transforms
+    preserve the configured dtype, so FP32 and FP64 training paths can be tested
+    without silent downcasts.
 
 ``pinn.training.Trainer``
     Combines residual and constraint losses, applies configured loss weights,

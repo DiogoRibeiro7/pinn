@@ -21,6 +21,9 @@ Contributions toward any item are welcome — open an issue to coordinate.
   against an independent finite-difference solve
 - Composable core API for heat and wave problems, with first-class geometry,
   soft constraints, strong residuals and an equation-agnostic trainer
+- Physical nondimensionalization for the composable trainer, including
+  characteristic scales, derivative scale factors, dimensional model wrappers
+  and FP32/FP64 smoke coverage
 
 **Architectures** (`pinn.models`)
 - `MLP`, `FourierFeaturePINN`, `MultiScalePINN`, `FourierMultiScalePINN`,
@@ -70,6 +73,9 @@ Contributions toward any item are welcome — open an issue to coordinate.
 - **Training**
   - Migrate the legacy Burgers and generic PDE solvers onto the composable
     problem/geometry/constraint/trainer path
+  - Move legacy solver scaling and precision behavior onto the shared
+    nondimensionalization path; the new composable trainer preserves configured
+    FP32/FP64 dtypes, but legacy paths still need the same audit
   - Residual-based adaptive refinement (RAR) wired into the training loop
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions

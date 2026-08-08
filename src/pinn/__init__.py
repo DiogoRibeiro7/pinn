@@ -126,6 +126,13 @@ from .constraints import (
 )
 from .problems import PDEProblem, HeatProblem, WaveProblem
 from .residuals import AutogradDerivativeBackend, DerivativeBackend, StrongFormResidual
+from .scaling import (
+    CharacteristicScales,
+    ModelInputTransform,
+    ModelOutputTransform,
+    Nondimensionalizer,
+    ScaledModel,
+)
 from .uncertainty import (
     BayesianPINN,
     deep_ensemble_predict,
@@ -284,6 +291,11 @@ __all__ = [
     "AutogradDerivativeBackend",
     "DerivativeBackend",
     "StrongFormResidual",
+    "CharacteristicScales",
+    "ModelInputTransform",
+    "ModelOutputTransform",
+    "Nondimensionalizer",
+    "ScaledModel",
     "mc_dropout_predict",
     "deep_ensemble_predict",
     "gp_prior_predict",

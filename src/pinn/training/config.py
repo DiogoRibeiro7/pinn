@@ -8,6 +8,7 @@ from typing import Mapping
 import torch
 
 from .causal_weighting import CausalWeightConfig
+from ..scaling import Nondimensionalizer
 
 
 def resolve_dtype(dtype: torch.dtype | str) -> torch.dtype:
@@ -60,6 +61,9 @@ class TrainerConfig:
         loss_weights: Optional per-loss weights keyed by ``"pde"`` or a
             constraint name.
         causal: Optional causal residual weighting configuration.
+        scaling: Optional physical nondimensionalization transform. When set,
+            the raw model is trained in dimensionless input/output variables
+            while problems and constraints still see dimensional values.
     """
 
     seed: int = 0
@@ -71,6 +75,7 @@ class TrainerConfig:
     log_every: int = 100
     loss_weights: Mapping[str, float] = field(default_factory=dict)
     causal: CausalWeightConfig | None = None
+    scaling: Nondimensionalizer | None = None
 
     def validate(self) -> None:
         """Raise ``ValueError`` when the configuration is invalid."""

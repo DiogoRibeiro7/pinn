@@ -12,6 +12,7 @@ from torch import Tensor, nn
 
 from ..problems import PDEProblem
 from ..residuals import AutogradDerivativeBackend, DerivativeBackend, StrongFormResidual
+from ..scaling import ScaledModel
 from .causal_weighting import causal_residual_loss
 from .config import TrainerConfig, resolve_dtype
 from .state import TrainingResult, TrainingState
@@ -149,6 +150,11 @@ class Trainer:
         if problem.input_dim < 1 or problem.output_dim < 1:
             raise ValueError("problem input_dim and output_dim must be positive")
         model = model.to(device=device, dtype=dtype)
+        loss_model: nn.Module
+        if self.config.scaling is not None:
+            loss_model = ScaledModel(model, self.config.scaling)
+        else:
+            loss_model = model
         generator = self._seed(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.config.optimizer.lr)
         history: list[TrainingState] = []
@@ -156,7 +162,9 @@ class Trainer:
 
         for step in range(1, self.config.optimizer.adam_steps + 1):
             optimizer.zero_grad(set_to_none=True)
-            components = self._loss_components(problem, model, generator, device, dtype)
+            components = self._loss_components(
+                problem, loss_model, generator, device, dtype
+            )
             total = self._total_loss(components)
             total.backward()
             optimizer.step()
@@ -178,14 +186,16 @@ class Trainer:
             def closure() -> Tensor:
                 lbfgs.zero_grad(set_to_none=True)
                 closure_components = self._loss_components(
-                    problem, model, generator, device, dtype
+                    problem, loss_model, generator, device, dtype
                 )
                 closure_total = self._total_loss(closure_components)
                 closure_total.backward()
                 return closure_total
 
             lbfgs.step(closure)
-            components = self._loss_components(problem, model, generator, device, dtype)
+            components = self._loss_components(
+                problem, loss_model, generator, device, dtype
+            )
             total = self._total_loss(components)
             final_step = (
                 self.config.optimizer.adam_steps + self.config.optimizer.lbfgs_max_iter
@@ -195,7 +205,9 @@ class Trainer:
             )
 
         if not history:
-            components = self._loss_components(problem, model, generator, device, dtype)
+            components = self._loss_components(
+                problem, loss_model, generator, device, dtype
+            )
             total = self._total_loss(components)
             history.append(self._record_state(0, start_time, total, components))
 
