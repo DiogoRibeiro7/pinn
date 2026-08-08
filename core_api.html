@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Composable Core API &#8212; pinn  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Current Architecture" href="architecture/current_architecture.html" />
+    <link rel="prev" title="API Reference" href="api/index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="composable-core-api">
+<h1>Composable Core API<a class="headerlink" href="#composable-core-api" title="Link to this heading">¶</a></h1>
+<p>The composable core separates a PINN experiment into problem, geometry,
+constraints, residual form, model and trainer objects. The first migrated
+problems are the exact-solution-validated heat and wave equations.</p>
+<section id="minimal-heat-example">
+<h2>Minimal Heat Example<a class="headerlink" href="#minimal-heat-example" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.problems</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatProblem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.solvers.heat</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.training</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerConfig</span><span class="p">,</span> <span class="n">Trainer</span><span class="p">,</span> <span class="n">TrainerConfig</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">HeatProblem</span><span class="p">(</span><span class="n">HeatConfig</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_layers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">out_dim</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">output_dim</span><span class="p">)</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">TrainerConfig</span><span class="p">(</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+        <span class="n">collocation_count</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">(</span><span class="n">adam_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">),</span>
+        <span class="n">loss_weights</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;pde&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;ic&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;bc_left&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;bc_right&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">final_loss</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="nondimensionalized-training">
+<h2>Nondimensionalized Training<a class="headerlink" href="#nondimensionalized-training" title="Link to this heading">¶</a></h2>
+<p>The composable trainer can run a model in dimensionless coordinates while
+sampling constraints and residual points in physical coordinates. Pass a
+<code class="docutils literal notranslate"><span class="pre">Nondimensionalizer</span></code> to <code class="docutils literal notranslate"><span class="pre">TrainerConfig.scaling</span></code> to scale inputs before the
+network sees them and scale outputs back before losses are evaluated.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.problems</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatProblem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.scaling</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacteristicScales</span><span class="p">,</span> <span class="n">Nondimensionalizer</span><span class="p">,</span> <span class="n">ScaledModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.solvers.heat</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.training</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerConfig</span><span class="p">,</span> <span class="n">Trainer</span><span class="p">,</span> <span class="n">TrainerConfig</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">HeatProblem</span><span class="p">(</span><span class="n">HeatConfig</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">t_final</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="n">scales</span> <span class="o">=</span> <span class="n">CharacteristicScales</span><span class="p">(</span>
+    <span class="n">input_scales</span><span class="o">=</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">output_scales</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,),</span>
+    <span class="n">parameter_scales</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">scaling</span> <span class="o">=</span> <span class="n">Nondimensionalizer</span><span class="p">(</span><span class="n">scales</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_layers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">out_dim</span><span class="o">=</span><span class="n">problem</span><span class="o">.</span><span class="n">output_dim</span><span class="p">)</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">TrainerConfig</span><span class="p">(</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+        <span class="n">scaling</span><span class="o">=</span><span class="n">scaling</span><span class="p">,</span>
+        <span class="n">collocation_count</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">(</span><span class="n">adam_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># The trained model itself accepts dimensionless inputs. Wrap it when</span>
+<span class="c1"># evaluating with physical coordinates.</span>
+<span class="n">physical_model</span> <span class="o">=</span> <span class="n">ScaledModel</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">scaling</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="design-responsibilities">
+<h2>Design Responsibilities<a class="headerlink" href="#design-responsibilities" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.geometry</span></code></dt><dd><p>Owns coordinate bounds, containment checks, interior sampling and boundary
+sampling. <code class="docutils literal notranslate"><span class="pre">Rectangle</span></code> is used for space-time heat and wave domains;
+<code class="docutils literal notranslate"><span class="pre">Interval</span></code> is available for one-dimensional domains.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.constraints</span></code></dt><dd><p>Owns soft penalty losses for initial, Dirichlet, Neumann and periodic
+constraints. Constraint objects sample their own points and evaluate their
+own loss, so the trainer does not need equation-specific branches.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code></dt><dd><p>Owns equation parameters, dimensions, geometry, constraints and strong-form
+residual definitions. <code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and <code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> use coordinate
+order <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> and provide analytic solution helpers.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.residuals</span></code></dt><dd><p>Provides <code class="docutils literal notranslate"><span class="pre">StrongFormResidual</span></code> and the initial autograd derivative backend.
+A later migration can replace the backend without changing problem or
+trainer contracts.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.scaling</span></code></dt><dd><p>Provides physical characteristic scales, nondimensional input/output
+transforms, derivative scale factors and <code class="docutils literal notranslate"><span class="pre">ScaledModel</span></code>. The transforms
+preserve the configured dtype, so FP32 and FP64 training paths can be tested
+without silent downcasts.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.training.Trainer</span></code></dt><dd><p>Combines residual and constraint losses, applies configured loss weights,
+and performs Adam plus optional L-BFGS optimization. It records typed
+<code class="docutils literal notranslate"><span class="pre">TrainingState</span></code> entries with named losses, weights, elapsed time and
+diagnostics.</p>
+</dd>
+</dl>
+</section>
+<section id="compatibility">
+<h2>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading">¶</a></h2>
+<p>Legacy solver imports such as <code class="docutils literal notranslate"><span class="pre">pinn.solvers.heat.HeatPINN</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pinn.solvers.wave.WavePINN</span></code> remain available. The new <code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and
+<code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> classes are adapters onto the same mathematical problems and
+reference solutions, but the legacy solver classes have not been removed.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pinn</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Composable Core API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#minimal-heat-example">Minimal Heat Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nondimensionalized-training">Nondimensionalized Training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#design-responsibilities">Design Responsibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compatibility">Compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/migration_plan.html">Migration Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config_reference.html">Configuration Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Optimization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deployment/index.html">Deployment Guides</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="api/index.html" title="previous chapter">API Reference</a></li>
+      <li>Next: <a href="architecture/current_architecture.html" title="next chapter">Current Architecture</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Diogo Ribeiro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/core_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

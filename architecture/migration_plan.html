@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Migration Plan &#8212; pinn  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Theory" href="../theory/index.html" />
+    <link rel="prev" title="Current Architecture" href="current_architecture.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="migration-plan">
+<h1>Migration Plan<a class="headerlink" href="#migration-plan" title="Link to this heading">¶</a></h1>
+<p>This plan maps the current solver-centric implementation to the target
+scientific architecture required by the modernization prompts. It preserves
+legacy imports while moving behavior into composable problem, geometry,
+constraint, residual, differentiation and trainer abstractions.</p>
+<section id="target-package-shape">
+<h2>Target Package Shape<a class="headerlink" href="#target-package-shape" title="Link to this heading">¶</a></h2>
+<p>The long-term target is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>src/pinn/
+|-- problems/
+|-- geometry/
+|-- constraints/
+|-- residuals/
+|-- differentiation/
+|-- scaling/
+|-- models/
+|-- sampling/
+|-- optimizers/
+|-- training/
+|-- inverse/
+|-- decomposition/
+|-- operators/
+|-- benchmarks/
+`-- numerics/
+</pre></div>
+</div>
+<p>New modules should be created only when they contain exercised functionality.
+The migration should not create empty packages just to match the tree.</p>
+</section>
+<section id="core-abstraction-mapping">
+<h2>Core Abstraction Mapping<a class="headerlink" href="#core-abstraction-mapping" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>Problems</dt><dd><p>Move equation identity, dimensions, parameters, exact/reference solutions
+and residual definitions into <code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code>. Initial candidates are
+<code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code>, <code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> and <code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code> because they already
+have reference solutions and tests.</p>
+</dd>
+<dt>Geometry</dt><dd><p>Replace duplicated <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code> and <code class="docutils literal notranslate"><span class="pre">pinn.utils.sampling.Domain</span></code> usage in
+solver code with geometry objects such as <code class="docutils literal notranslate"><span class="pre">Interval</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Rectangle</span></code>. Geometry should own bounds, dimensionality, containment
+checks, interior sampling and boundary identification.</p>
+</dd>
+<dt>Constraints</dt><dd><p>Extract initial, Dirichlet, Neumann and periodic conditions from solver
+training methods into concrete <code class="docutils literal notranslate"><span class="pre">Constraint</span></code> objects. The first migration
+should support soft constraint loss evaluation. Hard constraints should be
+added later as explicit model transforms, not hidden in problem classes.</p>
+</dd>
+<dt>Residuals</dt><dd><p>Represent strong-form residual evaluation through a residual abstraction
+that calls the problem with a derivative backend. This removes
+equation-specific branches from a generic trainer while preserving
+multi-output residuals.</p>
+</dd>
+<dt>Differentiation</dt><dd><p>Replace repeated <code class="docutils literal notranslate"><span class="pre">torch.autograd.grad</span></code> blocks with a derivative backend
+protocol. Start with an autograd backend that supports selected partials,
+gradients and Laplacians, then add a <code class="docutils literal notranslate"><span class="pre">torch.func</span></code> backend after analytic
+derivative tests exist.</p>
+</dd>
+<dt>Training</dt><dd><p>Add a generic trainer that accepts a problem, model, residual form,
+sampler, constraints, optimizer configuration and loss weights. The trainer
+should produce a typed state/result object with named loss components,
+weights, step, elapsed time and diagnostics.</p>
+</dd>
+<dt>Scaling and dtype</dt><dd><p>Add physical nondimensionalization and central dtype/device configuration
+only after the generic core path exists. New training code should avoid
+hard-coded float32 assumptions.</p>
+</dd>
+</dl>
+</section>
+<section id="compatibility-strategy">
+<h2>Compatibility Strategy<a class="headerlink" href="#compatibility-strategy" title="Link to this heading">¶</a></h2>
+<p>No public import should be removed during the migration. Instead:</p>
+<ul class="simple">
+<li><p>Keep <code class="docutils literal notranslate"><span class="pre">pinn.solvers.heat.HeatPINN</span></code> and <code class="docutils literal notranslate"><span class="pre">pinn.solvers.wave.WavePINN</span></code> as
+compatibility wrappers around the new problem plus generic trainer.</p></li>
+<li><p>Keep <code class="docutils literal notranslate"><span class="pre">pinn.solvers._base.TrainConfig</span></code> importable until callers have a
+documented replacement.</p></li>
+<li><p>Keep <code class="docutils literal notranslate"><span class="pre">pinn.solvers.raissi_improved.ContinuousPINN</span></code> and
+<code class="docutils literal notranslate"><span class="pre">DiscreteRKPINN</span></code> available while a Burgers problem adapter is introduced.</p></li>
+<li><p>Keep top-level <code class="docutils literal notranslate"><span class="pre">pinn.ContinuousPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">pinn.DiscreteRKPINN</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pinn.TrainConfig</span></code> bound to the legacy Burgers symbols until a deliberate
+public API migration is documented.</p></li>
+<li><p>Re-export moved reference functions from their old locations.</p></li>
+</ul>
+</section>
+<section id="proposed-milestones">
+<h2>Proposed Milestones<a class="headerlink" href="#proposed-milestones" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Core heat/wave path</dt><dd><p>Introduce <code class="docutils literal notranslate"><span class="pre">problems</span></code>, <code class="docutils literal notranslate"><span class="pre">geometry</span></code>, <code class="docutils literal notranslate"><span class="pre">constraints</span></code>, <code class="docutils literal notranslate"><span class="pre">residuals</span></code> and a
+generic trainer. Migrate heat and wave first because they share
+<code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code> and have analytic tests.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Differentiation backend</dt><dd><p>Add a common derivative API and migrate the new heat/wave residuals to it.
+Keep legacy residuals working, then route safe helper calls through the
+backend.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Burgers adapter</dt><dd><p>Represent Burgers as a problem with initial and Dirichlet constraints and a
+Cole-Hopf reference evaluator. Keep <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> as the compatibility
+facade until the new trainer supports its required features.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Sampling unification</dt><dd><p>Move local LHS usage into a sampler interface. Integrate independent
+training and evaluation point generation to avoid benchmark leakage.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Optimizer and training state</dt><dd><p>Unify Adam, L-BFGS, callbacks, checkpointing, adaptive weighting and causal
+weighting through trainer configuration. Keep solver wrappers thin.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Numerical scaling</dt><dd><p>Add physical scaling, dtype/device handling and derivative scale factors.
+Validate against heat-equation equivalence tests before expanding further.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Benchmarks and classical references</dt><dd><p>Add benchmark result serialization, independent residual evaluation and
+classical numerical solvers. Reference data must be clearly labelled as
+analytic, numerical or observational.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Advanced methods</dt><dd><p>Add hard constraints, modern architectures, VPINNs, domain decomposition,
+inverse problems, conservation, neural operators and unified reporting only
+after the core abstractions are exercised by real tests.</p>
+</dd>
+</dl>
+</li>
+</ol>
+</section>
+<section id="old-to-new-mapping">
+<h2>Old-to-New Mapping<a class="headerlink" href="#old-to-new-mapping" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Current symbol</p></th>
+<th class="head"><p>Future home</p></th>
+<th class="head"><p>Migration note</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">HeatConfig</span></code> / <code class="docutils literal notranslate"><span class="pre">HeatPINN</span></code> / <code class="docutils literal notranslate"><span class="pre">heat_exact</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> plus <code class="docutils literal notranslate"><span class="pre">pinn.solvers.heat</span></code> wrappers</p></td>
+<td><p>Best first target for generic trainer migration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">WaveConfig</span></code> / <code class="docutils literal notranslate"><span class="pre">WavePINN</span></code> / <code class="docutils literal notranslate"><span class="pre">wave_exact</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> plus <code class="docutils literal notranslate"><span class="pre">pinn.solvers.wave</span></code> wrappers</p></td>
+<td><p>Exercises second-time-derivative residuals and initial velocity.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BurgersConfig</span></code> / <code class="docutils literal notranslate"><span class="pre">burgers_residual</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> and <code class="docutils literal notranslate"><span class="pre">pinn.residuals</span></code></p></td>
+<td><p>Needs compatibility with adaptive sampling, caching and checkpoints.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Domain1D</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.geometry.Interval</span></code> or space-time rectangle composition</p></td>
+<td><p>Preserve old dataclass import during transition.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ContinuousPINNGeneric</span></code></p></td>
+<td><p>Generic trainer plus problem/constraint instances</p></td>
+<td><p>Its callable-based extension point becomes the compatibility adapter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NavierStokesPINN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> plus multi-output residuals and periodic constraints</p></td>
+<td><p>Migrate after derivative and constraint abstractions support systems.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pinn.utils.sampling.Domain</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.geometry</span></code> for domain semantics; <code class="docutils literal notranslate"><span class="pre">pinn.sampling</span></code> for policies</p></td>
+<td><p>Keep sampling APIs backward compatible.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AdaptiveLossWeighting</span></code> and <code class="docutils literal notranslate"><span class="pre">causal_residual_loss</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.training</span></code> strategies used by generic trainer</p></td>
+<td><p>Avoid equation-specific special cases.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">burgers_cole_hopf</span></code> and <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.numerics.references</span></code> or <code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> reference helpers</p></td>
+<td><p>Re-export from <code class="docutils literal notranslate"><span class="pre">pinn.solvers.reference</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="validation-requirements-for-each-migration-step">
+<h2>Validation Requirements for Each Migration Step<a class="headerlink" href="#validation-requirements-for-each-migration-step" title="Link to this heading">¶</a></h2>
+<p>Every step should keep the following checks passing or record a precise
+pre-existing failure:</p>
+<ul class="simple">
+<li><p>Old public imports still resolve.</p></li>
+<li><p>Existing examples that use retained imports still run or have documented
+replacements.</p></li>
+<li><p>Exact/reference solution tests compare residuals against analytic functions
+independently of training.</p></li>
+<li><p>New trainer tests exercise real production code, not local test doubles that
+shadow imports.</p></li>
+<li><p>Training and evaluation points are distinct in benchmark-style tests.</p></li>
+<li><p>No newly added public API lacks a docstring or type annotations.</p></li>
+</ul>
+</section>
+<section id="open-risks">
+<h2>Open Risks<a class="headerlink" href="#open-risks" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Current quality gates are not all green: flake8 and mypy have historical
+backlogs.</p></li>
+<li><p>Several existing modules downcast inputs to float32, which conflicts with the
+later precision and nondimensionalization goals.</p></li>
+<li><p>Solver-specific training features are uneven: <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> has richer
+batching, caching, AMP and active-learning paths than heat/wave/generic.</p></li>
+<li><p>The top-level package imports many optional subsystems eagerly, which makes
+import time nontrivial and emits optional-dependency warnings.</p></li>
+<li><p>Documentation currently builds with warnings, so future <code class="docutils literal notranslate"><span class="pre">-W</span></code> enforcement
+needs cleanup before it can gate CI.</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">pinn</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Composable Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Migration Plan</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#target-package-shape">Target Package Shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-abstraction-mapping">Core Abstraction Mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compatibility-strategy">Compatibility Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#proposed-milestones">Proposed Milestones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#old-to-new-mapping">Old-to-New Mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-requirements-for-each-migration-step">Validation Requirements for Each Migration Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#open-risks">Open Risks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config_reference.html">Configuration Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../performance_guide.html">Performance Optimization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deployment/index.html">Deployment Guides</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="current_architecture.html" title="previous chapter">Current Architecture</a></li>
+      <li>Next: <a href="../theory/index.html" title="next chapter">Theory</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Diogo Ribeiro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/architecture/migration_plan.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -107,6 +107,8 @@
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.adam_steps">adam_steps (pinn.config.management.TrainingConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#pinn.OptimizerConfig.adam_steps">(pinn.OptimizerConfig attribute)</a>
+</li>
         <li><a href="api/index.html#pinn.TrainConfig.adam_steps">(pinn.TrainConfig attribute)</a>
 </li>
       </ul></li>
@@ -218,6 +220,8 @@
         <li><a href="api/index.html#pinn.models.advanced.AttentionPINN">(class in pinn.models.advanced)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.AutogradDerivativeBackend">AutogradDerivativeBackend (class in pinn)</a>
+</li>
       <li><a href="api/index.html#pinn.HierarchicalAverager.average">average() (pinn.HierarchicalAverager method)</a>
 </li>
       <li><a href="api/index.html#pinn.DistributedTrainer.average_step_time">average_step_time() (pinn.DistributedTrainer method)</a>
@@ -250,10 +254,10 @@
         <li><a href="api/index.html#pinn.uncertainty.BayesianPINN">(class in pinn.uncertainty)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.training.MemoryUsageRecord.before_mb">before_mb (pinn.training.MemoryUsageRecord attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.bo_exploration">bo_exploration (pinn.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
@@ -262,6 +266,12 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.DomainConfig.boundary_conditions">boundary_conditions (pinn.config.management.DomainConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.Geometry.boundary_mask">boundary_mask() (pinn.Geometry method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.boundary_mask">(pinn.Rectangle method)</a>
+</li>
+      </ul></li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.boundary_method">boundary_method (pinn.config.management.SamplingConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.build_simplified_pretraining_task">build_simplified_pretraining_task() (in module pinn)</a>
@@ -294,6 +304,8 @@
 </li>
       <li><a href="api/index.html#pinn.ActiveLearningConfig.candidate_sampler">candidate_sampler (pinn.ActiveLearningConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.TrainerConfig.causal">causal (pinn.TrainerConfig attribute)</a>
+</li>
       <li><a href="api/index.html#pinn.training.causal_residual_loss">causal_residual_loss() (in module pinn.training)</a>
 </li>
       <li><a href="api/index.html#pinn.training.causal_weights">causal_weights() (in module pinn.training)</a>
@@ -306,6 +318,8 @@
         <li><a href="api/index.html#pinn.DiscreteRKPINN.cfg">(pinn.DiscreteRKPINN attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.CharacteristicScales">CharacteristicScales (class in pinn)</a>
+</li>
       <li><a href="api/index.html#pinn.check_array">check_array() (in module pinn)</a>
 </li>
       <li><a href="api/index.html#pinn.check_config">check_config() (in module pinn)</a>
@@ -340,6 +354,8 @@
 </li>
       <li><a href="api/index.html#id36">collocation_batch_size (pinn.TrainConfig attribute)</a>, <a href="api/index.html#pinn.TrainConfig.collocation_batch_size">[1]</a>
 </li>
+      <li><a href="api/index.html#pinn.TrainerConfig.collocation_count">collocation_count (pinn.TrainerConfig attribute)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.collocation_method">collocation_method (pinn.config.management.SamplingConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.VisualizationConfig.color_palette">color_palette (pinn.config.management.VisualizationConfig attribute)</a>
@@ -356,8 +372,6 @@
         <li><a href="api/index.html#pinn.training.compute_component_gradients">(in module pinn.training)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.compute_error_metrics">compute_error_metrics() (in module pinn)</a>
 </li>
       <li><a href="api/index.html#pinn.compute_gradient_norms">compute_gradient_norms() (in module pinn)</a>
@@ -366,10 +380,18 @@
         <li><a href="api/index.html#pinn.training.compute_gradient_norms">(in module pinn.training)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.MultiObjectiveOptimizer.compute_weights">compute_weights() (pinn.MultiObjectiveOptimizer method)</a>
 
       <ul>
         <li><a href="api/index.html#pinn.training.MultiObjectiveOptimizer.compute_weights">(pinn.training.MultiObjectiveOptimizer method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.HeatProblem.config">config (pinn.HeatProblem attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.WaveProblem.config">(pinn.WaveProblem attribute)</a>
 </li>
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.ConfigError">ConfigError</a>
@@ -384,6 +406,26 @@
 </li>
       <li><a href="api/index.html#pinn.MultiScaleTrainingConfig.consistency_weight">consistency_weight (pinn.MultiScaleTrainingConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.Constraint">Constraint (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainerConfig.constraint_sample_counts">constraint_sample_counts (pinn.TrainerConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.ConstraintKind">ConstraintKind (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.HeatProblem.constraints">constraints() (pinn.HeatProblem method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PDEProblem.constraints">(pinn.PDEProblem method)</a>
+</li>
+        <li><a href="api/index.html#pinn.WaveProblem.constraints">(pinn.WaveProblem method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.Geometry.contains">contains() (pinn.Geometry method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.contains">(pinn.Rectangle method)</a>
+</li>
+      </ul></li>
       <li><a href="api/index.html#pinn.TransferLearningPINN.continual_update">continual_update() (pinn.TransferLearningPINN method)</a>
 </li>
       <li><a href="api/index.html#pinn.ContinualLearningBuffer">ContinualLearningBuffer (class in pinn)</a>
@@ -454,9 +496,21 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.VisualizationConfig.default_cmap">default_cmap (pinn.config.management.VisualizationConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.Constraint.default_sample_count">default_sample_count (pinn.Constraint property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PeriodicBoundary.default_sample_count">(pinn.PeriodicBoundary attribute)</a>
+</li>
+      </ul></li>
       <li><a href="config_reference.html#pinn.config.management.VisualizationConfig.default_smoothing_window">default_smoothing_window (pinn.config.management.VisualizationConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.demonstrate_config_system">demonstrate_config_system() (in module pinn.config.management)</a>
+</li>
+      <li><a href="api/index.html#pinn.NeumannBoundary.derivative_dim">derivative_dim (pinn.NeumannBoundary attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.derivative_scale_factor">derivative_scale_factor() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.DerivativeBackend">DerivativeBackend (class in pinn)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.description">description (pinn.config.management.PINNConfig attribute)</a>
 
@@ -483,12 +537,26 @@
 </li>
         <li><a href="api/index.html#pinn.PretrainingConfig.device">(pinn.PretrainingConfig attribute)</a>
 </li>
+        <li><a href="api/index.html#pinn.TrainerConfig.device">(pinn.TrainerConfig attribute)</a>
+</li>
         <li><a href="api/index.html#pinn.training.MemoryUsageRecord.device">(pinn.training.MemoryUsageRecord attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.TrainingState.diagnostics">diagnostics (pinn.TrainingState attribute)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.PDEConfig.diffusion_coefficient">diffusion_coefficient (pinn.config.management.PDEConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Geometry.dimension">dimension (pinn.Geometry property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.dimension">(pinn.Rectangle property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.ConstraintKind.DIRICHLET">DIRICHLET (pinn.ConstraintKind attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.DirichletBoundary">DirichletBoundary (class in pinn)</a>
 </li>
       <li><a href="api/index.html#pinn.DiscreteRKPINN">DiscreteRKPINN (class in pinn)</a>
 </li>
@@ -518,6 +586,8 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.NetworkConfig.dropout_rate">dropout_rate (pinn.config.management.NetworkConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.TrainerConfig.dtype">dtype (pinn.TrainerConfig attribute)</a>
+</li>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.dwa_momentum">dwa_momentum (pinn.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
@@ -535,6 +605,8 @@
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.early_stopping">early_stopping (pinn.config.management.TrainingConfig attribute)</a>
 </li>
       <li><a href="api/index.html#id37">effective_batch_size (pinn.TrainConfig attribute)</a>, <a href="api/index.html#pinn.TrainConfig.effective_batch_size">[1]</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainingState.elapsed_time">elapsed_time (pinn.TrainingState attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.enabled">enabled (pinn.AdaptiveWeightingConfig attribute)</a>
 
@@ -558,8 +630,6 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.environment">environment (pinn.config.management.PINNConfig attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.DistillationConfig.epochs">epochs (pinn.DistillationConfig attribute)</a>
 
       <ul>
@@ -570,10 +640,20 @@
         <li><a href="api/index.html#id29">(pinn.PretrainingTask attribute)</a>, <a href="api/index.html#pinn.PretrainingTask.epochs">[1]</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.MultiScaleTrainingConfig.epochs_per_scale">epochs_per_scale (pinn.MultiScaleTrainingConfig attribute)</a>
 </li>
       <li><a href="api/index.html#id46">eps (pinn.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinn.training.CausalWeightConfig.eps">[1]</a>
 </li>
+      <li><a href="api/index.html#pinn.StrongFormResidual.evaluate">evaluate() (pinn.StrongFormResidual method)</a>
+</li>
+      <li><a href="api/index.html#pinn.HeatProblem.exact">exact() (pinn.HeatProblem method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.WaveProblem.exact">(pinn.WaveProblem method)</a>
+</li>
+      </ul></li>
       <li><a href="api/index.html#pinn.ExpectedImprovementAcquisition">ExpectedImprovementAcquisition (class in pinn)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.experiment_name">experiment_name (pinn.config.management.PINNConfig attribute)</a>
@@ -599,6 +679,12 @@
       <li><a href="api/index.html#pinn.TransferLearningPINN.few_shot_adapt">few_shot_adapt() (pinn.TransferLearningPINN method)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.VisualizationConfig.figsize">figsize (pinn.config.management.VisualizationConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainingResult.final_loss">final_loss (pinn.TrainingResult property)</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainingResult.final_state">final_state (pinn.TrainingResult attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.WaveProblem.final_time">final_time (pinn.WaveProblem property)</a>
 </li>
       <li><a href="api/index.html#pinn.TransferLearningPINN.fine_tune">fine_tune() (pinn.TransferLearningPINN method)</a>
 </li>
@@ -630,6 +716,8 @@
         <li><a href="api/index.html#pinn.models.advanced.MultiScalePINN.forward">(pinn.models.advanced.MultiScalePINN method)</a>
 </li>
         <li><a href="api/index.html#pinn.MultiScalePINN.forward">(pinn.MultiScalePINN method)</a>
+</li>
+        <li><a href="api/index.html#pinn.ScaledModel.forward">(pinn.ScaledModel method)</a>
 </li>
         <li><a href="api/index.html#pinn.uncertainty.BayesianLinear.forward">(pinn.uncertainty.BayesianLinear method)</a>
 </li>
@@ -672,6 +760,16 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.Geometry">Geometry (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.HeatProblem.geometry">geometry (pinn.HeatProblem property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PDEProblem.geometry">(pinn.PDEProblem property)</a>
+</li>
+        <li><a href="api/index.html#pinn.WaveProblem.geometry">(pinn.WaveProblem property)</a>
+</li>
+      </ul></li>
       <li><a href="api/index.html#pinn.AdaptiveCache.get">get() (pinn.AdaptiveCache method)</a>
 </li>
       <li><a href="api/index.html#pinn.TrainingCache.get_activation">get_activation() (pinn.TrainingCache method)</a>
@@ -698,14 +796,14 @@
         <li><a href="api/index.html#pinn.uncertainty.gp_prior_predict">(in module pinn.uncertainty)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.gradient_accumulation_steps">gradient_accumulation_steps (pinn.config.management.TrainingConfig attribute)</a>
 
       <ul>
         <li><a href="api/index.html#id38">(pinn.TrainConfig attribute)</a>, <a href="api/index.html#pinn.TrainConfig.gradient_accumulation_steps">[1]</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#id39">gradient_checkpointing (pinn.TrainConfig attribute)</a>, <a href="api/index.html#pinn.TrainConfig.gradient_checkpointing">[1]</a>
 </li>
       <li><a href="api/index.html#pinn.FineTuningConfig.gradient_clip">gradient_clip (pinn.FineTuningConfig attribute)</a>
@@ -744,6 +842,8 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.HeatProblem">HeatProblem (class in pinn)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.NetworkConfig.hidden_layers">hidden_layers (pinn.config.management.NetworkConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.NetworkConfig.hidden_width">hidden_width (pinn.config.management.NetworkConfig attribute)</a>
@@ -755,7 +855,11 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.training.AdaptivePINNTrainer.history">history (pinn.training.AdaptivePINNTrainer attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.TrainingResult.history">(pinn.TrainingResult attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.history_window">history_window (pinn.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
@@ -780,19 +884,49 @@
 </li>
       <li><a href="api/index.html#pinn.InformationGainAcquisition">InformationGainAcquisition (class in pinn)</a>
 </li>
+      <li><a href="api/index.html#pinn.ConstraintKind.INITIAL">INITIAL (pinn.ConstraintKind attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.HeatProblem.initial_condition">initial_condition() (pinn.HeatProblem method)</a>
+</li>
+      <li><a href="api/index.html#pinn.WaveProblem.initial_displacement">initial_displacement() (pinn.WaveProblem method)</a>
+</li>
+      <li><a href="api/index.html#pinn.WaveProblem.initial_velocity">initial_velocity() (pinn.WaveProblem method)</a>
+</li>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.initial_weights">initial_weights (pinn.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.initial_weights">(pinn.training.AdaptiveWeightingConfig attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.InitialCondition">InitialCondition (class in pinn)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.NetworkConfig.initialization">initialization (pinn.config.management.NetworkConfig attribute)</a>
 </li>
-      <li><a href="config_reference.html#pinn.config.management.NetworkConfig.input_dim">input_dim (pinn.config.management.NetworkConfig attribute)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.CharacteristicScales.input_dim">input_dim (pinn.CharacteristicScales property)</a>
+
+      <ul>
+        <li><a href="config_reference.html#pinn.config.management.NetworkConfig.input_dim">(pinn.config.management.NetworkConfig attribute)</a>
+</li>
+        <li><a href="api/index.html#pinn.HeatProblem.input_dim">(pinn.HeatProblem property)</a>
+</li>
+        <li><a href="api/index.html#pinn.PDEProblem.input_dim">(pinn.PDEProblem property)</a>
+</li>
+        <li><a href="api/index.html#pinn.WaveProblem.input_dim">(pinn.WaveProblem property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.input_offset_tensor">input_offset_tensor (pinn.CharacteristicScales property)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.input_offsets">input_offsets (pinn.CharacteristicScales attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.input_scales">input_scales (pinn.CharacteristicScales attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.input_tensor">input_tensor (pinn.CharacteristicScales property)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.PDEConfig.interface_width">interface_width (pinn.config.management.PDEConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Interval">Interval (class in pinn)</a>
 </li>
       <li><a href="api/index.html#pinn.AdaptiveCache.invalidate">invalidate() (pinn.AdaptiveCache method)</a>
 </li>
@@ -803,6 +937,14 @@
 
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.Constraint.kind">kind (pinn.Constraint property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PeriodicBoundary.kind">(pinn.PeriodicBoundary attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.KnowledgeDistillationTrainer">KnowledgeDistillationTrainer (class in pinn)</a>
 </li>
@@ -833,6 +975,8 @@
       <li><a href="config_reference.html#pinn.config.management.OptimizerConfig.lbfgs_max_iter">lbfgs_max_iter (pinn.config.management.OptimizerConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#pinn.OptimizerConfig.lbfgs_max_iter">(pinn.OptimizerConfig attribute)</a>
+</li>
         <li><a href="api/index.html#pinn.TrainConfig.lbfgs_max_iter">(pinn.TrainConfig attribute)</a>
 </li>
       </ul></li>
@@ -858,6 +1002,8 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.log_dir">log_dir (pinn.config.management.LoggingConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.TrainerConfig.log_every">log_every (pinn.TrainerConfig attribute)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.log_filename">log_filename (pinn.config.management.LoggingConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.log_format">log_format (pinn.config.management.LoggingConfig attribute)</a>
@@ -868,8 +1014,6 @@
         <li><a href="api/index.html#pinn.PretrainingConfig.log_frequency">(pinn.PretrainingConfig attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.log_history">log_history (pinn.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
@@ -878,6 +1022,8 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.log_level">log_level (pinn.config.management.LoggingConfig attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.log_performance">log_performance() (in module pinn)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.log_to_console">log_to_console (pinn.config.management.LoggingConfig attribute)</a>
@@ -890,6 +1036,12 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.loss">loss (pinn.config.management.TrainingConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.Constraint.loss">loss() (pinn.Constraint method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PeriodicBoundary.loss">(pinn.PeriodicBoundary method)</a>
+</li>
+      </ul></li>
       <li><a href="api/index.html#pinn.DistillationConfig.loss_fn">loss_fn (pinn.DistillationConfig attribute)</a>
 
       <ul>
@@ -908,6 +1060,8 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.LossConfig.loss_scaling">loss_scaling (pinn.config.management.LossConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.TrainerConfig.loss_weights">loss_weights (pinn.TrainerConfig attribute)</a>
+</li>
       <li><a href="api/index.html#pinn.LossBalancingAnalyzer">LossBalancingAnalyzer (class in pinn)</a>
 
       <ul>
@@ -918,6 +1072,16 @@
 </li>
       <li><a href="api/index.html#pinn.MultiScaleTrainingState.losses">losses (pinn.MultiScaleTrainingState attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.Rectangle.lower">lower (pinn.Rectangle attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Geometry.lower_bounds">lower_bounds (pinn.Geometry property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.lower_bounds">(pinn.Rectangle property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.Interval.lower_value">lower_value (pinn.Interval property)</a>
+</li>
       <li><a href="api/index.html#pinn.DistillationConfig.lr">lr (pinn.DistillationConfig attribute)</a>
 
       <ul>
@@ -926,6 +1090,8 @@
         <li><a href="api/index.html#pinn.FineTuningConfig.lr">(pinn.FineTuningConfig attribute)</a>
 </li>
         <li><a href="api/index.html#pinn.MultiScaleTrainingConfig.lr">(pinn.MultiScaleTrainingConfig attribute)</a>
+</li>
+        <li><a href="api/index.html#pinn.OptimizerConfig.lr">(pinn.OptimizerConfig attribute)</a>
 </li>
         <li><a href="api/index.html#pinn.PretrainingConfig.lr">(pinn.PretrainingConfig attribute)</a>
 </li>
@@ -990,8 +1156,6 @@
       </ul></li>
       <li><a href="api/index.html#id18">metadata (pinn.CacheEntry attribute)</a>, <a href="api/index.html#pinn.CacheEntry.metadata">[1]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.method">method (pinn.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
@@ -1000,11 +1164,17 @@
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.method">(pinn.training.AdaptiveWeightingConfig attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.MLP">MLP (class in pinn)</a>
 </li>
       <li><a href="api/index.html#pinn.DomainAdaptationConfig.mmd_bandwidth">mmd_bandwidth (pinn.DomainAdaptationConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.ContinuousPINN.model">model (pinn.ContinuousPINN attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.ModelInputTransform">ModelInputTransform (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.ModelOutputTransform">ModelOutputTransform (class in pinn)</a>
 </li>
       <li>
     module
@@ -1065,26 +1235,60 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.n_collocation">n_collocation (pinn.config.management.SamplingConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinn.HeatProblem.n_constraint_samples">n_constraint_samples (pinn.HeatProblem attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.WaveProblem.n_constraint_samples">(pinn.WaveProblem attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api/index.html#pinn.TrainConfig.n_f">n_f (pinn.TrainConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.n_initial_condition">n_initial_condition (pinn.config.management.SamplingConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.TrainConfig.n_u0">n_u0 (pinn.TrainConfig attribute)</a>
 </li>
-      <li><a href="api/index.html#id31">name (pinn.PretrainingTask attribute)</a>, <a href="api/index.html#pinn.PretrainingTask.name">[1]</a>
+      <li><a href="api/index.html#pinn.Constraint.name">name (pinn.Constraint property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PeriodicBoundary.name">(pinn.PeriodicBoundary attribute)</a>
+</li>
+        <li><a href="api/index.html#id31">(pinn.PretrainingTask attribute)</a>, <a href="api/index.html#pinn.PretrainingTask.name">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.TrainingState.named_losses">named_losses (pinn.TrainingState attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Geometry.names">names (pinn.Geometry property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.names">(pinn.Rectangle property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.Rectangle.names_">names_ (pinn.Rectangle attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.NavierStokesPINN">NavierStokesPINN (class in pinn)</a>
 </li>
-      <li><a href="api/index.html#pinn.DiscreteRKPINN.net">net (pinn.DiscreteRKPINN attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.DiscreteRKPINN.net">net (pinn.DiscreteRKPINN attribute)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.network">network (pinn.config.management.PINNConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.NetworkConfig">NetworkConfig (class in pinn.config.management)</a>
 </li>
+      <li><a href="api/index.html#pinn.ConstraintKind.NEUMANN">NEUMANN (pinn.ConstraintKind attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.NeumannBoundary">NeumannBoundary (class in pinn)</a>
+</li>
       <li><a href="api/index.html#pinn.TrainingCache.next_permutation">next_permutation() (pinn.TrainingCache method)</a>
 </li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer">Nondimensionalizer (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.ModelInputTransform.nondimensionalizer">nondimensionalizer (pinn.ModelInputTransform attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.ModelOutputTransform.nondimensionalizer">(pinn.ModelOutputTransform attribute)</a>
+</li>
+      </ul></li>
       <li><a href="config_reference.html#pinn.config.management.PDEConfig.nonlinearity_strength">nonlinearity_strength (pinn.config.management.PDEConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.AdaptiveWeightingConfig.normalize">normalize (pinn.AdaptiveWeightingConfig attribute)</a>
@@ -1112,14 +1316,42 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.optimizer">optimizer (pinn.config.management.TrainingConfig attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.TrainerConfig.optimizer">(pinn.TrainerConfig attribute)</a>
 </li>
-      <li><a href="config_reference.html#pinn.config.management.OptimizerConfig">OptimizerConfig (class in pinn.config.management)</a>
+      </ul></li>
+      <li><a href="api/index.html#pinn.OptimizerConfig">OptimizerConfig (class in pinn)</a>
+
+      <ul>
+        <li><a href="config_reference.html#pinn.config.management.OptimizerConfig">(class in pinn.config.management)</a>
 </li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.output_dim">output_dim (pinn.CharacteristicScales property)</a>
+
+      <ul>
+        <li><a href="config_reference.html#pinn.config.management.NetworkConfig.output_dim">(pinn.config.management.NetworkConfig attribute)</a>
+</li>
+        <li><a href="api/index.html#pinn.HeatProblem.output_dim">(pinn.HeatProblem property)</a>
+</li>
+        <li><a href="api/index.html#pinn.PDEProblem.output_dim">(pinn.PDEProblem property)</a>
+</li>
+        <li><a href="api/index.html#pinn.WaveProblem.output_dim">(pinn.WaveProblem property)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_reference.html#pinn.config.management.NetworkConfig.output_dim">output_dim (pinn.config.management.NetworkConfig attribute)</a>
-</li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.output_dir">output_dir (pinn.config.management.PINNConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.PeriodicBoundary.output_index">output_index (pinn.PeriodicBoundary attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.output_offset_tensor">output_offset_tensor (pinn.CharacteristicScales property)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.output_offsets">output_offsets (pinn.CharacteristicScales attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.output_scales">output_scales (pinn.CharacteristicScales attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.CharacteristicScales.output_tensor">output_tensor (pinn.CharacteristicScales property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1127,6 +1359,18 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.CharacteristicScales.parameter_scales">parameter_scales (pinn.CharacteristicScales attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.parameter_to_dimensional">parameter_to_dimensional() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.parameter_to_dimensionless">parameter_to_dimensionless() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.AutogradDerivativeBackend.partial_derivative">partial_derivative() (pinn.AutogradDerivativeBackend method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.DerivativeBackend.partial_derivative">(pinn.DerivativeBackend method)</a>
+</li>
+      </ul></li>
       <li><a href="api/index.html#pinn.ActiveLearningConfig.patience">patience (pinn.ActiveLearningConfig attribute)</a>
 
       <ul>
@@ -1147,15 +1391,23 @@
 </li>
       <li><a href="config_reference.html#pinn.config.management.PDEConfig">PDEConfig (class in pinn.config.management)</a>
 </li>
+      <li><a href="api/index.html#pinn.PDEProblem">PDEProblem (class in pinn)</a>
+</li>
       <li><a href="api/index.html#pinn.training.MemoryUsageRecord.peak_mb">peak_mb (pinn.training.MemoryUsageRecord attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.PerformanceReport">PerformanceReport (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.ConstraintKind.PERIODIC">PERIODIC (pinn.ConstraintKind attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.PeriodicBoundary.periodic_dim">periodic_dim (pinn.PeriodicBoundary attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.DomainConfig.periodic_x">periodic_x (pinn.config.management.DomainConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.DomainConfig.periodic_y">periodic_y (pinn.config.management.DomainConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.DomainConfig.periodic_z">periodic_z (pinn.config.management.DomainConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.PeriodicBoundary">PeriodicBoundary (class in pinn)</a>
 </li>
       <li><a href="api/index.html#id12">persist_samples (pinn.CacheConfig attribute)</a>, <a href="api/index.html#pinn.CacheConfig.persist_samples">[1]</a>
 </li>
@@ -1221,6 +1473,8 @@
         <li><a href="api/index.html#pinn.visualization.PINNVisualizer.plot_1d_solution">(pinn.visualization.PINNVisualizer method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.PINNVisualizer.plot_2d_field">plot_2d_field() (pinn.PINNVisualizer method)</a>
 
       <ul>
@@ -1229,8 +1483,6 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.plot_dir">plot_dir (pinn.config.management.PINNConfig attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.PINNVisualizer.plot_error_analysis">plot_error_analysis() (pinn.PINNVisualizer method)</a>
 
       <ul>
@@ -1281,6 +1533,8 @@
         <li><a href="api/index.html#pinn.MultiScalePINN.predict_with_uncertainty">(pinn.MultiScalePINN method)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.NeumannBoundary.prediction">prediction() (pinn.NeumannBoundary method)</a>
+</li>
       <li><a href="api/index.html#pinn.DistributedTrainer.prepare_model">prepare_model() (pinn.DistributedTrainer method)</a>
 </li>
       <li><a href="api/index.html#pinn.TrainingCache.prepare_training_points">prepare_training_points() (pinn.TrainingCache method)</a>
@@ -1369,6 +1623,8 @@
 </li>
       <li><a href="api/index.html#pinn.DistributedPINNTrainer.recover_from_failure">recover_from_failure() (pinn.DistributedPINNTrainer method)</a>
 </li>
+      <li><a href="api/index.html#pinn.Rectangle">Rectangle (class in pinn)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.refinement_factor">refinement_factor (pinn.config.management.SamplingConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig.refinement_iterations">refinement_iterations (pinn.config.management.SamplingConfig attribute)</a>
@@ -1433,6 +1689,18 @@
         <li><a href="api/index.html#pinn.GradientBasedImportanceSampler.sample">(pinn.GradientBasedImportanceSampler method)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.Geometry.sample_boundary">sample_boundary() (pinn.Geometry method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.sample_boundary">(pinn.Rectangle method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.Geometry.sample_interior">sample_interior() (pinn.Geometry method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.sample_interior">(pinn.Rectangle method)</a>
+</li>
+      </ul></li>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.sampling">sampling (pinn.config.management.TrainingConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.SamplingConfig">SamplingConfig (class in pinn.config.management)</a>
@@ -1467,6 +1735,12 @@
         <li><a href="api/index.html#pinn.DynamicLoadBalancer.scale_workers">(pinn.DynamicLoadBalancer method)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.ScaledModel">ScaledModel (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.scales">scales (pinn.Nondimensionalizer attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainerConfig.scaling">scaling (pinn.TrainerConfig attribute)</a>
+</li>
       <li><a href="api/index.html#pinn.DistributedTrainer.scaling_efficiency">scaling_efficiency() (pinn.DistributedTrainer method)</a>
 </li>
       <li><a href="api/index.html#pinn.DistributedPINNTrainer.scaling_summary">scaling_summary() (pinn.DistributedPINNTrainer method)</a>
@@ -1484,6 +1758,8 @@
       <ul>
         <li><a href="api/index.html#pinn.TrainConfig.seed">(pinn.TrainConfig attribute)</a>
 </li>
+        <li><a href="api/index.html#pinn.TrainerConfig.seed">(pinn.TrainerConfig attribute)</a>
+</li>
       </ul></li>
       <li><a href="api/index.html#pinn.StreamActiveLearning.select_from_stream">select_from_stream() (pinn.StreamActiveLearning method)</a>
 </li>
@@ -1499,6 +1775,8 @@
 </li>
       <li><a href="api/index.html#pinn.DistributedEnvironment.setup">setup() (pinn.DistributedEnvironment method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.CheckpointManager.should_stop">should_stop() (pinn.CheckpointManager method)</a>
 </li>
       <li><a href="api/index.html#pinn.AdaptiveLossWeighting.should_update">should_update() (pinn.AdaptiveLossWeighting method)</a>
@@ -1507,8 +1785,6 @@
         <li><a href="api/index.html#pinn.training.AdaptiveLossWeighting.should_update">(pinn.training.AdaptiveLossWeighting method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_reference.html#pinn.config.management.VisualizationConfig.show_plots">show_plots (pinn.config.management.VisualizationConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.PrecomputationManager.shutdown">shutdown() (pinn.PrecomputationManager method)</a>
@@ -1538,7 +1814,11 @@
 </li>
       </ul></li>
       <li><a href="api/index.html#pinn.training.MemoryUsageRecord.step">step (pinn.training.MemoryUsageRecord attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.TrainingState.step">(pinn.TrainingState attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/index.html#pinn.TrainingCache.store_activation">store_activation() (pinn.TrainingCache method)</a>
 </li>
       <li><a href="api/index.html#pinn.CacheConfig.store_activations">store_activations (pinn.CacheConfig attribute)</a>
@@ -1559,6 +1839,16 @@
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.strict_validation">(pinn.training.AdaptiveWeightingConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.HeatProblem.strong_residual">strong_residual() (pinn.HeatProblem method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.PDEProblem.strong_residual">(pinn.PDEProblem method)</a>
+</li>
+        <li><a href="api/index.html#pinn.WaveProblem.strong_residual">(pinn.WaveProblem method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.StrongFormResidual">StrongFormResidual (class in pinn)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.VisualizationConfig.style">style (pinn.config.management.VisualizationConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.PrecomputationManager.submit">submit() (pinn.PrecomputationManager method)</a>
@@ -1585,6 +1875,12 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.HeatProblem.t_final">t_final (pinn.HeatProblem attribute)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.WaveProblem.t_final">(pinn.WaveProblem attribute)</a>
+</li>
+      </ul></li>
       <li><a href="config_reference.html#pinn.config.management.DomainConfig.t_max">t_max (pinn.config.management.DomainConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.DomainConfig.t_min">t_min (pinn.config.management.DomainConfig attribute)</a>
@@ -1629,11 +1925,27 @@
         <li><a href="api/index.html#pinn.NSConfig.tmin">(pinn.NSConfig attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/index.html#pinn.GradientBasedImportanceSampler.to">to() (pinn.GradientBasedImportanceSampler method)</a>
+      <li><a href="api/index.html#pinn.CharacteristicScales.to">to() (pinn.CharacteristicScales method)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.GradientBasedImportanceSampler.to">(pinn.GradientBasedImportanceSampler method)</a>
 </li>
+      </ul></li>
       <li><a href="api/index.html#pinn.PerformanceReport.to_csv">to_csv() (pinn.PerformanceReport method)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.BaseConfig.to_dict">to_dict() (pinn.config.management.BaseConfig method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.to_dimensional">to_dimensional() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.to_dimensional_inputs">to_dimensional_inputs() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.to_dimensional_outputs">to_dimensional_outputs() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.to_dimensionless">to_dimensionless() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.to_dimensionless_inputs">to_dimensionless_inputs() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.to_dimensionless_outputs">to_dimensionless_outputs() (pinn.Nondimensionalizer method)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.BaseConfig.to_json">to_json() (pinn.config.management.BaseConfig method)</a>
 
@@ -1643,12 +1955,14 @@
       </ul></li>
       <li><a href="config_reference.html#pinn.config.management.BaseConfig.to_yaml">to_yaml() (pinn.config.management.BaseConfig method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#id48">tol (pinn.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinn.training.CausalWeightConfig.tol">[1]</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainingState.total_loss">total_loss (pinn.TrainingState attribute)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.total_steps">total_steps (pinn.config.management.TrainingConfig attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.training.MemoryProfiler.track">track() (pinn.training.MemoryProfiler method)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.LoggingConfig.track_computational_time">track_computational_time (pinn.config.management.LoggingConfig attribute)</a>
@@ -1667,6 +1981,8 @@
         <li><a href="api/index.html#pinn.KnowledgeDistillationTrainer.train">(pinn.KnowledgeDistillationTrainer method)</a>
 </li>
         <li><a href="api/index.html#pinn.NavierStokesPINN.train">(pinn.NavierStokesPINN method)</a>
+</li>
+        <li><a href="api/index.html#pinn.Trainer.train">(pinn.Trainer method)</a>
 </li>
         <li><a href="api/index.html#pinn.training.MemoryEfficientPINN.train">(pinn.training.MemoryEfficientPINN method)</a>
 </li>
@@ -1689,6 +2005,10 @@
 </li>
       <li><a href="api/index.html#pinn.TrainConfig">TrainConfig (class in pinn)</a>
 </li>
+      <li><a href="api/index.html#pinn.Trainer">Trainer (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainerConfig">TrainerConfig (class in pinn)</a>
+</li>
       <li><a href="config_reference.html#pinn.config.management.PINNConfig.training">training (pinn.config.management.PINNConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinn.TrainingCache">TrainingCache (class in pinn)</a>
@@ -1701,6 +2021,10 @@
         <li><a href="api/index.html#pinn.visualization.TrainingDashboard">(class in pinn.visualization)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.TrainingResult">TrainingResult (class in pinn)</a>
+</li>
+      <li><a href="api/index.html#pinn.TrainingState">TrainingState (class in pinn)</a>
+</li>
       <li><a href="api/index.html#pinn.TransferLearningPINN.transfer_features">transfer_features() (pinn.TransferLearningPINN method)</a>
 </li>
       <li><a href="api/index.html#pinn.TransferLearningPINN.transfer_parameters">transfer_parameters() (pinn.TransferLearningPINN method)</a>
@@ -1737,8 +2061,6 @@
       </ul></li>
       <li><a href="api/index.html#pinn.ActiveLearningConfig.update_frequency">update_frequency (pinn.ActiveLearningConfig attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinn.GradientBasedImportanceSampler.update_importance_weights">update_importance_weights() (pinn.GradientBasedImportanceSampler method)</a>
 </li>
       <li><a href="api/index.html#pinn.AdaptiveLossWeighting.update_weights">update_weights() (pinn.AdaptiveLossWeighting method)</a>
@@ -1747,6 +2069,18 @@
         <li><a href="api/index.html#pinn.training.AdaptiveLossWeighting.update_weights">(pinn.training.AdaptiveLossWeighting method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinn.Rectangle.upper">upper (pinn.Rectangle attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Geometry.upper_bounds">upper_bounds (pinn.Geometry property)</a>
+
+      <ul>
+        <li><a href="api/index.html#pinn.Rectangle.upper_bounds">(pinn.Rectangle property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/index.html#pinn.Interval.upper_value">upper_value (pinn.Interval property)</a>
+</li>
       <li><a href="api/index.html#pinn.UpperConfidenceBoundAcquisition">UpperConfidenceBoundAcquisition (class in pinn)</a>
 </li>
       <li><a href="api/index.html#pinn.FineTuningConfig.use_amp">use_amp (pinn.FineTuningConfig attribute)</a>
@@ -1774,6 +2108,10 @@
 </li>
         <li><a href="config_reference.html#pinn.config.management.BaseConfig.validate">(pinn.config.management.BaseConfig method)</a>
 </li>
+        <li><a href="api/index.html#pinn.OptimizerConfig.validate">(pinn.OptimizerConfig method)</a>
+</li>
+        <li><a href="api/index.html#pinn.TrainerConfig.validate">(pinn.TrainerConfig method)</a>
+</li>
         <li><a href="api/index.html#pinn.training.AdaptiveWeightingConfig.validate">(pinn.training.AdaptiveWeightingConfig method)</a>
 </li>
         <li><a href="api/index.html#pinn.training.CausalWeightConfig.validate">(pinn.training.CausalWeightConfig method)</a>
@@ -1790,6 +2128,10 @@
       <li><a href="api/index.html#pinn.validate_device">validate_device() (in module pinn)</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.TrainingConfig.validate_frequency">validate_frequency (pinn.config.management.TrainingConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.validate_input">validate_input() (pinn.Nondimensionalizer method)</a>
+</li>
+      <li><a href="api/index.html#pinn.Nondimensionalizer.validate_output">validate_output() (pinn.Nondimensionalizer method)</a>
 </li>
       <li><a href="api/index.html#pinn.ValidationError">ValidationError</a>
 </li>
@@ -1821,6 +2163,8 @@
 </li>
       <li><a href="api/index.html#pinn.WaveletPINN">WaveletPINN (class in pinn)</a>
 </li>
+      <li><a href="api/index.html#pinn.WaveProblem">WaveProblem (class in pinn)</a>
+</li>
       <li><a href="api/index.html#id32">weight (pinn.PretrainingTask attribute)</a>, <a href="api/index.html#pinn.PretrainingTask.weight">[1]</a>
 </li>
       <li><a href="config_reference.html#pinn.config.management.LossConfig.weight_adaptation_frequency">weight_adaptation_frequency (pinn.config.management.LossConfig attribute)</a>
@@ -1843,6 +2187,8 @@
         <li><a href="api/index.html#pinn.training.WeightEvolutionVisualizer">(class in pinn.training)</a>
 </li>
       </ul></li>
+      <li><a href="api/index.html#pinn.TrainingState.weights">weights (pinn.TrainingState attribute)</a>
+</li>
       <li><a href="api/index.html#pinn.DistributedPINNTrainer.worker_id">worker_id (pinn.DistributedPINNTrainer property)</a>
 </li>
       <li><a href="api/index.html#pinn.DistributedPINNTrainer.world">world (pinn.DistributedPINNTrainer property)</a>
@@ -1937,6 +2283,9 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_api.html">Composable Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture/migration_plan.html">Migration Plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theory/index.html">Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config_reference.html">Configuration Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Optimization Guide</a></li>

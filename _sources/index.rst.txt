@@ -9,6 +9,9 @@ pinn Documentation
    tutorials/index
    examples/index
    api/index
+   core_api
+   architecture/current_architecture
+   architecture/migration_plan
    theory/index
    config_reference
    performance_guide
