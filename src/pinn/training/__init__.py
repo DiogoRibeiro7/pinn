@@ -28,6 +28,26 @@ from .optimization import (
     second_order_step,
 )
 
+
+def __getattr__(name: str):
+    """Lazily expose the generic trainer without creating solver import cycles."""
+    if name in {"OptimizerConfig", "TrainerConfig"}:
+        from .config import OptimizerConfig, TrainerConfig
+
+        return {"OptimizerConfig": OptimizerConfig, "TrainerConfig": TrainerConfig}[
+            name
+        ]
+    if name in {"TrainingResult", "TrainingState"}:
+        from .state import TrainingResult, TrainingState
+
+        return {"TrainingResult": TrainingResult, "TrainingState": TrainingState}[name]
+    if name == "Trainer":
+        from .trainer import Trainer
+
+        return Trainer
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 __all__ = [
     "CausalWeightConfig",
     "causal_residual_loss",
@@ -52,4 +72,9 @@ __all__ = [
     "WeightEvolutionVisualizer",
     "LossBalancingAnalyzer",
     "MultiObjectiveOptimizer",
+    "OptimizerConfig",
+    "TrainerConfig",
+    "TrainingResult",
+    "TrainingState",
+    "Trainer",
 ]

@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21844101.svg)](https://doi.org/10.5281/zenodo.21844101) [![CI](https://github.com/DiogoRibeiro7/pinn/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/pinn/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/) [![PyTorch](https://img.shields.io/badge/PyTorch-2.13%2B-red)](https://pytorch.org/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen)](docs/)
 
-A comprehensive, production-ready PyTorch implementation of Physics-Informed Neural Networks for solving partial differential equations (PDEs). This repository provides modular implementations with advanced visualization, comprehensive error analysis, and state-of-the-art sampling strategies.
+A research-oriented PyTorch framework for implementing and testing Physics-Informed Neural Networks for partial differential equations (PDEs). This repository provides modular implementations with visualization, error analysis, and several sampling strategies.
 
 ## 🌟 Overview
 
@@ -33,6 +33,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 
 - **Continuous-time PINNs**: Standard collocation approach
 - **Discrete-time PINNs**: Runge-Kutta integration schemes
+- **Composable Core API**: Problem, geometry, constraint, residual and trainer
+  abstractions for equation-agnostic heat/wave training
 - **Generic Framework**: Easy extension to new PDEs
 - **GPU Acceleration**: CUDA support with automatic detection
 - **Distributed Training**: Data-parallel scaling across multiple GPUs

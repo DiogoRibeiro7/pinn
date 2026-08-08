@@ -19,6 +19,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   `relative_l2_error` against their closed-form solutions
 - Cole–Hopf reference solution for viscous Burgers (`pinn.solvers.reference`), cross-checked
   against an independent finite-difference solve
+- Composable core API for heat and wave problems, with first-class geometry,
+  soft constraints, strong residuals and an equation-agnostic trainer
 
 **Architectures** (`pinn.models`)
 - `MLP`, `FourierFeaturePINN`, `MultiScalePINN`, `FourierMultiScalePINN`,
@@ -66,6 +68,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Worked examples for `FourierFeaturePINN` / `MultiScalePINN` on stiff problems
   - SIREN-style sinusoidal networks
 - **Training**
+  - Migrate the legacy Burgers and generic PDE solvers onto the composable
+    problem/geometry/constraint/trainer path
   - Residual-based adaptive refinement (RAR) wired into the training loop
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions
@@ -74,7 +78,7 @@ Contributions toward any item are welcome — open an issue to coordinate.
     below it — raise the gate as tests land. The thinnest modules are
     `utils/metrics.py` (24%), `utils/error_handling.py` (29%) and
     `utils/sampling.py` (41%)
-  - Clear the ~91 `mypy` errors across 25 modules. The type-check step in
+  - Clear the 93 `mypy` errors across 27 modules measured on 2026-08-08. The type-check step in
     `.github/workflows/ci.yml` is `continue-on-error: true` until then; make it
     blocking once the backlog is gone
   - Keep tests pointed at the real implementations. `tests/unit/test_visualization.py`
