@@ -8,6 +8,8 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-08
+
 ### Added
 
 - The project governance and contribution files: `CONTRIBUTING.md`,
@@ -93,5 +95,6 @@ Python version, and citable.
 - Documented the trust boundary on the cache's `pickle` loads, which only ever
   deserialise data the cache itself wrote.
 
-[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/DiogoRibeiro7/pinn/releases/tag/v0.1.0

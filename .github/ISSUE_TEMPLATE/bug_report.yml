@@ -33,7 +33,7 @@ body:
     attributes:
       label: pinn version
       description: "`python -c \"import pinn; print(pinn.__version__)\"`, or the commit SHA."
-      placeholder: "0.1.0"
+      placeholder: "0.1.1"
     validations:
       required: true
 
