@@ -21,6 +21,26 @@ without changing what a converged solution is.
 
 ``eps`` controls the strictness: as ``eps -> 0`` the scheme degenerates to the
 unweighted loss, and larger values enforce a sharper front.
+
+A note on what has actually been measured here
+----------------------------------------------
+The weighting itself is verified against the formula above in
+``tests/unit/test_exact_solvers.py``, including the closed-form weights for a
+uniform residual. What is *not* established is an accuracy benefit on the
+problems currently in this package. On the 1-D wave equation it made no useful
+difference: over a single period the error was 4.3e-2 with weighting against
+4.0e-2 without, and over three periods every configuration tried landed between
+0.85 and 0.88 (plain 0.865; eps of 1, 10 and 100 with 24 windows giving 0.880,
+0.873 and 0.849), which is failure across the board -- the network was
+under-trained at that horizon rather than mis-ordered in time.
+
+That is not evidence against the method. The published gains are reported on
+harder problems -- Allen-Cahn, Kuramoto-Sivashinsky -- with larger budgets and
+tuned architectures, where the failure this fixes actually bites. It does mean
+you should treat ``eps`` and ``n_chunks`` as parameters to tune and measure on
+your own problem, not as a setting that improves things by being switched on.
+See ``examples/advanced/causal_weighting.py``, which reports both errors rather
+than assuming the weighted one wins.
 """
 
 from __future__ import annotations

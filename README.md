@@ -17,10 +17,17 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 
 ### 🔬 **Multiple PDE Solvers**
 
-- **Burgers Equation**: 1D viscous flow with shock formation
+- **Heat Equation**: 1D diffusion, scored against its closed-form Fourier solution
+- **Wave Equation**: 1D standing waves, second order in time, also exactly solvable
+- **Burgers Equation**: 1D viscous flow with shock formation, validated against the
+  exact Cole–Hopf solution
 - **Navier-Stokes**: 2D incompressible flow with periodic boundaries
 - **Allen-Cahn**: Phase field modeling and interface dynamics
 - **Nonlinear Schrödinger**: Quantum mechanics and nonlinear optics
+
+> The heat, wave and Burgers problems have **exact solutions**, so accuracy is a
+> number rather than a picture. `relative_l2_error` reports it, and the test suite
+> asserts on it — see [`notebooks/basic/05_heat_equation.ipynb`](notebooks/basic/05_heat_equation.ipynb).
 
 ### 🏗️ **Advanced Architecture**
 

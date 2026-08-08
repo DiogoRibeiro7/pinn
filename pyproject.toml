@@ -89,10 +89,10 @@ ignore_missing_imports = true
 exclude = ["tests"]
 
 [tool.pytest.ini_options]
-# The gate is a ratchet set just under the measured figure (58%) so coverage
+# The gate is a ratchet set just under the measured figure (60%) so coverage
 # cannot regress, with headroom for platform variation. Raise it as tests are
 # added; see ROADMAP.md.
-addopts = "-q --cov=pinn --cov-report=term-missing --cov-fail-under=55"
+addopts = "-q --cov=pinn --cov-report=term-missing --cov-fail-under=58"
 testpaths = ["tests"]
 markers = [
     "integration: integration tests",

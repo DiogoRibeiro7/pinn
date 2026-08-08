@@ -25,7 +25,8 @@ Then open [`01_getting_started.ipynb`](01_getting_started.ipynb) and run all cel
 | 3 | [`basic/02_allen_cahn`](basic/02_allen_cahn.ipynb) | Write your **own** PDE residual |
 | 4 | [`basic/03_custom_pde`](basic/03_custom_pde.ipynb) | A reusable template (verified vs. an exact solution) |
 | 5 | [`basic/04_navier_stokes_2d`](basic/04_navier_stokes_2d.ipynb) | A coupled PDE **system** (fluid flow) |
-| 6 | [`advanced/…`](advanced/) and [`benchmarks/…`](benchmarks/) | Techniques & studies (below) |
+| 6 | [`basic/05_heat_equation`](basic/05_heat_equation.ipynb) | Scoring a PINN against a **closed-form** solution 📐 |
+| 7 | [`advanced/…`](advanced/) and [`benchmarks/…`](benchmarks/) | Techniques & studies (below) |
 
 ## 📚 Contents
 
@@ -41,6 +42,8 @@ Then open [`01_getting_started.ipynb`](01_getting_started.ipynb) and run all cel
 - [`basic/02_allen_cahn`](basic/02_allen_cahn.ipynb) — phase separation with a hand-written residual.
 - [`basic/03_custom_pde`](basic/03_custom_pde.ipynb) — a 5-step template, demonstrated on the heat equation with a known exact solution.
 - [`basic/04_navier_stokes_2d`](basic/04_navier_stokes_2d.ipynb) — 2-D incompressible flow (Taylor–Green vortex).
+- [`basic/05_heat_equation`](basic/05_heat_equation.ipynb) — the heat equation against its Fourier-series
+  solution, reporting a relative L2 error rather than a plot, plus a stiffer two-mode variant.
 
 ### Advanced — techniques
 

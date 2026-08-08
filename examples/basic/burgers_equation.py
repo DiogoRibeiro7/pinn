@@ -8,6 +8,7 @@ import numpy as np
 import torch
 
 from pinn.models import MLP
+from pinn.solvers.reference import burgers_cole_hopf, relative_l2_error
 from pinn.solvers.raissi_improved import (
     BurgersConfig,
     TrainConfig,
@@ -22,8 +23,15 @@ from pinn.distributed import DistributedTrainer
 
 
 def analytical_solution(t: np.ndarray, x: np.ndarray, nu: float) -> np.ndarray:
-    """Approximate analytical solution for demonstration."""
-    return -np.sin(np.pi * x) * np.exp(-nu * np.pi**2 * t)
+    """Return the exact Burgers solution via the Cole-Hopf transform.
+
+    This used to return ``-sin(pi x) exp(-nu pi^2 t)``, which is the solution of
+    the *heat* equation: it drops the nonlinear advection term entirely and so
+    never steepens into a shock. Every error metric measured against it was
+    therefore meaningless. :func:`burgers_cole_hopf` is the genuine solution of
+    the equation this example solves.
+    """
+    return burgers_cole_hopf(t, x, nu)
 
 
 def main() -> None:
@@ -100,7 +108,12 @@ def main() -> None:
     true = analytical_solution(TT, XX, cfg.nu)
 
     metrics = compute_error_metrics(pred, true)
-    logger.info("MAE: %f MSE: %f", metrics.mae, metrics.mse)
+    rel_l2 = relative_l2_error(pred, true)
+    logger.info(
+        "Accuracy against the Cole-Hopf solution",
+        extra={"mae": metrics.mae, "mse": metrics.mse, "relative_l2": rel_l2},
+    )
+    print(f"Relative L2 error against the exact solution: {rel_l2:.3e}")
 
     viz = PINNVisualizer()
     viz.plot_2d_field(

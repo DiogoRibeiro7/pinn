@@ -8,6 +8,43 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Added
+
+- Exactly-solvable solvers, so accuracy is a number rather than a plot.
+  `HeatPINN` is scored against the Fourier-series solution of the 1-D heat
+  equation and `WavePINN` against the standing-wave solution of the 1-D wave
+  equation, both through `relative_l2_error`. With the budgets used in the
+  examples they reach 1.7e-3 and 4.0e-2 respectively; a two-mode heat initial
+  condition, which is stiffer, reaches 2.3e-3.
+- `pinn.solvers.reference.burgers_cole_hopf`: the exact solution of the viscous
+  Burgers equation via the Cole-Hopf transform, so the existing Burgers solvers
+  can be scored. Cross-checked against an independent explicit finite-difference
+  solve, agreeing to 1.9e-5 relative L2 at `nu = 0.05`.
+- `pinn.training.causal_weighting`: temporal causality weighting from Wang,
+  Sankaran and Perdikaris (2022). The weighting formula is unit-tested, but no
+  accuracy benefit has been demonstrated on the problems in this package -- see
+  the module docstring for the measurements and `ROADMAP.md` for the follow-up.
+- Examples `basic/heat_equation.py`, `basic/wave_equation.py` and
+  `advanced/causal_weighting.py`, the last reporting both errors rather than
+  assuming the weighted one wins.
+- Notebook `basic/05_heat_equation.ipynb`, executed, covering scoring against a
+  closed-form solution and the stiffer two-mode variant.
+
+### Fixed
+
+- `raissi_generic.latin_hypercube` was broken for `d > 1`: it left the interval
+  bounds at shape `(n,)` rather than `(n, 1)`, so the broadcast against the
+  `(n, d)` sample failed. `ContinuousPINNGeneric._make_data` calls it with
+  `d = 2`, so the generic solver could not draw a single collocation point and
+  the Allen-Cahn and Schrodinger demos raised before training began -- two of
+  the four advertised PDE families were unusable. The module now imports the
+  working implementation from `raissi_improved` instead of keeping a second copy.
+- `examples/basic/burgers_equation.py` measured its error against
+  `-sin(pi x) exp(-nu pi^2 t)`, which is the solution of the *heat* equation: it
+  drops the nonlinear advection term and never forms a shock, so every metric it
+  reported was meaningless. It now uses the Cole-Hopf solution and reports a
+  relative L2 error.
+
 ## [0.1.1] - 2026-08-08
 
 ### Added

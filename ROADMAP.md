@@ -15,6 +15,10 @@ Contributions toward any item are welcome — open an issue to coordinate.
 - Discrete-time Runge–Kutta PINN (`DiscreteRKPINN`)
 - 2-D incompressible Navier–Stokes with periodic BCs (`NavierStokesPINN`)
 - Generic residual framework (Allen–Cahn, nonlinear Schrödinger)
+- Exact-solution-validated 1-D heat (`HeatPINN`) and wave (`WavePINN`) solvers, scored by
+  `relative_l2_error` against their closed-form solutions
+- Cole–Hopf reference solution for viscous Burgers (`pinn.solvers.reference`), cross-checked
+  against an independent finite-difference solve
 
 **Architectures** (`pinn.models`)
 - `MLP`, `FourierFeaturePINN`, `MultiScalePINN`, `FourierMultiScalePINN`,
@@ -54,18 +58,19 @@ Contributions toward any item are welcome — open an issue to coordinate.
 
 - **Accuracy & rigor**
   - Make the Burgers inverse-problem example identifiable (PDE-consistent measurements)
-  - Reference (Cole–Hopf / spectral) solutions for quantitative Burgers validation
-  - First-class, exact-solution-validated heat and wave equation solvers
+  - Demonstrate a problem where causal weighting measurably helps. The implementation is
+    verified against the published formula, but on the wave equation it made no useful
+    difference at any setting tried; the reported gains are on harder problems
+    (Allen–Cahn, Kuramoto–Sivashinsky) with larger budgets
 - **Architectures in practice**
   - Worked examples for `FourierFeaturePINN` / `MultiScalePINN` on stiff problems
   - SIREN-style sinusoidal networks
 - **Training**
-  - Causal / temporal-weighting schemes for time-dependent PDEs
   - Residual-based adaptive refinement (RAR) wired into the training loop
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions
   - Expand test coverage for solvers, sampling, and transfer modules. Coverage is
-    currently ~58%, and `--cov-fail-under` in `pyproject.toml` is a ratchet set just
+    currently ~60%, and `--cov-fail-under` in `pyproject.toml` is a ratchet set just
     below it — raise the gate as tests land. The thinnest modules are
     `utils/metrics.py` (24%), `utils/error_handling.py` (29%) and
     `utils/sampling.py` (41%)
