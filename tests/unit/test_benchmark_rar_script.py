@@ -40,6 +40,7 @@ def _args() -> argparse.Namespace:
         width=8,
         lr=1e-3,
         alpha=0.1,
+        wave_speed=1.0,
         length=1.0,
         t_final=0.02,
         eval_grid=5,
@@ -50,7 +51,7 @@ def _args() -> argparse.Namespace:
 
 def test_rar_benchmark_script_emits_uniform_case(benchmark_rar_module) -> None:
     """The uniform benchmark mode produces a schema-compatible case."""
-    case = benchmark_rar_module.run_case("uniform", _args())
+    case = benchmark_rar_module.run_case("heat", "uniform", _args())
 
     assert isinstance(case, BenchmarkCase)
     assert case.name == "heat-uniform"
@@ -65,8 +66,18 @@ def test_rar_benchmark_script_emits_uniform_case(benchmark_rar_module) -> None:
 
 def test_rar_benchmark_script_emits_diverse_rar_case(benchmark_rar_module) -> None:
     """The diverse RAR mode records adaptive-refinement metadata."""
-    case = benchmark_rar_module.run_case("rar_diverse", _args())
+    case = benchmark_rar_module.run_case("heat", "rar_diverse", _args())
 
     assert case.name == "heat-rar_diverse"
     assert case.metadata["adaptive_refinement"]["diversity_weight"] == 0.5
     assert "rar_points" in {metric.name for metric in case.metrics}
+
+
+def test_rar_benchmark_script_emits_wave_case(benchmark_rar_module) -> None:
+    """The benchmark can run the composable wave problem."""
+    case = benchmark_rar_module.run_case("wave", "uniform", _args())
+
+    assert case.name == "wave-uniform"
+    assert case.reference.name == "Standing-wave solution"
+    assert case.metadata["problem"]["name"] == "wave"
+    assert case.metadata["problem"]["wave_speed"] == 1.0

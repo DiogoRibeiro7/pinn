@@ -1,4 +1,4 @@
-"""Compare uniform collocation against residual-adaptive refinement on heat."""
+"""Compare uniform collocation against RAR on composable PDE problems."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -18,8 +19,9 @@ from pinn.benchmarks import (
     evaluate_independent_residual,
 )
 from pinn.models import MLP
-from pinn.problems import HeatProblem
+from pinn.problems import HeatProblem, WaveProblem
 from pinn.solvers.heat import HeatConfig
+from pinn.solvers.wave import WaveConfig
 from pinn.training import (
     OptimizerConfig,
     ResidualAdaptiveConfig,
@@ -36,15 +38,17 @@ def _relative_l2(prediction: np.ndarray, truth: np.ndarray) -> float:
 
 
 def _evaluate_solution(
-    problem: HeatProblem,
+    problem: Any,
     model: torch.nn.Module,
     *,
     dtype: torch.dtype,
     n_grid: int,
 ) -> float:
     """Return solution relative L2 error on a regular space-time grid."""
-    t = np.linspace(0.0, problem.t_final, n_grid)
-    x = np.linspace(0.0, problem.config.length, n_grid)
+    lower = problem.geometry.lower_bounds.numpy()
+    upper = problem.geometry.upper_bounds.numpy()
+    t = np.linspace(float(lower[0]), float(upper[0]), n_grid)
+    x = np.linspace(float(lower[1]), float(upper[1]), n_grid)
     tt, xx = np.meshgrid(t, x, indexing="ij")
     flat = torch.tensor(
         np.stack([tt.reshape(-1), xx.reshape(-1)], axis=1),
@@ -54,6 +58,48 @@ def _evaluate_solution(
     with torch.no_grad():
         pred = model(flat).cpu().numpy().reshape(tt.shape)
     return _relative_l2(pred, problem.exact(tt, xx))
+
+
+def _make_problem(name: str, args: argparse.Namespace) -> HeatProblem | WaveProblem:
+    """Create a composable benchmark problem."""
+    if name == "heat":
+        return HeatProblem(
+            HeatConfig(alpha=args.alpha, length=args.length),
+            t_final=args.t_final,
+            n_constraint_samples=args.constraint_points,
+        )
+    if name == "wave":
+        return WaveProblem(
+            WaveConfig(c=args.wave_speed, length=args.length),
+            t_final=args.t_final,
+            n_constraint_samples=args.constraint_points,
+        )
+    raise ValueError(f"unknown benchmark problem: {name}")
+
+
+def _reference_name(problem_name: str) -> str:
+    """Return the analytic reference label for a problem."""
+    if problem_name == "heat":
+        return "Fourier heat solution"
+    if problem_name == "wave":
+        return "Standing-wave solution"
+    raise ValueError(f"unknown benchmark problem: {problem_name}")
+
+
+def _problem_metadata(
+    problem_name: str, problem: HeatProblem | WaveProblem
+) -> dict[str, Any]:
+    """Return serializable problem metadata."""
+    metadata: dict[str, Any] = {
+        "name": problem_name,
+        "length": problem.config.length,
+        "t_final": float(problem.geometry.upper_bounds[0]),
+    }
+    if isinstance(problem, HeatProblem):
+        metadata["alpha"] = problem.config.alpha
+    else:
+        metadata["wave_speed"] = problem.config.c
+    return metadata
 
 
 def _rar_config(args: argparse.Namespace, mode: str) -> ResidualAdaptiveConfig | None:
@@ -71,26 +117,21 @@ def _rar_config(args: argparse.Namespace, mode: str) -> ResidualAdaptiveConfig |
     )
 
 
-def run_case(mode: str, args: argparse.Namespace) -> BenchmarkCase:
+def run_case(problem_name: str, mode: str, args: argparse.Namespace) -> BenchmarkCase:
     """Train one benchmark mode and return a schema-compatible case."""
     dtype = torch.float64 if args.dtype == "float64" else torch.float32
-    problem = HeatProblem(
-        HeatConfig(alpha=args.alpha, length=args.length),
-        t_final=args.t_final,
-        n_constraint_samples=args.constraint_points,
-    )
+    problem = _make_problem(problem_name, args)
     model = MLP(2, args.hidden_layers, args.width, 1)
     adaptive_refinement = _rar_config(args, mode)
+    constraint_sample_counts = {
+        constraint.name: args.constraint_points for constraint in problem.constraints()
+    }
     trainer = Trainer(
         TrainerConfig(
             seed=args.seed,
             dtype=dtype,
             collocation_count=args.collocation_points,
-            constraint_sample_counts={
-                "ic": args.constraint_points,
-                "bc_left": args.constraint_points,
-                "bc_right": args.constraint_points,
-            },
+            constraint_sample_counts=constraint_sample_counts,
             adaptive_refinement=adaptive_refinement,
             optimizer=OptimizerConfig(adam_steps=args.steps, lr=args.lr),
             log_every=max(1, args.steps),
@@ -144,10 +185,10 @@ def run_case(mode: str, args: argparse.Namespace) -> BenchmarkCase:
         )
 
     return BenchmarkCase(
-        name=f"heat-{mode}",
+        name=f"{problem_name}-{mode}",
         reference=BenchmarkReference(
             kind="analytic",
-            name="Fourier heat solution",
+            name=_reference_name(problem_name),
             details={"modes": [list(mode_) for mode_ in problem.config.modes]},
         ),
         metrics=tuple(metrics),
@@ -167,12 +208,7 @@ def run_case(mode: str, args: argparse.Namespace) -> BenchmarkCase:
                 "adam_steps": args.steps,
                 "lr": args.lr,
             },
-            "problem": {
-                "name": "heat",
-                "alpha": args.alpha,
-                "length": args.length,
-                "t_final": args.t_final,
-            },
+            "problem": _problem_metadata(problem_name, problem),
             "evaluation": {
                 "grid_size": args.eval_grid,
                 "residual_points": residual.sample_count,
@@ -214,6 +250,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--width", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--wave-speed", type=float, default=1.0)
     parser.add_argument("--length", type=float, default=1.0)
     parser.add_argument("--t-final", type=float, default=1.0)
     parser.add_argument("--eval-grid", type=int, default=31)
@@ -225,13 +262,23 @@ def parse_args() -> argparse.Namespace:
         choices=("uniform", "rar", "rar_diverse"),
         default=("uniform", "rar", "rar_diverse"),
     )
+    parser.add_argument(
+        "--problems",
+        nargs="+",
+        choices=("heat", "wave"),
+        default=("heat", "wave"),
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     """Run the benchmark and write a JSON report."""
     args = parse_args()
-    cases = tuple(run_case(mode, args) for mode in args.modes)
+    cases = tuple(
+        run_case(problem_name, mode, args)
+        for problem_name in args.problems
+        for mode in args.modes
+    )
     report = BenchmarkReport(
         cases=cases,
         metadata={
@@ -239,6 +286,7 @@ def main() -> None:
             "torch_version": torch.__version__,
             "script": Path(__file__).name,
             "description": "Uniform collocation vs residual-adaptive refinement",
+            "problems": list(args.problems),
         },
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)

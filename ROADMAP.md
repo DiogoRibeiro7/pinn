@@ -28,7 +28,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   candidate residual scoring, retained high-residual collocation points and
   optional diversity-aware selection and training-state diagnostics
 - RAR benchmark script comparing uniform, residual-adaptive and
-  diversity-aware residual-adaptive collocation on the composable heat problem
+  diversity-aware residual-adaptive collocation on composable heat and wave
+  problems
 - Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
   independent residual evaluation on fresh points and explicit reference
   provenance labels (`analytic`, `numerical`, `observational`)
@@ -86,8 +87,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Move legacy solver scaling and precision behavior onto the shared
     nondimensionalization path; the new composable trainer preserves configured
     FP32/FP64 dtypes, but legacy paths still need the same audit
-  - Extend RAR benchmark comparisons beyond heat to additional representative
-    PDEs
+  - Extend RAR benchmark comparisons beyond heat/wave to additional
+    representative PDEs
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions
   - Expand test coverage for solvers, sampling, and transfer modules. Coverage is
