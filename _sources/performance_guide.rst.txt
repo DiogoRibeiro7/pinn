@@ -11,6 +11,26 @@ Use the profiling utilities to monitor training throughput and memory usage.
    def step():
        pass
 
+Benchmark reports
+-----------------
+
+Use :mod:`pinn.benchmarks` for reproducible benchmark artifacts. Reports are
+JSON-serializable, include the current git commit when available and require
+each case to declare whether reference data is ``analytic``, ``numerical`` or
+``observational``.
+
+.. code-block:: python
+
+   from pinn.benchmarks import BenchmarkReport
+
+   report = BenchmarkReport.from_json("benchmark_report.json")
+   print(report.cases[0].reference.kind)
+
+For composable problems, ``evaluate_independent_residual`` samples fresh
+interior points and evaluates the PDE residual independently from trainer state.
+Classical comparison data can be generated with helpers such as
+``pinn.numerics.solve_heat_explicit``.
+
 Memory-aware training
 ---------------------
 
@@ -65,7 +85,7 @@ gradient checkpointing, or revisit sampling strategies to keep memory growth
 under control.
 
 Adaptive caching and precomputation
-----------------------------------
+-----------------------------------
 
 The optimisation module now provides caching primitives that reuse training
 points, forward activations and PDE residuals across optimisation steps.  This

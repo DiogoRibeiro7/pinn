@@ -43,6 +43,23 @@
     <span class="k">pass</span>
 </pre></div>
 </div>
+<section id="benchmark-reports">
+<h2>Benchmark reports<a class="headerlink" href="#benchmark-reports" title="Link to this heading">¶</a></h2>
+<p>Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">pinn.benchmarks</span></code> for reproducible benchmark artifacts. Reports are
+JSON-serializable, include the current git commit when available and require
+each case to declare whether reference data is <code class="docutils literal notranslate"><span class="pre">analytic</span></code>, <code class="docutils literal notranslate"><span class="pre">numerical</span></code> or
+<code class="docutils literal notranslate"><span class="pre">observational</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinn.benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkReport</span>
+
+<span class="n">report</span> <span class="o">=</span> <span class="n">BenchmarkReport</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;benchmark_report.json&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">cases</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For composable problems, <code class="docutils literal notranslate"><span class="pre">evaluate_independent_residual</span></code> samples fresh
+interior points and evaluates the PDE residual independently from trainer state.
+Classical comparison data can be generated with helpers such as
+<code class="docutils literal notranslate"><span class="pre">pinn.numerics.solve_heat_explicit</span></code>.</p>
+</section>
 <section id="memory-aware-training">
 <h2>Memory-aware training<a class="headerlink" href="#memory-aware-training" title="Link to this heading">¶</a></h2>
 <p>Large collocation sets can quickly exhaust accelerator memory.  The
@@ -181,6 +198,7 @@ regressions.</p>
 <li class="toctree-l1"><a class="reference internal" href="theory/index.html">Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config_reference.html">Configuration Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Performance Optimization Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#benchmark-reports">Benchmark reports</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#memory-aware-training">Memory-aware training</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#benchmarking-memory-usage">Benchmarking memory usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adaptive-caching-and-precomputation">Adaptive caching and precomputation</a></li>

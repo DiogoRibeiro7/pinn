@@ -76,6 +76,26 @@ network sees them and scale outputs back before losses are evaluated.
    # evaluating with physical coordinates.
    physical_model = ScaledModel(model, scaling)
 
+SIREN Models
+------------
+
+``SirenPINN`` is available from ``pinn.models`` for coordinate-based PDE
+solutions with oscillatory structure. It uses sinusoidal hidden activations and
+SIREN initialization bounds so coordinate derivatives remain useful during
+PINN residual evaluation.
+
+.. code-block:: python
+
+   from pinn.models import SirenPINN
+
+   model = SirenPINN(
+       in_dim=problem.input_dim,
+       hidden_layers=3,
+       width=64,
+       out_dim=problem.output_dim,
+       omega_0=30.0,
+   )
+
 Residual-Adaptive Refinement
 ----------------------------
 
@@ -108,6 +128,52 @@ adaptive refinement (RAR) on the composable problem path.
 RAR diagnostics are recorded in ``TrainingState.diagnostics`` with keys such as
 ``rar_points``, ``rar_new_points``, ``rar_candidate_mean_residual`` and
 ``rar_candidate_max_residual``.
+
+Benchmark Reports
+-----------------
+
+Use ``pinn.benchmarks`` when evaluating a trained model outside the trainer.
+``evaluate_independent_residual`` samples fresh interior points from the
+problem geometry and evaluates the strong-form residual with a new derivative
+backend, avoiding accidental reuse of training collocation points.
+
+.. code-block:: python
+
+   from pinn.benchmarks import (
+       BenchmarkCase,
+       BenchmarkMetric,
+       BenchmarkReference,
+       BenchmarkReport,
+       evaluate_independent_residual,
+   )
+
+   residual = evaluate_independent_residual(
+       problem, physical_model, sample_count=4096, seed=123
+   )
+   report = BenchmarkReport(
+       cases=(
+           BenchmarkCase(
+               name="heat-residual",
+               reference=BenchmarkReference(
+                   kind="analytic",
+                   name="Fourier heat solution",
+               ),
+               metrics=(
+                   BenchmarkMetric(
+                       "residual_mse",
+                       residual.mean_squared_residual,
+                       higher_is_better=False,
+                   ),
+               ),
+           ),
+       ),
+   )
+   report.to_json("benchmark_report.json")
+
+Classical references live in ``pinn.numerics``. For example,
+``solve_heat_explicit`` returns a finite-difference heat solution labelled as a
+``numerical`` reference, keeping it distinct from closed-form analytic data and
+observational measurements in benchmark reports.
 
 Design Responsibilities
 -----------------------
@@ -143,6 +209,11 @@ Design Responsibilities
     optionally retains high-residual RAR collocation points, and performs Adam
     plus optional L-BFGS optimization. It records typed ``TrainingState`` entries
     with named losses, weights, elapsed time and diagnostics.
+
+``pinn.benchmarks`` and ``pinn.numerics``
+    Own benchmark result serialization, independent residual scoring and
+    classical numerical references. Reference descriptors must label data as
+    ``analytic``, ``numerical`` or ``observational``.
 
 Compatibility
 -------------

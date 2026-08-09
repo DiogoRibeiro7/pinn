@@ -430,15 +430,7 @@ showcase the idea rather than provide a highly optimised transformer.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinn.AttentionPINN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#AttentionPINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.AttentionPINN.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Evaluate a single-token self-attention PINN.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1628,15 +1620,7 @@ precision is requested.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinn.EnsemblePINN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#EnsemblePINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.EnsemblePINN.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Return the mean prediction across ensemble members.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1713,15 +1697,7 @@ components are difficult to learn with standard networks.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinn.FourierFeaturePINN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#FourierFeaturePINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.FourierFeaturePINN.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Evaluate the model after sine/cosine Fourier embedding.</p>
 </dd></dl>
 
 </dd></dl>
@@ -3014,6 +2990,40 @@ applies the coordinate and output scale factors automatically.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pinn.SineLayer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinn.</span></span><span class="sig-name descname"><span class="pre">SineLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SineLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.SineLayer" title="Link to this definition">¶</a></dt>
+<dd><p>Linear layer followed by a scaled sine activation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinn.SineLayer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SineLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.SineLayer.forward" title="Link to this definition">¶</a></dt>
+<dd><p>Apply the scaled sine activation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinn.SineLayer.reset_parameters">
+<span class="sig-name descname"><span class="pre">reset_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SineLayer.reset_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.SineLayer.reset_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize weights using SIREN frequency-preserving bounds.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pinn.SirenPINN">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinn.</span></span><span class="sig-name descname"><span class="pre">SirenPINN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_omega_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SirenPINN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.SirenPINN" title="Link to this definition">¶</a></dt>
+<dd><p>SIREN network for representing high-frequency PDE solutions.</p>
+<p>Sinusoidal representation networks are useful when the target field has
+sharp oscillations or when accurate coordinate derivatives are important.
+The initialization follows the SIREN paper’s separate first-layer and
+hidden-layer bounds.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinn.SirenPINN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SirenPINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.SirenPINN.forward" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the SIREN network.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pinn.StreamActiveLearning">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinn.</span></span><span class="sig-name descname"><span class="pre">StreamActiveLearning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">acquisition_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinn/sampling/active_learning.html#StreamActiveLearning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.StreamActiveLearning" title="Link to this definition">¶</a></dt>
 <dd><p>Stream-based active learning for sequential data sources.</p>
@@ -4236,15 +4246,7 @@ showcase the idea rather than provide a highly optimised transformer.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinn.models.advanced.AttentionPINN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#AttentionPINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.AttentionPINN.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Evaluate a single-token self-attention PINN.</p>
 </dd></dl>
 
 </dd></dl>
@@ -4261,15 +4263,7 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinn.models.advanced.EnsemblePINN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#EnsemblePINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.EnsemblePINN.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Return the mean prediction across ensemble members.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -4289,15 +4283,7 @@ components are difficult to learn with standard networks.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinn.models.advanced.FourierFeaturePINN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#FourierFeaturePINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.FourierFeaturePINN.forward" title="Link to this definition">¶</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<dd><p>Evaluate the model after sine/cosine Fourier embedding.</p>
 </dd></dl>
 
 </dd></dl>
@@ -4355,6 +4341,40 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="sig sig-object py" id="pinn.models.advanced.MultiScalePINN.scale_statistics">
 <span class="sig-name descname"><span class="pre">scale_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinn/models/multiscale.html#MultiScalePINN.scale_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.MultiScalePINN.scale_statistics" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pinn.models.advanced.SineLayer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinn.models.advanced.</span></span><span class="sig-name descname"><span class="pre">SineLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SineLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.SineLayer" title="Link to this definition">¶</a></dt>
+<dd><p>Linear layer followed by a scaled sine activation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinn.models.advanced.SineLayer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SineLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.SineLayer.forward" title="Link to this definition">¶</a></dt>
+<dd><p>Apply the scaled sine activation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinn.models.advanced.SineLayer.reset_parameters">
+<span class="sig-name descname"><span class="pre">reset_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SineLayer.reset_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.SineLayer.reset_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize weights using SIREN frequency-preserving bounds.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pinn.models.advanced.SirenPINN">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinn.models.advanced.</span></span><span class="sig-name descname"><span class="pre">SirenPINN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_omega_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SirenPINN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.SirenPINN" title="Link to this definition">¶</a></dt>
+<dd><p>SIREN network for representing high-frequency PDE solutions.</p>
+<p>Sinusoidal representation networks are useful when the target field has
+sharp oscillations or when accurate coordinate derivatives are important.
+The initialization follows the SIREN paper’s separate first-layer and
+hidden-layer bounds.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinn.models.advanced.SirenPINN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinn/models/advanced.html#SirenPINN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinn.models.advanced.SirenPINN.forward" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the SIREN network.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -5475,6 +5495,8 @@ additional video encoder dependencies are required.</p>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.QueryByCommitteeAcquisition"><code class="docutils literal notranslate"><span class="pre">QueryByCommitteeAcquisition</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.Rectangle"><code class="docutils literal notranslate"><span class="pre">Rectangle</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.ScaledModel"><code class="docutils literal notranslate"><span class="pre">ScaledModel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinn.SineLayer"><code class="docutils literal notranslate"><span class="pre">SineLayer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinn.SirenPINN"><code class="docutils literal notranslate"><span class="pre">SirenPINN</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.StreamActiveLearning"><code class="docutils literal notranslate"><span class="pre">StreamActiveLearning</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.StrongFormResidual"><code class="docutils literal notranslate"><span class="pre">StrongFormResidual</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.TrainConfig"><code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code></a></li>
@@ -5535,6 +5557,8 @@ additional video encoder dependencies are required.</p>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.models.advanced.EnsemblePINN"><code class="docutils literal notranslate"><span class="pre">EnsemblePINN</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.models.advanced.FourierFeaturePINN"><code class="docutils literal notranslate"><span class="pre">FourierFeaturePINN</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.models.advanced.MultiScalePINN"><code class="docutils literal notranslate"><span class="pre">MultiScalePINN</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinn.models.advanced.SineLayer"><code class="docutils literal notranslate"><span class="pre">SineLayer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinn.models.advanced.SirenPINN"><code class="docutils literal notranslate"><span class="pre">SirenPINN</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.training.AdaptiveLossWeighting"><code class="docutils literal notranslate"><span class="pre">AdaptiveLossWeighting</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.training.AdaptivePINNTrainer"><code class="docutils literal notranslate"><span class="pre">AdaptivePINNTrainer</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinn.training.AdaptiveWeightingConfig"><code class="docutils literal notranslate"><span class="pre">AdaptiveWeightingConfig</span></code></a></li>
