@@ -32,7 +32,9 @@ Contributions toward any item are welcome — open an issue to coordinate.
   wave problems
 - Configurable composable interior samplers (`pinn.sampling.InteriorSampler`)
   for trainer-owned residual collocation points, including uniform and
-  Latin-hypercube policies
+  Latin-hypercube policies plus adapters for legacy sampler interoperability
+- Shared `pinn.sampling.latin_hypercube` helper re-exported by legacy solver
+  modules for backward-compatible LHS sampling
 - Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
   independent residual evaluation on fresh points and explicit reference
   provenance labels (`analytic`, `numerical`, `observational`)
@@ -54,6 +56,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
 - Latin-Hypercube space-filling sampling
 - Uniform and Latin-hypercube interior samplers for composable problem
   geometries
+- Adapters between composable `InteriorSampler` policies and legacy
+  `BaseSampler` consumers
 - Gradient-based importance sampling
 - Active learning (uncertainty / query-by-committee / expected-improvement acquisitions)
 

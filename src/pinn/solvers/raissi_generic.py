@@ -22,7 +22,7 @@ import numpy as np
 import torch
 from torch import nn, Tensor
 from ..models.mlp import MLP
-from .raissi_improved import latin_hypercube
+from ..sampling.core import latin_hypercube
 
 from ..utils.logging import (
     get_logger,
@@ -57,13 +57,10 @@ def set_seed(seed: int = 123) -> None:
     torch.cuda.manual_seed_all(seed)
 
 
-# latin_hypercube is imported at the top of this module. It used to be defined
-# here, and that copy was broken for d > 1: it left the interval bounds as shape
-# (n,) rather than (n, 1), so `a + (b - a) * u` failed to broadcast against the
-# (n, d) sample. _make_data below calls it with d=2, so ContinuousPINNGeneric
-# could not draw a single collocation point and the Allen-Cahn and Schrodinger
-# demos raised before training began. Reusing the working implementation avoids
-# keeping a second copy that can drift again.
+# latin_hypercube is imported from pinn.sampling.core. It used to be defined
+# independently in solver modules, and one copy was broken for d > 1. Keeping a
+# single implementation avoids shape bugs and drift while preserving this
+# module-level compatibility name.
 
 
 # ============================================================

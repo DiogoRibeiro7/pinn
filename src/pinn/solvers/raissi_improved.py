@@ -72,6 +72,7 @@ from ..utils.validation import (
 from ..utils.checkpointing import CheckpointManager
 from ..utils.sampling import BaseSampler, Domain, LatinHypercubeSampler
 from ..sampling import GradientBasedImportanceSampler
+from ..sampling.core import latin_hypercube
 
 if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
     from ..sampling.active_learning import ActiveLearningStrategy
@@ -99,52 +100,6 @@ def set_seed(seed: int = 123) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-
-def latin_hypercube(n: int, d: int, low: float = 0.0, high: float = 1.0) -> np.ndarray:
-    """
-    Generate Latin Hypercube samples for efficient space-filling sampling.
-
-    Latin Hypercube Sampling (LHS) ensures good coverage of the parameter space
-    by dividing each dimension into n equally probable intervals and sampling
-    exactly once from each interval.
-
-    Args:
-        n: Number of samples to generate
-        d: Number of dimensions
-        low: Lower bound for all dimensions
-        high: Upper bound for all dimensions
-
-    Returns:
-        Array of shape (n, d) containing the samples
-
-    Raises:
-        ValueError: If n or d is not positive
-
-    Example:
-        >>> samples = latin_hypercube(100, 2, 0.0, 1.0)
-        >>> print(samples.shape)
-        (100, 2)
-    """
-    if n <= 0 or d <= 0:
-        raise ValueError("Number of samples (n) and dimensions (d) must be positive.")
-
-    # Create equally spaced intervals
-    cut = np.linspace(0, 1, n + 1)
-    u = np.random.rand(n, d)
-
-    # Sample within each interval
-    a = cut[:n][:, None]
-    b = cut[1 : n + 1][:, None]
-    rdpoints = a + (b - a) * u
-
-    # Apply random permutation to each dimension
-    H = np.zeros_like(rdpoints)
-    for j in range(d):
-        order = np.random.permutation(n)
-        H[:, j] = rdpoints[order, j]
-
-    return low + (high - low) * H
 
 
 # ============================================================

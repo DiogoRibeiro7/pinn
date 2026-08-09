@@ -33,6 +33,7 @@ from ..training.adaptive_weighting import (
     WeightEvolutionVisualizer,
     compute_gradient_norms,
 )
+from ..sampling.core import latin_hypercube
 
 logger = get_logger(__name__)
 
@@ -48,25 +49,6 @@ def set_seed(seed: int = 123) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-
-def latin_hypercube(n: int, d: int, low: float = 0.0, high: float = 1.0) -> np.ndarray:
-    """
-    Latin Hypercube sampler in [low, high]^d.
-    Returns shape (n, d).
-    """
-    if n <= 0 or d <= 0:
-        raise ValueError("n and d must be positive.")
-    cut = np.linspace(0, 1, n + 1)
-    u = np.random.rand(n, d)
-    a = cut[:n][:, None]
-    b = cut[1 : n + 1][:, None]
-    rdpoints = a + (b - a) * u
-    H = np.zeros_like(rdpoints)
-    for j in range(d):
-        order = np.random.permutation(n)
-        H[:, j] = rdpoints[order, j]
-    return low + (high - low) * H
 
 
 # ============================================================

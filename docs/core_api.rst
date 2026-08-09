@@ -45,6 +45,11 @@ need a different interior point policy. Constraint sampling remains owned by
 the constraint objects, and RAR adds retained high-residual points on top of the
 configured base sampler.
 
+``BaseSamplerInteriorAdapter`` wraps legacy ``pinn.utils.sampling.BaseSampler``
+instances so they can feed ``TrainerConfig.sampler``. ``InteriorSamplerBaseAdapter``
+exposes composable samplers through the legacy NumPy ``BaseSampler`` interface
+for older utilities that have not migrated yet.
+
 .. code-block:: python
 
    from pinn.sampling import LatinHypercubeInteriorSampler
@@ -214,7 +219,8 @@ Design Responsibilities
     Owns sampling policies used by the generic trainer. ``InteriorSampler`` is
     the collocation sampler protocol, ``UniformInteriorSampler`` preserves the
     default geometry-uniform behavior and ``LatinHypercubeInteriorSampler`` adds
-    stratified space-filling residual collocation.
+    stratified space-filling residual collocation. Compatibility adapters bridge
+    this protocol with legacy ``BaseSampler`` consumers during migration.
 
 ``pinn.constraints``
     Owns soft penalty losses for initial, Dirichlet, Neumann and periodic

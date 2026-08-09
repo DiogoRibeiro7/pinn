@@ -5,11 +5,35 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
+import numpy as np
 import torch
 from torch import Tensor
 
 from ..geometry import Geometry
 from ..geometry.base import validate_sample_count
+
+
+def latin_hypercube(n: int, d: int, low: float = 0.0, high: float = 1.0) -> np.ndarray:
+    """Generate Latin-hypercube samples in ``[low, high]^d``.
+
+    This NumPy helper preserves the legacy solver-level function contract while
+    keeping the implementation in the sampling package.
+    """
+    validate_sample_count(n)
+    if d < 1:
+        raise ValueError(f"dimension count must be >= 1, got {d}")
+
+    cut = np.linspace(0.0, 1.0, n + 1)
+    offsets = np.random.rand(n, d)
+    lower_edges = cut[:n][:, np.newaxis]
+    upper_edges = cut[1 : n + 1][:, np.newaxis]
+    stratified = lower_edges + (upper_edges - lower_edges) * offsets
+
+    unit_samples = np.zeros_like(stratified)
+    for dim_index in range(d):
+        order = np.random.permutation(n)
+        unit_samples[:, dim_index] = stratified[order, dim_index]
+    return low + (high - low) * unit_samples
 
 
 class InteriorSampler(Protocol):

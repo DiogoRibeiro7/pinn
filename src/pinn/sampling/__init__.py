@@ -13,8 +13,14 @@ from .active_learning import (
     ExpectedImprovementAcquisition,
     UpperConfidenceBoundAcquisition,
 )
+from .adapters import BaseSamplerInteriorAdapter, InteriorSamplerBaseAdapter
 from .importance import GradientBasedImportanceSampler
-from .core import InteriorSampler, LatinHypercubeInteriorSampler, UniformInteriorSampler
+from .core import (
+    InteriorSampler,
+    LatinHypercubeInteriorSampler,
+    UniformInteriorSampler,
+    latin_hypercube,
+)
 from .multifidelity import (
     CoKrigingModel,
     HierarchicalConfig,
@@ -37,6 +43,9 @@ __all__ = [
     "create_boundary_points",
     "LatinHypercubeSampler",
     "InteriorSampler",
+    "latin_hypercube",
+    "BaseSamplerInteriorAdapter",
+    "InteriorSamplerBaseAdapter",
     "LatinHypercubeInteriorSampler",
     "UniformInteriorSampler",
     "GradientBasedImportanceSampler",

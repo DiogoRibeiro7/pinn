@@ -61,8 +61,8 @@ README:
 ``pinn.solvers.raissi_generic``
     ``Domain1D``, ``ContinuousPINNGeneric``, ``allen_cahn_residual_factory``,
     ``schrodinger_residual``, ``demo_allen_cahn`` and ``demo_schrodinger``.
-    It imports ``latin_hypercube`` from ``raissi_improved`` to avoid a second
-    drift-prone copy.
+    It imports ``latin_hypercube`` from ``pinn.sampling.core`` to avoid a
+    solver-local drift-prone copy.
 
 ``pinn.solvers._base``
     ``ExactlySolvablePINN``, shared ``TrainConfig``, ``Domain1D`` re-export and
@@ -122,12 +122,12 @@ Constraint and boundary-condition handling
     ``Constraint`` abstraction.
 
 Samplers
-    ``latin_hypercube`` exists in ``raissi`` and ``raissi_improved``. The
-    generic and exact-solvable paths reuse the improved function. Separately,
-    ``pinn.utils.sampling`` defines ``BaseSampler``, ``LatinHypercubeSampler``,
-    ``SobolSampler``, ``AdaptiveSampler``, ``BoundarySampler``,
-    ``TimeSteppingSampler`` and ``CompositeSampler``. ``pinn.sampling`` adds
-    importance, active-learning and multi-fidelity samplers.
+    ``latin_hypercube`` is owned by ``pinn.sampling.core`` and re-exported from
+    legacy solver modules for compatibility. Separately, ``pinn.utils.sampling``
+    defines ``BaseSampler``, ``LatinHypercubeSampler``, ``SobolSampler``,
+    ``AdaptiveSampler``, ``BoundarySampler``, ``TimeSteppingSampler`` and
+    ``CompositeSampler``. ``pinn.sampling`` adds composable interior samplers,
+    adapters, importance, active-learning and multi-fidelity samplers.
 
 Loss weighting
     Static weights are passed directly to solver training methods. Adaptive
@@ -164,8 +164,8 @@ the solver modules:
 
 * ``Domain1D`` is repeated in ``raissi``, ``raissi_improved`` and
   ``raissi_generic``.
-* ``latin_hypercube`` and ``set_seed`` are owned by solver modules rather than
-  a sampling or reproducibility subsystem.
+* ``set_seed`` is still owned by solver modules rather than a reproducibility
+  subsystem.
 * Adam plus optional L-BFGS loops are repeated in ``ContinuousPINN``,
   ``ContinuousPINNGeneric``, ``ExactlySolvablePINN`` and ``NavierStokesPINN``.
 * Residual implementations manually repeat autograd derivative patterns.

@@ -115,9 +115,11 @@ Proposed Milestones
 4. Sampling unification
     Partially implemented for the composable trainer through
     ``pinn.sampling.InteriorSampler``, ``UniformInteriorSampler`` and
-    ``LatinHypercubeInteriorSampler``. Remaining work is to migrate legacy
-    solver LHS usage and richer adaptive sampling policies onto the same
-    interface.
+    ``LatinHypercubeInteriorSampler``. Compatibility adapters bridge the
+    composable protocol with legacy ``BaseSampler`` consumers. Legacy solver
+    ``latin_hypercube`` names now re-export a shared ``pinn.sampling.core``
+    helper. Remaining work is to migrate richer adaptive sampling policies onto
+    the same interface directly.
 
 5. Optimizer and training state
     Unify Adam, L-BFGS, callbacks, checkpointing, adaptive weighting and causal
@@ -171,6 +173,9 @@ Old-to-New Mapping
      - ``pinn.geometry`` for domain semantics; ``pinn.sampling`` for policies
      - Composable trainer now consumes ``InteriorSampler`` policies; keep
        legacy sampling APIs backward compatible while migrating callers.
+   * - solver-local ``latin_hypercube``
+     - ``pinn.sampling.core.latin_hypercube``
+     - Solver modules preserve the old names as compatibility imports.
    * - ``AdaptiveLossWeighting`` and ``causal_residual_loss``
      - ``pinn.training`` strategies used by generic trainer
      - Avoid equation-specific special cases.
