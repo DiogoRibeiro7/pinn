@@ -9,7 +9,7 @@ import torch
 from torch import Tensor, nn
 
 from pinn.constraints import Constraint
-from pinn.geometry import Rectangle
+from pinn.geometry import Geometry, Rectangle
 from pinn.models import MLP
 from pinn.problems import HeatProblem
 from pinn.residuals import (
@@ -31,7 +31,7 @@ from pinn.training import (
 class CoordinateResidualProblem:
     """Problem whose residual increases with the second coordinate."""
 
-    geometry: Rectangle = Rectangle((0.0, 0.0), (1.0, 1.0), ("t", "x"))
+    geometry: Geometry = Rectangle((0.0, 0.0), (1.0, 1.0), ("t", "x"))
 
     @property
     def input_dim(self) -> int:
@@ -55,6 +55,75 @@ class CoordinateResidualProblem:
     def constraints(self) -> Sequence[Constraint]:
         """Return no constraints for this synthetic problem."""
         return ()
+
+
+@dataclass(frozen=True)
+class FixedCandidateGeometry:
+    """Geometry that returns a fixed candidate set for deterministic RAR tests."""
+
+    candidates: Tensor
+
+    @property
+    def dimension(self) -> int:
+        """Return coordinate dimension."""
+        return int(self.candidates.shape[1])
+
+    @property
+    def lower_bounds(self) -> Tensor:
+        """Return lower coordinate bounds."""
+        return torch.zeros(self.dimension, dtype=torch.float64)
+
+    @property
+    def upper_bounds(self) -> Tensor:
+        """Return upper coordinate bounds."""
+        return torch.ones(self.dimension, dtype=torch.float64)
+
+    @property
+    def names(self) -> Sequence[str]:
+        """Return coordinate names."""
+        return ("t", "x")
+
+    def sample_interior(
+        self,
+        n: int,
+        *,
+        generator: torch.Generator | None = None,
+        device: torch.device | str | None = None,
+        dtype: torch.dtype | None = None,
+    ) -> Tensor:
+        """Return the first ``n`` fixed candidates."""
+        del generator
+        return self.candidates[:n].to(device=device, dtype=dtype)
+
+    def sample_boundary(
+        self,
+        n: int,
+        *,
+        dim: int,
+        side: str,
+        generator: torch.Generator | None = None,
+        device: torch.device | str | None = None,
+        dtype: torch.dtype | None = None,
+    ) -> Tensor:
+        """Boundary sampling is not needed for these tests."""
+        del n, dim, side, generator, device, dtype
+        raise NotImplementedError
+
+    def contains(self, points: Tensor, *, atol: float = 1e-7) -> Tensor:
+        """Return a mask for points in the unit square."""
+        return torch.all((points >= -atol) & (points <= 1.0 + atol), dim=1)
+
+    def boundary_mask(
+        self,
+        points: Tensor,
+        *,
+        dim: int | None = None,
+        side: str | None = None,
+        atol: float = 1e-7,
+    ) -> Tensor:
+        """Boundary masks are not needed for these tests."""
+        del points, dim, side, atol
+        raise NotImplementedError
 
 
 def test_residual_adaptive_refiner_selects_high_residual_points() -> None:
@@ -89,6 +158,48 @@ def test_residual_adaptive_refiner_selects_high_residual_points() -> None:
     assert diagnostics["rar_points"] == 16.0
     assert diagnostics["rar_new_points"] == 16.0
     assert diagnostics["rar_candidate_max_residual"] <= 1.0
+
+
+def test_residual_adaptive_refiner_can_select_diverse_points() -> None:
+    """RAR can trade residual score for spread across the geometry."""
+    candidates = torch.tensor(
+        [
+            [0.0, 0.90],
+            [0.0, 0.91],
+            [0.0, 0.92],
+            [0.0, 0.10],
+            [0.0, 0.50],
+            [0.0, 0.99],
+        ],
+        dtype=torch.float64,
+    )
+    problem = CoordinateResidualProblem(FixedCandidateGeometry(candidates))
+    refiner = ResidualAdaptiveRefiner(
+        ResidualAdaptiveConfig(
+            candidate_count=6,
+            points_per_refinement=3,
+            refresh_every=1,
+            max_refined_points=3,
+            diversity_weight=2.0,
+        )
+    )
+
+    diagnostics = refiner.refine(
+        problem,
+        nn.Linear(2, 1),
+        StrongFormResidual(),
+        AutogradDerivativeBackend(),
+        generator=torch.Generator().manual_seed(7),
+        device="cpu",
+        dtype=torch.float64,
+    )
+    points = refiner.current_points(device="cpu", dtype=torch.float64)
+
+    assert points is not None
+    selected_x = set(torch.round(points[:, 1], decimals=2).tolist())
+    assert selected_x == {0.1, 0.5, 0.99}
+    assert diagnostics["rar_selection_diversity_weight"] == 2.0
+    assert diagnostics["rar_selected_min_distance"] > 0.39
 
 
 def test_generic_trainer_records_residual_adaptive_diagnostics() -> None:
@@ -130,6 +241,7 @@ def test_residual_adaptive_config_rejects_invalid_options() -> None:
         ResidualAdaptiveConfig(refresh_every=0),
         ResidualAdaptiveConfig(start_step=0),
         ResidualAdaptiveConfig(points_per_refinement=4, max_refined_points=3),
+        ResidualAdaptiveConfig(diversity_weight=-1.0),
     ):
         try:
             config.validate()

@@ -26,7 +26,7 @@ Contributions toward any item are welcome — open an issue to coordinate.
   and FP32/FP64 smoke coverage
 - Residual-based adaptive refinement (RAR) in the composable trainer, with
   candidate residual scoring, retained high-residual collocation points and
-  training-state diagnostics
+  optional diversity-aware selection and training-state diagnostics
 - Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
   independent residual evaluation on fresh points and explicit reference
   provenance labels (`analytic`, `numerical`, `observational`)
@@ -84,8 +84,7 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Move legacy solver scaling and precision behavior onto the shared
     nondimensionalization path; the new composable trainer preserves configured
     FP32/FP64 dtypes, but legacy paths still need the same audit
-  - Extend the composable trainer RAR path with diversity-aware selection and
-    benchmark comparisons against uniform collocation
+  - Benchmark RAR against uniform collocation on representative PDEs
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions
   - Expand test coverage for solvers, sampling, and transfer modules. Coverage is

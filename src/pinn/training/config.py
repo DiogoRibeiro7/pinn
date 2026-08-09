@@ -66,7 +66,9 @@ class TrainerConfig:
             the raw model is trained in dimensionless input/output variables
             while problems and constraints still see dimensional values.
         adaptive_refinement: Optional residual-based adaptive refinement
-            configuration for adding high-residual collocation points.
+            configuration for adding high-residual collocation points. The
+            refiner can optionally weight coordinate diversity during candidate
+            selection.
     """
 
     seed: int = 0

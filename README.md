@@ -40,7 +40,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 - **Nondimensionalization**: Characteristic physical scales, derivative scale
   factors and FP32/FP64-preserving transforms for the composable trainer
 - **Residual-Adaptive Refinement**: Generic trainer support for retaining
-  high-residual collocation points with recorded RAR diagnostics
+  high-residual collocation points, optional diversity-aware selection and
+  recorded RAR diagnostics
 - **Benchmark Provenance**: JSON benchmark reports, independent residual
   scoring, and analytic/numerical/observational reference labels
 - **Generic Framework**: Easy extension to new PDEs

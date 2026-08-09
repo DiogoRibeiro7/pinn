@@ -26,6 +26,9 @@ class ResidualAdaptiveConfig:
         refresh_every: Optimizer-step interval between refinement passes.
         start_step: First Adam step at which refinement may run.
         max_refined_points: Maximum retained adaptive collocation points.
+        diversity_weight: Non-negative weight for normalized coordinate
+            separation during candidate selection. ``0.0`` preserves strict
+            residual top-k selection.
     """
 
     candidate_count: int = 512
@@ -33,6 +36,7 @@ class ResidualAdaptiveConfig:
     refresh_every: int = 100
     start_step: int = 1
     max_refined_points: int = 512
+    diversity_weight: float = 0.0
 
     def validate(self) -> None:
         """Raise ``ValueError`` when refinement settings are invalid."""
@@ -48,6 +52,8 @@ class ResidualAdaptiveConfig:
             raise ValueError("start_step must be >= 1")
         if self.max_refined_points < self.points_per_refinement:
             raise ValueError("max_refined_points must be >= points_per_refinement")
+        if self.diversity_weight < 0.0:
+            raise ValueError("diversity_weight must be non-negative")
 
 
 @dataclass
@@ -102,7 +108,7 @@ class ResidualAdaptiveRefiner:
         device: torch.device | str,
         dtype: torch.dtype,
     ) -> Mapping[str, float]:
-        """Score candidate points by residual magnitude and retain the largest."""
+        """Score candidates and retain high-residual, optionally diverse points."""
         candidates = problem.geometry.sample_interior(
             self.config.candidate_count,
             generator=generator,
@@ -115,16 +121,61 @@ class ResidualAdaptiveRefiner:
         )
         scores = residual.detach().abs().reshape(candidates.shape[0], -1).mean(dim=1)
         k = min(self.config.points_per_refinement, candidates.shape[0])
-        top = torch.topk(scores, k=k).indices
-        selected_points = candidates.detach()[top]
-        selected_scores = scores[top].detach()
+        selected_indices = self._select_candidates(
+            problem, candidates.detach(), scores, k
+        )
+        selected_points = candidates.detach()[selected_indices]
+        selected_scores = scores[selected_indices].detach()
         self._retain(selected_points, selected_scores)
         self._last_diagnostics = {
             "rar_new_points": float(k),
             "rar_candidate_mean_residual": float(scores.mean()),
             "rar_candidate_max_residual": float(scores.max()),
+            "rar_selection_diversity_weight": float(self.config.diversity_weight),
+            "rar_selected_min_distance": _minimum_pairwise_distance(selected_points),
         }
         return self.diagnostics()
+
+    def _select_candidates(
+        self, problem: PDEProblem, candidates: Tensor, scores: Tensor, k: int
+    ) -> Tensor:
+        """Select candidates by residual score plus optional coordinate spread."""
+        if self.config.diversity_weight == 0.0:
+            return torch.topk(scores, k=k).indices
+
+        normalized = _normalize_points(problem, candidates)
+        residual_score = _minmax_normalize(scores)
+        selected = torch.empty(k, device=candidates.device, dtype=torch.long)
+        is_selected = torch.zeros(candidates.shape[0], device=candidates.device).bool()
+
+        nearest_distance = torch.zeros(
+            candidates.shape[0], device=candidates.device, dtype=candidates.dtype
+        )
+        if self._points is not None and self._points.shape[0] > 0:
+            retained = _normalize_points(
+                problem,
+                self._points.to(device=candidates.device, dtype=candidates.dtype),
+            )
+            nearest_distance = torch.cdist(normalized, retained).min(dim=1).values
+
+        for slot in range(k):
+            if slot == 0 and self._points is None:
+                composite = residual_score
+            else:
+                composite = (
+                    residual_score + self.config.diversity_weight * nearest_distance
+                )
+            composite = composite.masked_fill(is_selected, -torch.inf)
+            chosen = torch.argmax(composite)
+            selected[slot] = chosen
+            is_selected[chosen] = True
+            distances = torch.linalg.norm(normalized - normalized[chosen], dim=1)
+            if slot == 0 and self._points is None:
+                nearest_distance = distances
+            else:
+                nearest_distance = torch.minimum(nearest_distance, distances)
+
+        return selected
 
     def _retain(self, points: Tensor, scores: Tensor) -> None:
         """Keep the highest-scoring retained adaptive points."""
@@ -136,3 +187,28 @@ class ResidualAdaptiveRefiner:
         keep = torch.topk(scores, k=limit).indices
         self._points = points.detach()[keep]
         self._scores = scores.detach()[keep]
+
+
+def _normalize_points(problem: PDEProblem, points: Tensor) -> Tensor:
+    """Scale coordinates to unit-box geometry coordinates."""
+    lower = problem.geometry.lower_bounds.to(device=points.device, dtype=points.dtype)
+    upper = problem.geometry.upper_bounds.to(device=points.device, dtype=points.dtype)
+    return (points - lower) / (upper - lower)
+
+
+def _minmax_normalize(values: Tensor) -> Tensor:
+    """Normalize scores to ``[0, 1]`` while handling constant vectors."""
+    span = values.max() - values.min()
+    if span <= torch.finfo(values.dtype).eps:
+        return torch.zeros_like(values)
+    return (values - values.min()) / span
+
+
+def _minimum_pairwise_distance(points: Tensor) -> float:
+    """Return the minimum selected point distance, or zero for one point."""
+    if points.shape[0] < 2:
+        return 0.0
+    distances = torch.pdist(points.detach())
+    if distances.numel() == 0:
+        return 0.0
+    return float(distances.min())
