@@ -8,6 +8,34 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-09
+
+### Added
+
+- Composable PINN core abstractions for problems, geometry, constraints,
+  residuals and equation-agnostic training, with migrated heat, wave and
+  Burgers problem adapters.
+- Physical nondimensionalization and dtype-preserving scaling support for the
+  composable trainer.
+- Residual-adaptive refinement (RAR) in the composable trainer, including
+  diversity-aware candidate selection and recorded diagnostics.
+- Benchmark reporting primitives, an explicit finite-difference heat reference
+  solver and scripted RAR comparisons for Burgers, heat and wave problems.
+- SIREN network support for oscillatory and derivative-heavy PDE residuals.
+- Composable sampling policies, including configurable interior samplers,
+  Latin-hypercube interior sampling and adapters between the new
+  `InteriorSampler` protocol and legacy `BaseSampler` consumers.
+
+### Changed
+
+- Legacy solver `latin_hypercube` names now re-export the shared
+  `pinn.sampling.latin_hypercube` helper, keeping old import paths working while
+  avoiding solver-local implementation drift.
+- Development and runtime dependency floors were refreshed by Dependabot.
+- Architecture, core API, performance and roadmap documentation now describe
+  the composable trainer, benchmark provenance, RAR workflows and sampling
+  migration path.
+
 ## [0.2.0] - 2026-08-08
 
 ### Added
@@ -134,7 +162,8 @@ Python version, and citable.
 - Documented the trust boundary on the cache's `pickle` loads, which only ever
   deserialise data the cache itself wrote.
 
-[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/DiogoRibeiro7/pinn/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/DiogoRibeiro7/pinn/releases/tag/v0.1.0

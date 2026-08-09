@@ -9,3 +9,5 @@ recursive-include src/pinn/config/templates *
 recursive-include scripts *.py
 include Dockerfile
 recursive-include deployment *
+global-exclude *.py[cod]
+global-exclude __pycache__

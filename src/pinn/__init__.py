@@ -178,7 +178,7 @@ from .transfer import (
 try:
     __version__ = version("pinn")
 except PackageNotFoundError:  # pragma: no cover - during local development
-    __version__ = "0.2.0"
+    __version__ = "0.3.0"
 
 # Backward compatibility aliases
 from .solvers import navier_stokes as pinn_navier_stokes
