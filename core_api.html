@@ -37,7 +37,7 @@
 <h1>Composable Core API<a class="headerlink" href="#composable-core-api" title="Link to this heading">¶</a></h1>
 <p>The composable core separates a PINN experiment into problem, geometry,
 constraints, residual form, model and trainer objects. The first migrated
-problems are the exact-solution-validated heat and wave equations.</p>
+problems are the exact-solution-validated Burgers, heat and wave equations.</p>
 <section id="minimal-heat-example">
 <h2>Minimal Heat Example<a class="headerlink" href="#minimal-heat-example" title="Link to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -213,8 +213,9 @@ constraints. Constraint objects sample their own points and evaluate their
 own loss, so the trainer does not need equation-specific branches.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code></dt><dd><p>Owns equation parameters, dimensions, geometry, constraints and strong-form
-residual definitions. <code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and <code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> use coordinate
-order <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> and provide analytic solution helpers.</p>
+residual definitions. <code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code>, <code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and
+<code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> use coordinate order <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> and provide reference or
+analytic solution helpers.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinn.residuals</span></code></dt><dd><p>Provides <code class="docutils literal notranslate"><span class="pre">StrongFormResidual</span></code> and the initial autograd derivative backend.
 A later migration can replace the backend without changing problem or
@@ -241,7 +242,10 @@ classical numerical references. Reference descriptors must label data as
 <p>Legacy solver imports such as <code class="docutils literal notranslate"><span class="pre">pinn.solvers.heat.HeatPINN</span></code> and
 <code class="docutils literal notranslate"><span class="pre">pinn.solvers.wave.WavePINN</span></code> remain available. The new <code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and
 <code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> classes are adapters onto the same mathematical problems and
-reference solutions, but the legacy solver classes have not been removed.</p>
+reference solutions, but the legacy solver classes have not been removed.
+<code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code> provides the same composable path for the standard viscous
+Burgers benchmark while <code class="docutils literal notranslate"><span class="pre">ContinuousPINN</span></code> and <code class="docutils literal notranslate"><span class="pre">DiscreteRKPINN</span></code> remain
+available as legacy solver facades.</p>
 </section>
 </section>
 

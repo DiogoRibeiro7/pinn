@@ -107,9 +107,10 @@ Proposed Milestones
     backend.
 
 3. Burgers adapter
-    Represent Burgers as a problem with initial and Dirichlet constraints and a
-    Cole-Hopf reference evaluator. Keep ``raissi_improved`` as the compatibility
-    facade until the new trainer supports its required features.
+    Implemented through ``pinn.problems.BurgersProblem`` with initial and
+    Dirichlet constraints plus the Cole-Hopf reference evaluator. Keep
+    ``raissi_improved`` as the compatibility facade until the new trainer
+    supports all of its required features.
 
 4. Sampling unification
     Move local LHS usage into a sampler interface. Integrate independent
@@ -151,7 +152,9 @@ Old-to-New Mapping
      - Exercises second-time-derivative residuals and initial velocity.
    * - ``BurgersConfig`` / ``burgers_residual``
      - ``pinn.problems`` and ``pinn.residuals``
-     - Needs compatibility with adaptive sampling, caching and checkpoints.
+     - ``BurgersProblem`` now covers the composable forward-problem path; legacy
+       solver features such as caching and checkpoints remain in
+       ``raissi_improved``.
    * - ``Domain1D``
      - ``pinn.geometry.Interval`` or space-time rectangle composition
      - Preserve old dataclass import during transition.

@@ -136,9 +136,10 @@ backend.</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Burgers adapter</dt><dd><p>Represent Burgers as a problem with initial and Dirichlet constraints and a
-Cole-Hopf reference evaluator. Keep <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> as the compatibility
-facade until the new trainer supports its required features.</p>
+<dt>Burgers adapter</dt><dd><p>Implemented through <code class="docutils literal notranslate"><span class="pre">pinn.problems.BurgersProblem</span></code> with initial and
+Dirichlet constraints plus the Cole-Hopf reference evaluator. Keep
+<code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> as the compatibility facade until the new trainer
+supports all of its required features.</p>
 </dd>
 </dl>
 </li>
@@ -197,7 +198,9 @@ after the core abstractions are exercised by real tests.</p>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BurgersConfig</span></code> / <code class="docutils literal notranslate"><span class="pre">burgers_residual</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> and <code class="docutils literal notranslate"><span class="pre">pinn.residuals</span></code></p></td>
-<td><p>Needs compatibility with adaptive sampling, caching and checkpoints.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code> now covers the composable forward-problem path; legacy
+solver features such as caching and checkpoints remain in
+<code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Domain1D</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pinn.geometry.Interval</span></code> or space-time rectangle composition</p></td>

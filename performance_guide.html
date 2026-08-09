@@ -64,13 +64,13 @@ Classical comparison data can be generated with helpers such as
 <h2>RAR benchmark<a class="headerlink" href="#rar-benchmark" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">scripts/benchmark_rar.py</span></code> helper compares uniform collocation,
 residual-adaptive refinement and diversity-aware residual-adaptive refinement
-on the composable heat problem. It writes the shared
+on composable Burgers, heat and wave problems. It writes the shared
 <code class="docutils literal notranslate"><span class="pre">pinn.benchmarks.BenchmarkReport</span></code> schema:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/benchmark_rar.py<span class="w"> </span>--steps<span class="w"> </span><span class="m">100</span><span class="w"> </span>--output<span class="w"> </span>rar_benchmark.json
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/benchmark_rar.py<span class="w"> </span>--problems<span class="w"> </span>burgers<span class="w"> </span>heat<span class="w"> </span>wave<span class="w"> </span>--steps<span class="w"> </span><span class="m">100</span><span class="w"> </span>--output<span class="w"> </span>rar_benchmark.json
 </pre></div>
 </div>
-<p>Use <code class="docutils literal notranslate"><span class="pre">--modes</span> <span class="pre">uniform</span> <span class="pre">rar</span></code> to limit the comparison, or tune
-<code class="docutils literal notranslate"><span class="pre">--diversity-weight</span></code> when evaluating spread-aware candidate selection.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--problems</span> <span class="pre">heat</span></code> or <code class="docutils literal notranslate"><span class="pre">--modes</span> <span class="pre">uniform</span> <span class="pre">rar</span></code> to limit the comparison, or
+tune <code class="docutils literal notranslate"><span class="pre">--diversity-weight</span></code> when evaluating spread-aware candidate selection.</p>
 </section>
 <section id="memory-aware-training">
 <h2>Memory-aware training<a class="headerlink" href="#memory-aware-training" title="Link to this heading">¶</a></h2>
