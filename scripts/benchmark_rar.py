@@ -19,8 +19,9 @@ from pinn.benchmarks import (
     evaluate_independent_residual,
 )
 from pinn.models import MLP
-from pinn.problems import HeatProblem, WaveProblem
+from pinn.problems import BurgersProblem, HeatProblem, WaveProblem
 from pinn.solvers.heat import HeatConfig
+from pinn.solvers.raissi_improved import BurgersConfig
 from pinn.solvers.wave import WaveConfig
 from pinn.training import (
     OptimizerConfig,
@@ -60,8 +61,15 @@ def _evaluate_solution(
     return _relative_l2(pred, problem.exact(tt, xx))
 
 
-def _make_problem(name: str, args: argparse.Namespace) -> HeatProblem | WaveProblem:
+def _make_problem(
+    name: str, args: argparse.Namespace
+) -> BurgersProblem | HeatProblem | WaveProblem:
     """Create a composable benchmark problem."""
+    if name == "burgers":
+        return BurgersProblem(
+            BurgersConfig(tmax=args.t_final, nu=args.nu),
+            n_constraint_samples=args.constraint_points,
+        )
     if name == "heat":
         return HeatProblem(
             HeatConfig(alpha=args.alpha, length=args.length),
@@ -83,19 +91,38 @@ def _reference_name(problem_name: str) -> str:
         return "Fourier heat solution"
     if problem_name == "wave":
         return "Standing-wave solution"
+    if problem_name == "burgers":
+        return "Cole-Hopf Burgers solution"
     raise ValueError(f"unknown benchmark problem: {problem_name}")
 
 
+def _reference_details(
+    problem: BurgersProblem | HeatProblem | WaveProblem,
+) -> dict[str, Any]:
+    """Return serializable reference details for a problem."""
+    if isinstance(problem, BurgersProblem):
+        return {
+            "initial_condition": "-sin(pi x)",
+            "boundary_conditions": "homogeneous_dirichlet",
+            "nu": problem.config.nu,
+        }
+    return {"modes": [list(mode_) for mode_ in problem.config.modes]}
+
+
 def _problem_metadata(
-    problem_name: str, problem: HeatProblem | WaveProblem
+    problem_name: str, problem: BurgersProblem | HeatProblem | WaveProblem
 ) -> dict[str, Any]:
     """Return serializable problem metadata."""
+    geometry = problem.geometry
     metadata: dict[str, Any] = {
         "name": problem_name,
-        "length": problem.config.length,
-        "t_final": float(problem.geometry.upper_bounds[0]),
+        "t_final": float(geometry.upper_bounds[0]),
+        "x_min": float(geometry.lower_bounds[1]),
+        "x_max": float(geometry.upper_bounds[1]),
     }
-    if isinstance(problem, HeatProblem):
+    if isinstance(problem, BurgersProblem):
+        metadata["nu"] = problem.config.nu
+    elif isinstance(problem, HeatProblem):
         metadata["alpha"] = problem.config.alpha
     else:
         metadata["wave_speed"] = problem.config.c
@@ -189,7 +216,7 @@ def run_case(problem_name: str, mode: str, args: argparse.Namespace) -> Benchmar
         reference=BenchmarkReference(
             kind="analytic",
             name=_reference_name(problem_name),
-            details={"modes": [list(mode_) for mode_ in problem.config.modes]},
+            details=_reference_details(problem),
         ),
         metrics=tuple(metrics),
         metadata={
@@ -249,6 +276,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hidden-layers", type=int, default=2)
     parser.add_argument("--width", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--nu", type=float, default=0.01 / np.pi)
     parser.add_argument("--alpha", type=float, default=0.1)
     parser.add_argument("--wave-speed", type=float, default=1.0)
     parser.add_argument("--length", type=float, default=1.0)
@@ -265,8 +293,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--problems",
         nargs="+",
-        choices=("heat", "wave"),
-        default=("heat", "wave"),
+        choices=("burgers", "heat", "wave"),
+        default=("burgers", "heat", "wave"),
     )
     return parser.parse_args()
 

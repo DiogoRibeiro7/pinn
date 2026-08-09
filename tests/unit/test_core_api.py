@@ -15,10 +15,11 @@ from pinn.constraints import (
 )
 from pinn.geometry import Interval, Rectangle
 from pinn.models import MLP
-from pinn.problems import HeatProblem, WaveProblem
+from pinn.problems import BurgersProblem, HeatProblem, WaveProblem
 from pinn.residuals import AutogradDerivativeBackend, StrongFormResidual
 from pinn.solvers import HeatPINN, WavePINN
 from pinn.solvers._base import TrainConfig as LegacyExactTrainConfig
+from pinn.solvers.raissi_improved import BurgersConfig
 from pinn.solvers.heat import HeatConfig
 from pinn.solvers.wave import WaveConfig
 from pinn.training import (
@@ -57,6 +58,14 @@ class AnalyticWaveModel(nn.Module):
         t = coordinates[:, [0]]
         x = coordinates[:, [1]]
         return torch.cos(self.c * np.pi * t) * torch.sin(np.pi * x)
+
+
+class ZeroModel(nn.Module):
+    """Torch model returning a differentiable zero field."""
+
+    def forward(self, coordinates: Tensor) -> Tensor:
+        """Return zeros that keep a connection to input coordinates."""
+        return coordinates[:, [0]] * 0.0
 
 
 class CoordinateModel(nn.Module):
@@ -171,8 +180,34 @@ def test_wave_problem_residual_vanishes_on_exact_solution() -> None:
     assert torch.max(torch.abs(residual)).item() < 1e-8
 
 
-def test_generic_trainer_runs_heat_and_wave_without_equation_specific_api() -> None:
-    """One generic trainer can optimize heat and wave problem instances."""
+def test_burgers_problem_matches_composable_problem_contract() -> None:
+    """The Burgers adapter exposes residuals, constraints and reference values."""
+    config = BurgersConfig(tmax=0.2, nu=0.01 / np.pi)
+    problem = BurgersProblem(config, n_constraint_samples=8)
+    coords = torch.tensor([[0.0, -0.5], [0.0, 0.0], [0.0, 0.5]], dtype=torch.float64)
+
+    residual = StrongFormResidual().evaluate(
+        problem,
+        ZeroModel(),
+        coords.clone().detach().requires_grad_(True),
+        AutogradDerivativeBackend(),
+    )
+    initial = problem.initial_condition(coords)
+    exact = problem.exact(np.array([0.0]), np.array([0.5]))
+
+    assert residual.shape == (3, 1)
+    assert torch.max(torch.abs(residual)).item() == pytest.approx(0.0)
+    assert torch.allclose(initial, -torch.sin(torch.pi * coords[:, [1]]))
+    assert exact[0] == pytest.approx(-1.0)
+    assert [constraint.name for constraint in problem.constraints()] == [
+        "ic",
+        "bc_left",
+        "bc_right",
+    ]
+
+
+def test_generic_trainer_runs_core_problems_without_equation_specific_api() -> None:
+    """One generic trainer can optimize Burgers, heat and wave problem instances."""
     config = TrainerConfig(
         seed=1,
         dtype=torch.float64,
@@ -188,6 +223,10 @@ def test_generic_trainer_runs_heat_and_wave_without_equation_specific_api() -> N
     )
     trainer = Trainer(config)
 
+    burgers = BurgersProblem(BurgersConfig(tmax=0.1), n_constraint_samples=8)
+    burgers_model = MLP(2, 1, 8, 1)
+    burgers_result = trainer.train(burgers, burgers_model)
+
     heat = HeatProblem(HeatConfig(alpha=0.1), n_constraint_samples=8)
     heat_model = MLP(2, 1, 8, 1)
     heat_result = trainer.train(heat, heat_model)
@@ -196,14 +235,19 @@ def test_generic_trainer_runs_heat_and_wave_without_equation_specific_api() -> N
     wave_model = MLP(2, 1, 8, 1)
     wave_result = trainer.train(wave, wave_model)
 
+    assert burgers_result.final_loss >= 0.0
     assert heat_result.final_loss >= 0.0
     assert wave_result.final_loss >= 0.0
+    assert {"pde", "ic", "bc_left", "bc_right"} <= set(
+        burgers_result.final_state.named_losses
+    )
     assert {"pde", "ic", "bc_left", "bc_right"} <= set(
         heat_result.final_state.named_losses
     )
     assert {"pde", "ic", "initial_velocity", "bc_left", "bc_right"} <= set(
         wave_result.final_state.named_losses
     )
+    assert next(burgers_model.parameters()).dtype == torch.float64
     assert next(heat_model.parameters()).dtype == torch.float64
     assert next(wave_model.parameters()).dtype == torch.float64
 

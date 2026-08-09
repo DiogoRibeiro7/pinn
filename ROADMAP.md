@@ -19,8 +19,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   `relative_l2_error` against their closed-form solutions
 - Cole–Hopf reference solution for viscous Burgers (`pinn.solvers.reference`), cross-checked
   against an independent finite-difference solve
-- Composable core API for heat and wave problems, with first-class geometry,
-  soft constraints, strong residuals and an equation-agnostic trainer
+- Composable core API for Burgers, heat and wave problems, with first-class
+  geometry, soft constraints, strong residuals and an equation-agnostic trainer
 - Physical nondimensionalization for the composable trainer, including
   characteristic scales, derivative scale factors, dimensional model wrappers
   and FP32/FP64 smoke coverage
@@ -28,8 +28,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   candidate residual scoring, retained high-residual collocation points and
   optional diversity-aware selection and training-state diagnostics
 - RAR benchmark script comparing uniform, residual-adaptive and
-  diversity-aware residual-adaptive collocation on composable heat and wave
-  problems
+  diversity-aware residual-adaptive collocation on composable Burgers, heat and
+  wave problems
 - Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
   independent residual evaluation on fresh points and explicit reference
   provenance labels (`analytic`, `numerical`, `observational`)
@@ -82,12 +82,12 @@ Contributions toward any item are welcome — open an issue to coordinate.
 - **Architectures in practice**
   - Worked examples for `FourierFeaturePINN` / `MultiScalePINN` on stiff problems
 - **Training**
-  - Migrate the legacy Burgers and generic PDE solvers onto the composable
+  - Migrate the remaining legacy generic PDE solvers onto the composable
     problem/geometry/constraint/trainer path
   - Move legacy solver scaling and precision behavior onto the shared
     nondimensionalization path; the new composable trainer preserves configured
     FP32/FP64 dtypes, but legacy paths still need the same audit
-  - Extend RAR benchmark comparisons beyond heat/wave to additional
+  - Extend RAR benchmark comparisons beyond Burgers/heat/wave to additional
     representative PDEs
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions

@@ -36,12 +36,12 @@ RAR benchmark
 
 The ``scripts/benchmark_rar.py`` helper compares uniform collocation,
 residual-adaptive refinement and diversity-aware residual-adaptive refinement
-on composable heat and wave problems. It writes the shared
+on composable Burgers, heat and wave problems. It writes the shared
 ``pinn.benchmarks.BenchmarkReport`` schema:
 
 .. code-block:: bash
 
-   python scripts/benchmark_rar.py --problems heat wave --steps 100 --output rar_benchmark.json
+   python scripts/benchmark_rar.py --problems burgers heat wave --steps 100 --output rar_benchmark.json
 
 Use ``--problems heat`` or ``--modes uniform rar`` to limit the comparison, or
 tune ``--diversity-weight`` when evaluating spread-aware candidate selection.

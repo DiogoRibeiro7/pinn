@@ -39,6 +39,7 @@ def _args() -> argparse.Namespace:
         hidden_layers=1,
         width=8,
         lr=1e-3,
+        nu=0.01,
         alpha=0.1,
         wave_speed=1.0,
         length=1.0,
@@ -81,3 +82,13 @@ def test_rar_benchmark_script_emits_wave_case(benchmark_rar_module) -> None:
     assert case.reference.name == "Standing-wave solution"
     assert case.metadata["problem"]["name"] == "wave"
     assert case.metadata["problem"]["wave_speed"] == 1.0
+
+
+def test_rar_benchmark_script_emits_burgers_case(benchmark_rar_module) -> None:
+    """The benchmark can run the composable Burgers problem."""
+    case = benchmark_rar_module.run_case("burgers", "uniform", _args())
+
+    assert case.name == "burgers-uniform"
+    assert case.reference.name == "Cole-Hopf Burgers solution"
+    assert case.metadata["problem"]["name"] == "burgers"
+    assert case.metadata["problem"]["nu"] == 0.01

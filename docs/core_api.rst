@@ -3,7 +3,7 @@ Composable Core API
 
 The composable core separates a PINN experiment into problem, geometry,
 constraints, residual form, model and trainer objects. The first migrated
-problems are the exact-solution-validated heat and wave equations.
+problems are the exact-solution-validated Burgers, heat and wave equations.
 
 Minimal Heat Example
 --------------------
@@ -194,8 +194,9 @@ Design Responsibilities
 
 ``pinn.problems``
     Owns equation parameters, dimensions, geometry, constraints and strong-form
-    residual definitions. ``HeatProblem`` and ``WaveProblem`` use coordinate
-    order ``(t, x)`` and provide analytic solution helpers.
+    residual definitions. ``BurgersProblem``, ``HeatProblem`` and
+    ``WaveProblem`` use coordinate order ``(t, x)`` and provide reference or
+    analytic solution helpers.
 
 ``pinn.residuals``
     Provides ``StrongFormResidual`` and the initial autograd derivative backend.
@@ -226,3 +227,6 @@ Legacy solver imports such as ``pinn.solvers.heat.HeatPINN`` and
 ``pinn.solvers.wave.WavePINN`` remain available. The new ``HeatProblem`` and
 ``WaveProblem`` classes are adapters onto the same mathematical problems and
 reference solutions, but the legacy solver classes have not been removed.
+``BurgersProblem`` provides the same composable path for the standard viscous
+Burgers benchmark while ``ContinuousPINN`` and ``DiscreteRKPINN`` remain
+available as legacy solver facades.

@@ -126,7 +126,7 @@ from .constraints import (
     NeumannBoundary,
     PeriodicBoundary,
 )
-from .problems import PDEProblem, HeatProblem, WaveProblem
+from .problems import PDEProblem, BurgersProblem, HeatProblem, WaveProblem
 from .residuals import AutogradDerivativeBackend, DerivativeBackend, StrongFormResidual
 from .scaling import (
     CharacteristicScales,
@@ -290,6 +290,7 @@ __all__ = [
     "NeumannBoundary",
     "PeriodicBoundary",
     "PDEProblem",
+    "BurgersProblem",
     "HeatProblem",
     "WaveProblem",
     "AutogradDerivativeBackend",
