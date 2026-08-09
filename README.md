@@ -35,6 +35,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 - **Discrete-time PINNs**: Runge-Kutta integration schemes
 - **Composable Core API**: Problem, geometry, constraint, residual and trainer
   abstractions for equation-agnostic heat/wave training
+- **SIREN Networks**: Sinusoidal representation models for oscillatory fields
+  and coordinate-derivative-heavy PDE residuals
 - **Nondimensionalization**: Characteristic physical scales, derivative scale
   factors and FP32/FP64-preserving transforms for the composable trainer
 - **Residual-Adaptive Refinement**: Generic trainer support for retaining
@@ -173,7 +175,7 @@ pinn/
 ├── 📦 pyproject.toml             # Packaging & dependencies
 │
 ├── 🧠 src/pinn/                  # The library
-│   ├── models/                   # MLP, Fourier-feature, multi-scale, attention, …
+│   ├── models/                   # MLP, SIREN, Fourier-feature, multi-scale, …
 │   ├── solvers/                  # Burgers (continuous + RK), Navier–Stokes, generic
 │   ├── benchmarks/               # Report schema and independent evaluators
 │   ├── numerics/                 # Classical numerical reference solvers

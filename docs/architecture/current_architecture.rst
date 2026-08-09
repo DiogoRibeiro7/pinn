@@ -18,8 +18,8 @@ mostly independent feature areas:
     calculation, constraints, training loops and prediction.
 
 ``pinn.models``
-    Neural network architectures, including MLP, Fourier-feature, multiscale,
-    attention, ensemble and wavelet variants.
+    Neural network architectures, including MLP, SIREN, Fourier-feature,
+    multiscale, attention, ensemble and wavelet variants.
 
 ``pinn.sampling`` and ``pinn.utils.sampling``
     Latin-hypercube, Sobol, residual-adaptive, active-learning, importance and

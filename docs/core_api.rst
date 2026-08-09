@@ -76,6 +76,26 @@ network sees them and scale outputs back before losses are evaluated.
    # evaluating with physical coordinates.
    physical_model = ScaledModel(model, scaling)
 
+SIREN Models
+------------
+
+``SirenPINN`` is available from ``pinn.models`` for coordinate-based PDE
+solutions with oscillatory structure. It uses sinusoidal hidden activations and
+SIREN initialization bounds so coordinate derivatives remain useful during
+PINN residual evaluation.
+
+.. code-block:: python
+
+   from pinn.models import SirenPINN
+
+   model = SirenPINN(
+       in_dim=problem.input_dim,
+       hidden_layers=3,
+       width=64,
+       out_dim=problem.output_dim,
+       omega_0=30.0,
+   )
+
 Residual-Adaptive Refinement
 ----------------------------
 

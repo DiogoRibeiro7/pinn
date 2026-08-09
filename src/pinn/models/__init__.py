@@ -1,7 +1,14 @@
 """Neural network model architectures for PINN."""
 
 from .mlp import MLP
-from .advanced import AttentionPINN, EnsemblePINN, FourierFeaturePINN, MultiScalePINN
+from .advanced import (
+    AttentionPINN,
+    EnsemblePINN,
+    FourierFeaturePINN,
+    MultiScalePINN,
+    SineLayer,
+    SirenPINN,
+)
 from .multiscale import (
     FourierMultiScalePINN,
     HierarchicalPINN,
@@ -25,6 +32,8 @@ __all__ = [
     "multiscale_loss",
     "scale_adaptive_sampling",
     "FourierFeaturePINN",
+    "SineLayer",
+    "SirenPINN",
     "AttentionPINN",
     "EnsemblePINN",
 ]

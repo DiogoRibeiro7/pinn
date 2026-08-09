@@ -34,8 +34,9 @@ Contributions toward any item are welcome — open an issue to coordinate.
   stable explicit finite-difference scheme for benchmark comparisons
 
 **Architectures** (`pinn.models`)
-- `MLP`, `FourierFeaturePINN`, `MultiScalePINN`, `FourierMultiScalePINN`,
-  `AttentionPINN`, `WaveletPINN`, `HierarchicalPINN`, `BayesianPINN`, `EnsemblePINN`
+- `MLP`, `SirenPINN`, `FourierFeaturePINN`, `MultiScalePINN`,
+  `FourierMultiScalePINN`, `AttentionPINN`, `WaveletPINN`,
+  `HierarchicalPINN`, `BayesianPINN`, `EnsemblePINN`
 
 **Training** (`pinn.training`)
 - Two-stage Adam → L-BFGS optimisation with loss-component tracking
@@ -77,7 +78,6 @@ Contributions toward any item are welcome — open an issue to coordinate.
     (Allen–Cahn, Kuramoto–Sivashinsky) with larger budgets
 - **Architectures in practice**
   - Worked examples for `FourierFeaturePINN` / `MultiScalePINN` on stiff problems
-  - SIREN-style sinusoidal networks
 - **Training**
   - Migrate the legacy Burgers and generic PDE solvers onto the composable
     problem/geometry/constraint/trainer path
