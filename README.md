@@ -44,6 +44,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
   recorded RAR diagnostics
 - **Benchmark Provenance**: JSON benchmark reports, independent residual
   scoring, and analytic/numerical/observational reference labels
+- **RAR Benchmarks**: Scripted uniform-vs-adaptive heat comparisons using the
+  shared benchmark report schema
 - **Generic Framework**: Easy extension to new PDEs
 - **GPU Acceleration**: CUDA support with automatic detection
 - **Distributed Training**: Data-parallel scaling across multiple GPUs
