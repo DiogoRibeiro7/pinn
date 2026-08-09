@@ -10,6 +10,13 @@ Contributions toward any item are welcome — open an issue to coordinate.
 
 ## ✅ Implemented
 
+**Release status**
+- `v0.3.0` was released on 2026-08-09. The tag and GitHub Release are
+  published, and the release includes source and wheel artifacts. The release
+  was validated with the full test suite (`285 passed`), a Sphinx HTML build,
+  `python -m build`, and `twine check`.
+- PyPI publication is still manual and was not performed for `v0.3.0`.
+
 **Solvers**
 - Continuous-time PINN for the viscous Burgers equation (`ContinuousPINN`)
 - Discrete-time Runge–Kutta PINN (`DiscreteRKPINN`)
@@ -82,6 +89,15 @@ Contributions toward any item are welcome — open an issue to coordinate.
 
 ## 🚧 Near-term
 
+- **Current stage**
+  - Harden the `v0.3.0` composable architecture rather than adding another
+    large surface area immediately.
+  - Keep legacy solver imports stable while migrating behavior behind them onto
+    the composable problem/geometry/constraint/residual/trainer path.
+  - Treat the next release train as quality-first: reduce duplicated training
+    loops, make migration boundaries explicit, and pay down type/lint/doc debt
+    where it blocks CI hardening.
+
 - **Accuracy & rigor**
   - Make the Burgers inverse-problem example identifiable (PDE-consistent measurements)
   - Demonstrate a problem where causal weighting measurably helps. The implementation is
@@ -99,6 +115,12 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Extend RAR benchmark comparisons beyond Burgers/heat/wave to additional
     representative PDEs
 - **Quality**
+  - Fix Sphinx warning debt from duplicate object descriptions and legacy
+    docstring formatting; the `v0.3.0` docs build succeeds but still reports the
+    existing warning set.
+  - Audit package manifests before each release. `v0.3.0` added bytecode
+    exclusions after the first build showed local `__pycache__` files being
+    included by `recursive-include examples *`.
   - CI that executes notebooks and example scripts to prevent regressions
   - Expand test coverage for solvers, sampling, and transfer modules. Coverage is
     currently ~60%, and `--cov-fail-under` in `pyproject.toml` is a ratchet set just
