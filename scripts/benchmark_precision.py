@@ -3,37 +3,25 @@
 from __future__ import annotations
 
 import argparse
-import json
-import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import torch
 
+from pinn.benchmarks import (
+    BenchmarkCase,
+    BenchmarkMetric,
+    BenchmarkReference,
+    BenchmarkReport,
+    evaluate_independent_residual,
+)
 from pinn.models import MLP
 from pinn.problems import HeatProblem
-from pinn.residuals import AutogradDerivativeBackend, StrongFormResidual
 from pinn.scaling import CharacteristicScales, Nondimensionalizer, ScaledModel
 from pinn.solvers.heat import HeatConfig
 from pinn.training import OptimizerConfig, Trainer, TrainerConfig
-
-
-def _git_commit() -> str | None:
-    """Return the current git commit, if available."""
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return None
-    return result.stdout.strip()
 
 
 def _relative_l2(pred: np.ndarray, truth: np.ndarray) -> float:
@@ -49,8 +37,8 @@ def _evaluate_solution(
     *,
     dtype: torch.dtype,
     n_grid: int,
-) -> tuple[float, float]:
-    """Return solution relative L2 error and independent residual MSE."""
+) -> float:
+    """Return solution relative L2 error on a regular grid."""
     t = np.linspace(0.0, problem.t_final, n_grid)
     x = np.linspace(0.0, problem.config.length, n_grid)
     tt, xx = np.meshgrid(t, x, indexing="ij")
@@ -62,24 +50,13 @@ def _evaluate_solution(
     with torch.no_grad():
         pred = model(flat).cpu().numpy().reshape(tt.shape)
     truth = problem.exact(tt, xx)
-    rel_l2 = _relative_l2(pred, truth)
-
-    residual_points = problem.geometry.sample_interior(512, dtype=dtype)
-    residual_points.requires_grad_(True)
-    residual = StrongFormResidual().evaluate(
-        problem,
-        model,
-        residual_points,
-        AutogradDerivativeBackend(),
-    )
-    residual_mse = float(torch.mean(residual.detach() ** 2))
-    return rel_l2, residual_mse
+    return _relative_l2(pred, truth)
 
 
 def run_case(
     dtype: torch.dtype, *, use_scaling: bool, args: argparse.Namespace
-) -> dict[str, Any]:
-    """Run one benchmark case and return serializable metrics."""
+) -> BenchmarkCase:
+    """Run one benchmark case and return a schema-compatible report case."""
     problem = HeatProblem(
         HeatConfig(alpha=args.alpha, length=args.length),
         t_final=args.t_final,
@@ -112,19 +89,55 @@ def run_case(
     result = Trainer(config).train(problem, model)
     runtime = time.perf_counter() - start
     eval_model = ScaledModel(model, scaling) if scaling is not None else model
-    rel_l2, residual_mse = _evaluate_solution(
-        problem, eval_model, dtype=dtype, n_grid=args.eval_grid
+    rel_l2 = _evaluate_solution(problem, eval_model, dtype=dtype, n_grid=args.eval_grid)
+    residual = evaluate_independent_residual(
+        problem,
+        eval_model,
+        sample_count=args.residual_points,
+        seed=args.seed + 1,
+        dtype=dtype,
+        device="cpu",
     )
-    return {
-        "dtype": str(dtype).replace("torch.", ""),
-        "scaling_enabled": use_scaling,
-        "relative_l2_error": rel_l2,
-        "residual_mse": residual_mse,
-        "runtime_seconds": runtime,
-        "final_training_loss": result.final_loss,
-        "metadata": {
+    return BenchmarkCase(
+        name=f"heat-{str(dtype).replace('torch.', '')}",
+        reference=BenchmarkReference(
+            kind="analytic",
+            name="Fourier heat solution",
+            details={"modes": [list(mode) for mode in problem.config.modes]},
+        ),
+        metrics=(
+            BenchmarkMetric(
+                name="relative_l2_error",
+                value=rel_l2,
+                higher_is_better=False,
+            ),
+            BenchmarkMetric(
+                name="residual_mse",
+                value=residual.mean_squared_residual,
+                higher_is_better=False,
+            ),
+            BenchmarkMetric(
+                name="residual_linf",
+                value=residual.max_absolute_residual,
+                higher_is_better=False,
+            ),
+            BenchmarkMetric(
+                name="runtime_seconds",
+                value=runtime,
+                units="s",
+                higher_is_better=False,
+            ),
+            BenchmarkMetric(
+                name="final_training_loss",
+                value=result.final_loss,
+                higher_is_better=False,
+            ),
+        ),
+        metadata={
             "seed": args.seed,
+            "residual_seed": residual.seed,
             "device": "cpu",
+            "dtype": str(dtype).replace("torch.", ""),
             "model": {
                 "architecture": "MLP",
                 "hidden_layers": args.hidden_layers,
@@ -142,6 +155,10 @@ def run_case(
                 "length": args.length,
                 "t_final": args.t_final,
             },
+            "evaluation": {
+                "grid_size": args.eval_grid,
+                "residual_points": residual.sample_count,
+            },
             "scaling": (
                 None
                 if scaling is None
@@ -152,7 +169,7 @@ def run_case(
                 }
             ),
         },
-    }
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -170,6 +187,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--length", type=float, default=1.0)
     parser.add_argument("--t-final", type=float, default=1.0)
     parser.add_argument("--eval-grid", type=int, default=31)
+    parser.add_argument("--residual-points", type=int, default=512)
     parser.add_argument("--no-scaling", action="store_true")
     return parser.parse_args()
 
@@ -180,15 +198,16 @@ def main() -> None:
     cases = []
     for dtype in (torch.float32, torch.float64):
         cases.append(run_case(dtype, use_scaling=not args.no_scaling, args=args))
-    payload = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "python_version": sys.version,
-        "torch_version": torch.__version__,
-        "git_commit": _git_commit(),
-        "cases": cases,
-    }
+    report = BenchmarkReport(
+        cases=tuple(cases),
+        metadata={
+            "python_version": sys.version,
+            "torch_version": torch.__version__,
+            "script": Path(__file__).name,
+        },
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    report.to_json(args.output)
     print(f"Wrote {args.output}")
 
 

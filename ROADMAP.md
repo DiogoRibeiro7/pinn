@@ -27,6 +27,11 @@ Contributions toward any item are welcome — open an issue to coordinate.
 - Residual-based adaptive refinement (RAR) in the composable trainer, with
   candidate residual scoring, retained high-residual collocation points and
   training-state diagnostics
+- Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
+  independent residual evaluation on fresh points and explicit reference
+  provenance labels (`analytic`, `numerical`, `observational`)
+- Classical numerical heat-equation reference solver (`pinn.numerics`) using a
+  stable explicit finite-difference scheme for benchmark comparisons
 
 **Architectures** (`pinn.models`)
 - `MLP`, `FourierFeaturePINN`, `MultiScalePINN`, `FourierMultiScalePINN`,

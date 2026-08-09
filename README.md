@@ -39,6 +39,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
   factors and FP32/FP64-preserving transforms for the composable trainer
 - **Residual-Adaptive Refinement**: Generic trainer support for retaining
   high-residual collocation points with recorded RAR diagnostics
+- **Benchmark Provenance**: JSON benchmark reports, independent residual
+  scoring, and analytic/numerical/observational reference labels
 - **Generic Framework**: Easy extension to new PDEs
 - **GPU Acceleration**: CUDA support with automatic detection
 - **Distributed Training**: Data-parallel scaling across multiple GPUs
@@ -173,6 +175,8 @@ pinn/
 ├── 🧠 src/pinn/                  # The library
 │   ├── models/                   # MLP, Fourier-feature, multi-scale, attention, …
 │   ├── solvers/                  # Burgers (continuous + RK), Navier–Stokes, generic
+│   ├── benchmarks/               # Report schema and independent evaluators
+│   ├── numerics/                 # Classical numerical reference solvers
 │   ├── sampling/                 # Latin-Hypercube, importance, active learning
 │   ├── training/                 # Adaptive weighting, curriculum, meta-learning, …
 │   ├── transfer/                 # Pre-training, fine-tuning, distillation, domain adaptation

@@ -124,9 +124,10 @@ Proposed Milestones
     Validate against heat-equation equivalence tests before expanding further.
 
 7. Benchmarks and classical references
-    Add benchmark result serialization, independent residual evaluation and
-    classical numerical solvers. Reference data must be clearly labelled as
-    analytic, numerical or observational.
+    Implemented for the composable heat path through ``pinn.benchmarks`` report
+    serialization, independent residual evaluation and
+    ``pinn.numerics.solve_heat_explicit``. Reference data is explicitly labelled
+    as analytic, numerical or observational.
 
 8. Advanced methods
     Add hard constraints, modern architectures, VPINNs, domain decomposition,
