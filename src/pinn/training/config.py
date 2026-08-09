@@ -9,6 +9,7 @@ import torch
 
 from .causal_weighting import CausalWeightConfig
 from .adaptive_refinement import ResidualAdaptiveConfig
+from ..sampling.core import InteriorSampler, UniformInteriorSampler
 from ..scaling import Nondimensionalizer
 
 
@@ -56,6 +57,7 @@ class TrainerConfig:
         device: Torch device used for model and sampled tensors.
         dtype: Floating-point dtype for the new core path.
         collocation_count: Number of interior residual points.
+        sampler: Interior sampler used for trainer-owned residual points.
         constraint_sample_counts: Optional per-constraint sample-count overrides.
         optimizer: Adam and optional L-BFGS settings.
         log_every: Record loss diagnostics every this many Adam steps.
@@ -75,6 +77,7 @@ class TrainerConfig:
     device: str | torch.device = "cpu"
     dtype: torch.dtype | str = torch.float32
     collocation_count: int = 1_000
+    sampler: InteriorSampler = field(default_factory=UniformInteriorSampler)
     constraint_sample_counts: Mapping[str, int] = field(default_factory=dict)
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     log_every: int = 100
@@ -90,6 +93,8 @@ class TrainerConfig:
             raise ValueError("collocation_count must be >= 1")
         if self.log_every < 1:
             raise ValueError("log_every must be >= 1")
+        if not hasattr(self.sampler, "sample"):
+            raise ValueError("sampler must define a sample method")
         for name, count in self.constraint_sample_counts.items():
             if count < 1:
                 raise ValueError(f"constraint sample count for {name} must be >= 1")

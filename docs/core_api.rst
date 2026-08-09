@@ -34,6 +34,27 @@ Minimal Heat Example
    result = trainer.train(problem, model)
    print(result.final_loss)
 
+Configurable Sampling
+---------------------
+
+The trainer uses ``pinn.sampling.UniformInteriorSampler`` by default for
+residual collocation points. Pass any object implementing ``InteriorSampler``
+to ``TrainerConfig.sampler`` when experiments need a different interior point
+policy. Constraint sampling remains owned by the constraint objects, and RAR
+adds retained high-residual points on top of the configured base sampler.
+
+.. code-block:: python
+
+   from pinn.sampling import UniformInteriorSampler
+
+   trainer = Trainer(
+       TrainerConfig(
+           collocation_count=512,
+           sampler=UniformInteriorSampler(),
+           optimizer=OptimizerConfig(adam_steps=500, lr=1e-3),
+       )
+   )
+
 Nondimensionalized Training
 ---------------------------
 
@@ -186,6 +207,11 @@ Design Responsibilities
     Owns coordinate bounds, containment checks, interior sampling and boundary
     sampling. ``Rectangle`` is used for space-time heat and wave domains;
     ``Interval`` is available for one-dimensional domains.
+
+``pinn.sampling``
+    Owns sampling policies used by the generic trainer. ``InteriorSampler`` is
+    the collocation sampler protocol, and ``UniformInteriorSampler`` preserves
+    the default geometry-uniform behavior.
 
 ``pinn.constraints``
     Owns soft penalty losses for initial, Dirichlet, Neumann and periodic

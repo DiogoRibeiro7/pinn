@@ -113,8 +113,10 @@ Proposed Milestones
     supports all of its required features.
 
 4. Sampling unification
-    Move local LHS usage into a sampler interface. Integrate independent
-    training and evaluation point generation to avoid benchmark leakage.
+    Partially implemented for the composable trainer through
+    ``pinn.sampling.InteriorSampler`` and ``UniformInteriorSampler``. Remaining
+    work is to migrate legacy solver LHS usage and richer sampling policies onto
+    the same interface.
 
 5. Optimizer and training state
     Unify Adam, L-BFGS, callbacks, checkpointing, adaptive weighting and causal
@@ -166,7 +168,8 @@ Old-to-New Mapping
      - Migrate after derivative and constraint abstractions support systems.
    * - ``pinn.utils.sampling.Domain``
      - ``pinn.geometry`` for domain semantics; ``pinn.sampling`` for policies
-     - Keep sampling APIs backward compatible.
+     - Composable trainer now consumes ``InteriorSampler`` policies; keep
+       legacy sampling APIs backward compatible while migrating callers.
    * - ``AdaptiveLossWeighting`` and ``causal_residual_loss``
      - ``pinn.training`` strategies used by generic trainer
      - Avoid equation-specific special cases.

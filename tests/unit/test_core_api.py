@@ -17,6 +17,7 @@ from pinn.geometry import Interval, Rectangle
 from pinn.models import MLP
 from pinn.problems import BurgersProblem, HeatProblem, WaveProblem
 from pinn.residuals import AutogradDerivativeBackend, StrongFormResidual
+from pinn.sampling import UniformInteriorSampler
 from pinn.solvers import HeatPINN, WavePINN
 from pinn.solvers._base import TrainConfig as LegacyExactTrainConfig
 from pinn.solvers.raissi_improved import BurgersConfig
@@ -74,6 +75,36 @@ class CoordinateModel(nn.Module):
     def forward(self, coordinates: Tensor) -> Tensor:
         """Return a linear field with known derivatives."""
         return coordinates[:, [0]] + 2.0 * coordinates[:, [1]]
+
+
+class RecordingSampler:
+    """Interior sampler that records how often the trainer calls it."""
+
+    def __init__(self) -> None:
+        """Initialize call counters."""
+        self.calls = 0
+        self.last_count = 0
+        self.last_dtype: torch.dtype | None = None
+
+    def sample(
+        self,
+        geometry: Rectangle,
+        n: int,
+        *,
+        generator: torch.Generator | None = None,
+        device: torch.device | str | None = None,
+        dtype: torch.dtype | None = None,
+    ) -> Tensor:
+        """Record the request and delegate to uniform geometry sampling."""
+        self.calls += 1
+        self.last_count = n
+        self.last_dtype = dtype
+        return geometry.sample_interior(
+            n,
+            generator=generator,
+            device=device,
+            dtype=dtype,
+        )
 
 
 def test_interval_sampling_and_boundary_masks_are_typed() -> None:
@@ -252,14 +283,41 @@ def test_generic_trainer_runs_core_problems_without_equation_specific_api() -> N
     assert next(wave_model.parameters()).dtype == torch.float64
 
 
+def test_generic_trainer_uses_configured_interior_sampler() -> None:
+    """Trainer residual points are supplied by the configured sampler."""
+    sampler = RecordingSampler()
+    problem = HeatProblem(HeatConfig(alpha=0.1), n_constraint_samples=4)
+    model = MLP(2, 1, 8, 1)
+    trainer = Trainer(
+        TrainerConfig(
+            seed=2,
+            dtype=torch.float64,
+            collocation_count=6,
+            sampler=sampler,
+            constraint_sample_counts={"ic": 4, "bc_left": 4, "bc_right": 4},
+            optimizer=OptimizerConfig(adam_steps=0, lbfgs_max_iter=0),
+        )
+    )
+
+    result = trainer.train(problem, model)
+
+    assert result.final_loss >= 0.0
+    assert sampler.calls == 1
+    assert sampler.last_count == 6
+    assert sampler.last_dtype == torch.float64
+
+
 def test_new_training_config_rejects_invalid_options() -> None:
     """Trainer configuration reports invalid numerical options early."""
+    assert isinstance(TrainerConfig().sampler, UniformInteriorSampler)
     with pytest.raises(ValueError, match="collocation_count"):
         TrainerConfig(collocation_count=0).validate()
     with pytest.raises(ValueError, match="dtype"):
         TrainerConfig(dtype="float16").validate()
     with pytest.raises(ValueError, match="non-negative"):
         TrainerConfig(loss_weights={"pde": -1.0}).validate()
+    with pytest.raises(ValueError, match="sampler"):
+        TrainerConfig(sampler=object()).validate()  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="candidate_count"):
         TrainerConfig(
             adaptive_refinement=ResidualAdaptiveConfig(candidate_count=0)

@@ -66,7 +66,8 @@ class Trainer:
         extra_collocation_points: Tensor | None = None,
     ) -> Dict[str, Tensor]:
         """Evaluate residual and constraint losses."""
-        coordinates = problem.geometry.sample_interior(
+        coordinates = self.config.sampler.sample(
+            problem.geometry,
             self.config.collocation_count,
             generator=generator,
             device=device,
