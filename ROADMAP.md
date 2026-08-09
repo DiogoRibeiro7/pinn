@@ -1,156 +1,432 @@
-# 🗺️ Roadmap
+# Roadmap
 
-This document tracks where the `pinn` library is today and where it's headed. Items under
-**Implemented** are available now; **Near-term** and **Future** are aspirational and may change.
-Contributions toward any item are welcome — open an issue to coordinate.
+This document is the working plan for `pinn`: what is already available, what
+stage the project is in now, what should happen next, and what must be true
+before another release is cut.
 
-> Status legend: ✅ done · 🚧 in progress / partial · 🔭 planned
+Status legend: done = available in a release, in progress = partially available
+or actively being migrated, planned = not started or intentionally deferred.
 
 ---
 
-## ✅ Implemented
+## Current Snapshot
 
-**Release status**
-- `v0.3.0` was released on 2026-08-09. The tag and GitHub Release are
-  published, and the release includes source and wheel artifacts. The release
-  was validated with the full test suite (`285 passed`), a Sphinx HTML build,
-  `python -m build`, and `twine check`.
-- PyPI publication is still manual and was not performed for `v0.3.0`.
+The current released version is `v0.3.0`, published on 2026-08-09.
 
-**Solvers**
-- Continuous-time PINN for the viscous Burgers equation (`ContinuousPINN`)
-- Discrete-time Runge–Kutta PINN (`DiscreteRKPINN`)
-- 2-D incompressible Navier–Stokes with periodic BCs (`NavierStokesPINN`)
-- Generic residual framework (Allen–Cahn, nonlinear Schrödinger)
-- Exact-solution-validated 1-D heat (`HeatPINN`) and wave (`WavePINN`) solvers, scored by
-  `relative_l2_error` against their closed-form solutions
-- Cole–Hopf reference solution for viscous Burgers (`pinn.solvers.reference`), cross-checked
-  against an independent finite-difference solve
-- Composable core API for Burgers, heat and wave problems, with first-class
-  geometry, soft constraints, strong residuals and an equation-agnostic trainer
-- Physical nondimensionalization for the composable trainer, including
-  characteristic scales, derivative scale factors, dimensional model wrappers
-  and FP32/FP64 smoke coverage
-- Residual-based adaptive refinement (RAR) in the composable trainer, with
-  candidate residual scoring, retained high-residual collocation points and
-  optional diversity-aware selection and training-state diagnostics
-- RAR benchmark script comparing uniform, residual-adaptive and
+Release state:
+- Tag: `v0.3.0`
+- GitHub Release: published
+- Release artifacts: source distribution and wheel attached to the GitHub
+  Release
+- Validation before release: full test suite passed (`285 passed`), Sphinx HTML
+  documentation build succeeded, `python -m build` produced release artifacts,
+  and `twine check` passed for both artifacts
+- PyPI: not uploaded; publication remains manual
+
+What `v0.3.0` means architecturally:
+- The project is no longer only a solver-centric collection of PINN examples.
+- A composable path now exists for problem definitions, geometry, constraints,
+  residual evaluation, scaling, sampling and trainer-owned optimization.
+- Legacy solver imports remain public and must keep working while behavior
+  moves behind them onto the composable architecture.
+- The next stage is not another broad feature burst. It is hardening,
+  migration, and making the new architecture the reliable default.
+
+---
+
+## Implemented
+
+### Solver Coverage
+
+Available solver families:
+- Continuous-time PINN for the viscous Burgers equation through
+  `ContinuousPINN`
+- Discrete-time Runge-Kutta PINN through `DiscreteRKPINN`
+- 2-D incompressible Navier-Stokes with periodic boundary conditions through
+  `NavierStokesPINN`
+- Generic residual framework for Allen-Cahn and nonlinear Schrodinger examples
+- Exact-solution-validated 1-D heat and wave solvers, scored with
+  `relative_l2_error` against closed-form solutions
+- Composable Burgers, heat and wave problem adapters for the new generic
+  trainer path
+
+Current limitation:
+- Solver behavior is still split between legacy training loops and the
+  composable trainer. Heat, wave and Burgers have composable problem coverage;
+  richer legacy features such as caching, AMP, active learning and some batching
+  behavior still live mostly in `raissi_improved`.
+
+### References And Benchmarks
+
+Available reference and benchmark infrastructure:
+- Cole-Hopf reference solution for viscous Burgers in `pinn.solvers.reference`
+- Classical explicit finite-difference heat-equation reference solver in
+  `pinn.numerics`
+- Benchmark report primitives in `pinn.benchmarks`, including JSON
+  serialization and explicit reference provenance labels:
+  `analytic`, `numerical`, and `observational`
+- Benchmark scripts for precision and residual-adaptive refinement workflows
+- RAR comparison script covering uniform, residual-adaptive and
   diversity-aware residual-adaptive collocation on composable Burgers, heat and
   wave problems
-- Configurable composable interior samplers (`pinn.sampling.InteriorSampler`)
-  for trainer-owned residual collocation points, including uniform and
-  Latin-hypercube policies plus adapters for legacy sampler interoperability
-- Shared `pinn.sampling.latin_hypercube` helper re-exported by legacy solver
-  modules for backward-compatible LHS sampling
-- Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
-  independent residual evaluation on fresh points and explicit reference
-  provenance labels (`analytic`, `numerical`, `observational`)
-- Classical numerical heat-equation reference solver (`pinn.numerics`) using a
-  stable explicit finite-difference scheme for benchmark comparisons
 
-**Architectures** (`pinn.models`)
-- `MLP`, `SirenPINN`, `FourierFeaturePINN`, `MultiScalePINN`,
-  `FourierMultiScalePINN`, `AttentionPINN`, `WaveletPINN`,
-  `HierarchicalPINN`, `BayesianPINN`, `EnsemblePINN`
+Current limitation:
+- Benchmark comparisons are still concentrated on Burgers, heat and wave.
+  Additional PDE families need composable problem definitions before benchmark
+  coverage should expand.
 
-**Training** (`pinn.training`)
-- Two-stage Adam → L-BFGS optimisation with loss-component tracking
-- Adaptive loss weighting & gradient-balancing analysis
-- Curriculum / multi-scale progressive training, meta-learning, multi-fidelity,
-  adversarial training, memory-efficient (gradient checkpointing, AMP)
+### Composable Core API
 
-**Sampling** (`pinn.sampling`)
-- Latin-Hypercube space-filling sampling
-- Uniform and Latin-hypercube interior samplers for composable problem
-  geometries
-- Adapters between composable `InteriorSampler` policies and legacy
-  `BaseSampler` consumers
-- Gradient-based importance sampling
-- Active learning (uncertainty / query-by-committee / expected-improvement acquisitions)
+Implemented composable pieces:
+- `pinn.geometry`: `Interval`, `Rectangle`, shape validation, containment
+  checks, interior sampling and boundary masks
+- `pinn.constraints`: soft initial, Dirichlet, Neumann and periodic constraints
+- `pinn.residuals`: strong-form residual evaluation through a derivative
+  backend
+- `pinn.problems`: equation identity, dimensions, geometry, constraints and
+  residual definitions for migrated problems
+- `pinn.training.Trainer`: equation-agnostic training loop with typed config,
+  state, result, named losses and diagnostics
+- `pinn.scaling`: characteristic scales, nondimensionalization transforms,
+  derivative scale factors and scaled model wrappers
 
-**Inverse problems & UQ** (`pinn.uncertainty`)
-- Learnable PDE parameters via `torch.nn.Parameter`
-- Deep ensembles, MC-dropout, Bayesian PINNs, GP-prior prediction
+Current limitation:
+- Hard constraints, richer PDE systems, inverse-problem workflows and
+  decomposition/operator-learning APIs are not yet first-class composable
+  modules.
 
-**Transfer learning** (`pinn.transfer`)
-- Pre-training pipelines, fine-tuning, knowledge distillation, domain adaptation
+### Adaptive Refinement And Sampling
 
-**Scaling & ops**
-- `DistributedTrainer` (data-parallel), gradient compression, hierarchical averaging, load balancing
-- Computation caching (`pinn.optimization`)
-- Model serving (REST + gRPC), model I/O, performance profiling
+Implemented adaptive and sampling features:
+- Residual-adaptive refinement (RAR) in the composable trainer
+- Candidate residual scoring and retained high-residual collocation points
+- Optional diversity-aware RAR selection
+- RAR diagnostics recorded in training state
+- Configurable trainer-owned interior sampler protocol:
+  `pinn.sampling.InteriorSampler`
+- `UniformInteriorSampler` as the default composable sampler
+- `LatinHypercubeInteriorSampler` for stratified composable geometry sampling
+- Compatibility adapters between the composable `InteriorSampler` protocol and
+  legacy `BaseSampler` consumers
+- Shared `pinn.sampling.latin_hypercube`, re-exported by legacy solver modules
+  for backward-compatible LHS imports
 
-**Docs & examples**
-- 16 runnable example scripts (`examples/{basic,advanced,benchmarks}`)
-- 19 self-contained, executed Kaggle-style notebooks (`notebooks/`)
-- Sphinx documentation scaffold (`docs/`)
+Current limitation:
+- Importance sampling, active learning and multi-fidelity sampling still mostly
+  use legacy sampler/domain concepts. They need gradual migration onto the
+  composable geometry and sampler interfaces.
 
----
+### Models
 
-## 🚧 Near-term
+Available architectures:
+- `MLP`
+- `SirenPINN`
+- `FourierFeaturePINN`
+- `MultiScalePINN`
+- `FourierMultiScalePINN`
+- `AttentionPINN`
+- `WaveletPINN`
+- `HierarchicalPINN`
+- `BayesianPINN`
+- `EnsemblePINN`
 
-- **Current stage**
-  - Harden the `v0.3.0` composable architecture rather than adding another
-    large surface area immediately.
-  - Keep legacy solver imports stable while migrating behavior behind them onto
-    the composable problem/geometry/constraint/residual/trainer path.
-  - Treat the next release train as quality-first: reduce duplicated training
-    loops, make migration boundaries explicit, and pay down type/lint/doc debt
-    where it blocks CI hardening.
+Current limitation:
+- Several architectures exist as APIs but need stronger examples, benchmarks
+  and guidance for when they are appropriate. The next practical examples
+  should focus on `FourierFeaturePINN`, `MultiScalePINN` and `SirenPINN` on
+  problems where their inductive biases matter.
 
-- **Accuracy & rigor**
-  - Make the Burgers inverse-problem example identifiable (PDE-consistent measurements)
-  - Demonstrate a problem where causal weighting measurably helps. The implementation is
-    verified against the published formula, but on the wave equation it made no useful
-    difference at any setting tried; the reported gains are on harder problems
-    (Allen–Cahn, Kuramoto–Sivashinsky) with larger budgets
-- **Architectures in practice**
-  - Worked examples for `FourierFeaturePINN` / `MultiScalePINN` on stiff problems
-- **Training**
-  - Migrate the remaining legacy generic PDE solvers onto the composable
-    problem/geometry/constraint/trainer path
-  - Move legacy solver scaling and precision behavior onto the shared
-    nondimensionalization path; the new composable trainer preserves configured
-    FP32/FP64 dtypes, but legacy paths still need the same audit
-  - Extend RAR benchmark comparisons beyond Burgers/heat/wave to additional
-    representative PDEs
-- **Quality**
-  - Fix Sphinx warning debt from duplicate object descriptions and legacy
-    docstring formatting; the `v0.3.0` docs build succeeds but still reports the
-    existing warning set.
-  - Audit package manifests before each release. `v0.3.0` added bytecode
-    exclusions after the first build showed local `__pycache__` files being
-    included by `recursive-include examples *`.
-  - CI that executes notebooks and example scripts to prevent regressions
-  - Expand test coverage for solvers, sampling, and transfer modules. Coverage is
-    currently ~60%, and `--cov-fail-under` in `pyproject.toml` is a ratchet set just
-    below it — raise the gate as tests land. The thinnest modules are
-    `utils/metrics.py` (24%), `utils/error_handling.py` (29%) and
-    `utils/sampling.py` (41%)
-  - Clear the 93 `mypy` errors across 27 modules measured on 2026-08-08. The type-check step in
-    `.github/workflows/ci.yml` is `continue-on-error: true` until then; make it
-    blocking once the backlog is gone
-  - Keep tests pointed at the real implementations. `tests/unit/test_visualization.py`
-    once shadowed every name it imported with a local test double, so its assertions
-    never reached the library; an AST sweep of the suite found no other module doing
-    this, and it is worth re-checking when new tests land
+### Training And Operations
 
----
+Available training/ops features:
+- Adam to L-BFGS optimization patterns
+- Loss-component tracking
+- Adaptive loss weighting and gradient-balancing analysis
+- Curriculum and multi-scale progressive training
+- Meta-learning, multi-fidelity and adversarial training utilities
+- Memory-efficient training utilities, including gradient checkpointing and AMP
+- Distributed/data-parallel training, gradient compression, hierarchical
+  averaging and load balancing
+- Computation caching
+- REST and gRPC model serving, model I/O and performance profiling
 
-## 🔭 Future
+Current limitation:
+- These capabilities are unevenly integrated. The composable trainer owns the
+  new core path, while several advanced strategies still sit beside or inside
+  legacy solver-specific training loops.
 
-- **Solvers**: 3-D Navier–Stokes, hard-constraint boundary conditions, additional PDE families
-  (KdV, reaction–diffusion systems, elasticity)
-- **Performance**: validated multi-GPU / multi-node runs, `torch.compile` integration,
-  GPU benchmark suite
-- **Uncertainty**: calibration metrics and conformal prediction for PINN outputs
-- **Operator learning**: DeepONet / Fourier Neural Operator baselines for comparison
-- **Packaging**: PyPI release and versioned, hosted documentation
+### Documentation And Examples
+
+Available documentation and examples:
+- README with project overview, installation, examples and citation guidance
+- Sphinx documentation scaffold
+- Core API documentation for composable problems, scaling, RAR and sampling
+- Architecture documentation describing the current state and migration plan
+- 16 runnable example scripts under `examples/{basic,advanced,benchmarks}`
+- 19 self-contained tutorial notebooks under `notebooks/`
+
+Current limitation:
+- Documentation builds successfully but still reports existing warnings,
+  mainly duplicate object descriptions and legacy docstring formatting issues.
+- Example and notebook execution is not yet a blocking CI gate.
 
 ---
 
-## How to contribute
+## Active Stage: Post-0.3 Hardening
 
-Pick an item, open an issue to discuss scope, and send a PR. Good first contributions: a new
-exact-solution-validated PDE example, a notebook for an existing-but-undemonstrated architecture, or
-test coverage for a module above. See the [README](README.md#-contributing) for the development setup.
+The next work cycle should focus on hardening the composable architecture and
+reducing migration risk. The goal is to make the new path boring, documented
+and hard to regress before adding another large feature family.
+
+Primary goals:
+- Keep every legacy public import stable.
+- Move behavior behind legacy facades onto composable problem, geometry,
+  constraint, residual, scaling, sampling and trainer components.
+- Reduce duplicated training-loop logic across solvers.
+- Make validation stricter without breaking users abruptly.
+- Pay down type, lint and documentation debt where it prevents CI from becoming
+  stricter.
+
+Non-goals for the immediate next cycle:
+- Do not add empty target packages just to match the long-term architecture.
+- Do not introduce hard-constraint, operator-learning or domain-decomposition
+  APIs until the existing composable path is exercised by more tests and
+  examples.
+- Do not remove legacy solver imports during the migration.
+
+---
+
+## Near-Term Milestones
+
+### 1. Stabilize The Composable Trainer
+
+Why it matters:
+The generic trainer is the center of the new architecture. It should absorb
+shared behavior from legacy solvers instead of becoming another parallel path.
+
+Concrete work:
+- Add callback hooks for logging, checkpoints and custom diagnostics.
+- Make Adam/L-BFGS state transitions easier to inspect and test.
+- Document the exact responsibilities of `TrainerConfig`, `TrainingState` and
+  `TrainingResult`.
+- Add tests for custom samplers, loss weights, RAR diagnostics, dtype/device
+  behavior and scaling interactions.
+- Identify which `raissi_improved` training features should become generic
+  trainer features first.
+
+Done when:
+- Heat, wave and Burgers composable training paths can cover the common
+  workflows currently demonstrated by examples.
+- New trainer behavior is covered by focused tests rather than only by
+  end-to-end training smoke tests.
+
+### 2. Migrate Legacy Solver Behavior Behind Stable Facades
+
+Why it matters:
+Users should not have to rewrite imports immediately, but the internals should
+stop drifting across solver modules.
+
+Concrete work:
+- Keep `HeatPINN`, `WavePINN`, `ContinuousPINN`, `DiscreteRKPINN`,
+  `ContinuousPINNGeneric` and `NavierStokesPINN` importable.
+- Route safe pieces of heat and wave wrappers through composable problem and
+  trainer objects.
+- Convert callable-based generic PDE examples into explicit problem/constraint
+  adapters where practical.
+- Keep `raissi_improved` as the compatibility facade until caching,
+  checkpoints, active learning and batching have generic equivalents.
+- Continue centralizing duplicated helpers, following the pattern used for
+  `pinn.sampling.latin_hypercube`.
+
+Done when:
+- Public import compatibility tests cover the retained legacy symbols.
+- Legacy wrappers are thin enough that shared behavior is tested in one place.
+
+### 3. Expand Problem Coverage Carefully
+
+Why it matters:
+The composable architecture needs to prove it handles more than scalar
+exact-solution examples.
+
+Concrete work:
+- Add a composable Allen-Cahn problem with constraints and reference/benchmark
+  strategy.
+- Add a composable nonlinear Schrodinger problem or document the blocking
+  decisions around complex-valued residuals.
+- Start Navier-Stokes migration only after multi-output residuals and periodic
+  constraints are exercised strongly enough.
+- Add exact, numerical or observational reference labels for every new
+  benchmark.
+
+Done when:
+- At least one additional PDE family runs through the generic trainer with
+  meaningful tests and documented reference data.
+
+### 4. Unify Sampling And Adaptive Strategies
+
+Why it matters:
+Sampling is now split across `pinn.sampling`, `pinn.utils.sampling` and solver
+modules. `v0.3.0` introduced the bridge; the next step is reducing the need for
+bridges.
+
+Concrete work:
+- Migrate importance sampling candidates to use composable geometry where
+  possible.
+- Add adapter examples showing old `BaseSampler` consumers and new
+  `InteriorSampler` policies working together.
+- Decide whether `pinn.utils.sampling.Domain` remains as a compatibility type
+  or becomes a wrapper around `pinn.geometry`.
+- Extend RAR benchmark comparisons beyond Burgers, heat and wave after new
+  composable problem adapters exist.
+
+Done when:
+- New sampling features target `InteriorSampler` and `Geometry` first.
+- Legacy `BaseSampler` compatibility remains available but is no longer the
+  default path for new code.
+
+### 5. Improve Accuracy And Scientific Rigor
+
+Why it matters:
+PINN examples are easy to make visually plausible but scientifically weak.
+Benchmarks should remain explicit about reference data and evaluation points.
+
+Concrete work:
+- Make the Burgers inverse-problem example identifiable with PDE-consistent
+  measurements.
+- Demonstrate causal weighting on a problem where it measurably helps, or keep
+  the limitation clearly documented.
+- Keep training points and evaluation points distinct in benchmarks.
+- Add benchmark metadata for seeds, dtype, sampler, optimizer budget and
+  reference provenance.
+- Add stronger regression tests for relative error and residual evaluation.
+
+Done when:
+- Accuracy claims in examples are supported by reference solutions or clearly
+  labeled numerical/observational references.
+
+### 6. Make Architectures Practical
+
+Why it matters:
+Architecture classes are only useful if users know when they help and if the
+tests cover their expected behavior.
+
+Concrete work:
+- Add worked examples for `SirenPINN`, `FourierFeaturePINN` and
+  `MultiScalePINN` on problems that justify those architectures.
+- Compare architecture choices using the benchmark report schema rather than
+  one-off print statements.
+- Document initialization and dtype caveats for derivative-heavy PDE residuals.
+
+Done when:
+- At least one benchmark or example demonstrates a clear architecture tradeoff
+  using the shared reporting format.
+
+### 7. Harden Quality Gates
+
+Why it matters:
+The project has enough surface area now that soft quality checks will keep
+allowing drift.
+
+Concrete work:
+- Fix Sphinx warning debt so documentation can eventually build with warnings
+  as errors.
+- Reduce the mypy backlog measured on 2026-08-08: 93 errors across 27 modules.
+- Decide whether full flake8 should cover legacy solver modules or whether
+  per-file ignores should document known debt explicitly.
+- Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
+  change.
+- Add CI jobs that execute examples and selected notebooks.
+- Keep tests pointed at production implementations, not local test doubles that
+  shadow imports.
+
+Done when:
+- Type checking can move from `continue-on-error: true` to blocking for at
+  least the composable core packages.
+- Documentation warning count trends down and is tracked.
+
+---
+
+## Future Work
+
+These are not immediate post-0.3 priorities, but they remain part of the
+long-term direction.
+
+Solver and problem families:
+- 3-D Navier-Stokes
+- Korteweg-de Vries
+- Reaction-diffusion systems
+- Elasticity
+- Hard-constraint boundary conditions through explicit model transforms
+
+Numerical methods and decomposition:
+- VPINNs
+- Domain decomposition
+- Conservation-aware formulations
+- Stronger classical numerical baselines
+
+Operator learning:
+- DeepONet baselines
+- Fourier Neural Operator baselines
+- Shared reporting for PINN versus operator-learning comparisons
+
+Performance:
+- Validated multi-GPU and multi-node runs
+- `torch.compile` integration
+- GPU benchmark suite
+- Memory and throughput reporting in benchmark artifacts
+
+Uncertainty and inverse problems:
+- Calibration metrics
+- Conformal prediction
+- Stronger inverse-problem examples with identifiable parameters
+- Bayesian and ensemble benchmark coverage
+
+Packaging and distribution:
+- PyPI publication
+- Versioned hosted documentation
+- Automated release checklist for metadata, artifacts and archive contents
+
+---
+
+## Release Checklist
+
+Use this checklist for the next release.
+
+Before tagging:
+- Update `CHANGELOG.md`.
+- Bump `pyproject.toml`.
+- Update fallback `__version__` in `src/pinn/__init__.py`.
+- Update `CITATION.cff`, `.zenodo.json` and README citation metadata.
+- Search for stale version strings.
+- Run the full test suite.
+- Build Sphinx docs and record warning count.
+- Build artifacts with `python -m build`.
+- Run `twine check dist/*`.
+- Inspect source and wheel artifacts for accidental generated files such as
+  `__pycache__`, `.pyc`, notebook checkpoints or local benchmark outputs.
+
+After tagging:
+- Push the release commit.
+- Create an annotated tag.
+- Push the tag.
+- Create the GitHub Release and attach wheel/source artifacts.
+- Decide explicitly whether PyPI upload is in scope for that release.
+- Update this roadmap with the new release status and next active stage.
+
+---
+
+## How To Contribute
+
+Good first contributions:
+- Add focused tests for a module with weak coverage.
+- Convert a legacy helper into a shared implementation while preserving old
+  imports.
+- Add an exact-solution-validated PDE example.
+- Add a benchmark report for an existing example.
+- Improve documentation where the migration boundary is unclear.
+
+For larger work, open an issue first and describe:
+- the user-facing API being added or changed
+- how legacy imports remain compatible
+- what reference data or benchmark validates the behavior
+- which tests will prove the change is real
