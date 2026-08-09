@@ -144,8 +144,13 @@ supports all of its required features.</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>Sampling unification</dt><dd><p>Move local LHS usage into a sampler interface. Integrate independent
-training and evaluation point generation to avoid benchmark leakage.</p>
+<dt>Sampling unification</dt><dd><p>Partially implemented for the composable trainer through
+<code class="docutils literal notranslate"><span class="pre">pinn.sampling.InteriorSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">UniformInteriorSampler</span></code> and
+<code class="docutils literal notranslate"><span class="pre">LatinHypercubeInteriorSampler</span></code>. Compatibility adapters bridge the
+composable protocol with legacy <code class="docutils literal notranslate"><span class="pre">BaseSampler</span></code> consumers. Legacy solver
+<code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> names now re-export a shared <code class="docutils literal notranslate"><span class="pre">pinn.sampling.core</span></code>
+helper. Remaining work is to migrate richer adaptive sampling policies onto
+the same interface directly.</p>
 </dd>
 </dl>
 </li>
@@ -216,13 +221,18 @@ solver features such as caching and checkpoints remain in
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pinn.utils.sampling.Domain</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pinn.geometry</span></code> for domain semantics; <code class="docutils literal notranslate"><span class="pre">pinn.sampling</span></code> for policies</p></td>
-<td><p>Keep sampling APIs backward compatible.</p></td>
+<td><p>Composable trainer now consumes <code class="docutils literal notranslate"><span class="pre">InteriorSampler</span></code> policies; keep
+legacy sampling APIs backward compatible while migrating callers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AdaptiveLossWeighting</span></code> and <code class="docutils literal notranslate"><span class="pre">causal_residual_loss</span></code></p></td>
+<tr class="row-odd"><td><p>solver-local <code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pinn.sampling.core.latin_hypercube</span></code></p></td>
+<td><p>Solver modules preserve the old names as compatibility imports.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AdaptiveLossWeighting</span></code> and <code class="docutils literal notranslate"><span class="pre">causal_residual_loss</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pinn.training</span></code> strategies used by generic trainer</p></td>
 <td><p>Avoid equation-specific special cases.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">burgers_cole_hopf</span></code> and <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">burgers_cole_hopf</span></code> and <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pinn.numerics.references</span></code> or <code class="docutils literal notranslate"><span class="pre">pinn.problems</span></code> reference helpers</p></td>
 <td><p>Re-export from <code class="docutils literal notranslate"><span class="pre">pinn.solvers.reference</span></code>.</p></td>
 </tr>

@@ -85,8 +85,8 @@ Top-level <code class="docutils literal notranslate"><span class="pre">pinn</spa
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinn.solvers.raissi_generic</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">Domain1D</span></code>, <code class="docutils literal notranslate"><span class="pre">ContinuousPINNGeneric</span></code>, <code class="docutils literal notranslate"><span class="pre">allen_cahn_residual_factory</span></code>,
 <code class="docutils literal notranslate"><span class="pre">schrodinger_residual</span></code>, <code class="docutils literal notranslate"><span class="pre">demo_allen_cahn</span></code> and <code class="docutils literal notranslate"><span class="pre">demo_schrodinger</span></code>.
-It imports <code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> from <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> to avoid a second
-drift-prone copy.</p>
+It imports <code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> from <code class="docutils literal notranslate"><span class="pre">pinn.sampling.core</span></code> to avoid a
+solver-local drift-prone copy.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinn.solvers._base</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code>, shared <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code> re-export and
 <code class="docutils literal notranslate"><span class="pre">gradient</span></code> for the exact heat/wave path.</p>
@@ -138,12 +138,12 @@ Taylor-Green initial data and periodic paired samples inside
 <code class="docutils literal notranslate"><span class="pre">_make_training_points</span></code> and <code class="docutils literal notranslate"><span class="pre">train</span></code>. There is no first-class
 <code class="docutils literal notranslate"><span class="pre">Constraint</span></code> abstraction.</p>
 </dd>
-<dt>Samplers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> exists in <code class="docutils literal notranslate"><span class="pre">raissi</span></code> and <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code>. The
-generic and exact-solvable paths reuse the improved function. Separately,
-<code class="docutils literal notranslate"><span class="pre">pinn.utils.sampling</span></code> defines <code class="docutils literal notranslate"><span class="pre">BaseSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">LatinHypercubeSampler</span></code>,
-<code class="docutils literal notranslate"><span class="pre">SobolSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">AdaptiveSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">BoundarySampler</span></code>,
-<code class="docutils literal notranslate"><span class="pre">TimeSteppingSampler</span></code> and <code class="docutils literal notranslate"><span class="pre">CompositeSampler</span></code>. <code class="docutils literal notranslate"><span class="pre">pinn.sampling</span></code> adds
-importance, active-learning and multi-fidelity samplers.</p>
+<dt>Samplers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> is owned by <code class="docutils literal notranslate"><span class="pre">pinn.sampling.core</span></code> and re-exported from
+legacy solver modules for compatibility. Separately, <code class="docutils literal notranslate"><span class="pre">pinn.utils.sampling</span></code>
+defines <code class="docutils literal notranslate"><span class="pre">BaseSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">LatinHypercubeSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">SobolSampler</span></code>,
+<code class="docutils literal notranslate"><span class="pre">AdaptiveSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">BoundarySampler</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeSteppingSampler</span></code> and
+<code class="docutils literal notranslate"><span class="pre">CompositeSampler</span></code>. <code class="docutils literal notranslate"><span class="pre">pinn.sampling</span></code> adds composable interior samplers,
+adapters, importance, active-learning and multi-fidelity samplers.</p>
 </dd>
 <dt>Loss weighting</dt><dd><p>Static weights are passed directly to solver training methods. Adaptive
 weighting is implemented in <code class="docutils literal notranslate"><span class="pre">pinn.training.adaptive_weighting</span></code> and wired
@@ -177,8 +177,8 @@ the solver modules:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Domain1D</span></code> is repeated in <code class="docutils literal notranslate"><span class="pre">raissi</span></code>, <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> and
 <code class="docutils literal notranslate"><span class="pre">raissi_generic</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> and <code class="docutils literal notranslate"><span class="pre">set_seed</span></code> are owned by solver modules rather than
-a sampling or reproducibility subsystem.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set_seed</span></code> is still owned by solver modules rather than a reproducibility
+subsystem.</p></li>
 <li><p>Adam plus optional L-BFGS loops are repeated in <code class="docutils literal notranslate"><span class="pre">ContinuousPINN</span></code>,
 <code class="docutils literal notranslate"><span class="pre">ContinuousPINNGeneric</span></code>, <code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code> and <code class="docutils literal notranslate"><span class="pre">NavierStokesPINN</span></code>.</p></li>
 <li><p>Residual implementations manually repeat autograd derivative patterns.</p></li>

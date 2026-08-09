@@ -105,6 +105,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.checkpointing</span><span class="w"> </span><span class="kn">import</span> <span class="n">CheckpointManager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSampler</span><span class="p">,</span> <span class="n">Domain</span><span class="p">,</span> <span class="n">LatinHypercubeSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">GradientBasedImportanceSampler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..sampling.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">latin_hypercube</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># pragma: no cover - imported for type checking only</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..sampling.active_learning</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearningStrategy</span>
@@ -132,52 +133,6 @@
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed_all</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">latin_hypercube</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate Latin Hypercube samples for efficient space-filling sampling.</span>
-
-<span class="sd">    Latin Hypercube Sampling (LHS) ensures good coverage of the parameter space</span>
-<span class="sd">    by dividing each dimension into n equally probable intervals and sampling</span>
-<span class="sd">    exactly once from each interval.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        n: Number of samples to generate</span>
-<span class="sd">        d: Number of dimensions</span>
-<span class="sd">        low: Lower bound for all dimensions</span>
-<span class="sd">        high: Upper bound for all dimensions</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Array of shape (n, d) containing the samples</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If n or d is not positive</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; samples = latin_hypercube(100, 2, 0.0, 1.0)</span>
-<span class="sd">        &gt;&gt;&gt; print(samples.shape)</span>
-<span class="sd">        (100, 2)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of samples (n) and dimensions (d) must be positive.&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Create equally spaced intervals</span>
-    <span class="n">cut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
-
-    <span class="c1"># Sample within each interval</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">cut</span><span class="p">[:</span><span class="n">n</span><span class="p">][:,</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">cut</span><span class="p">[</span><span class="mi">1</span> <span class="p">:</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][:,</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="n">rdpoints</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span>
-
-    <span class="c1"># Apply random permutation to each dimension</span>
-    <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">rdpoints</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-        <span class="n">H</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdpoints</span><span class="p">[</span><span class="n">order</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">low</span> <span class="o">+</span> <span class="p">(</span><span class="n">high</span> <span class="o">-</span> <span class="n">low</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span>
 
 
 <span class="c1"># ============================================================</span>

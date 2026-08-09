@@ -42,6 +42,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.causal_weighting</span><span class="w"> </span><span class="kn">import</span> <span class="n">CausalWeightConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.adaptive_refinement</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResidualAdaptiveConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..sampling.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">InteriorSampler</span><span class="p">,</span> <span class="n">UniformInteriorSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..scaling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Nondimensionalizer</span>
 
 
@@ -97,6 +98,7 @@
 <span class="sd">        device: Torch device used for model and sampled tensors.</span>
 <span class="sd">        dtype: Floating-point dtype for the new core path.</span>
 <span class="sd">        collocation_count: Number of interior residual points.</span>
+<span class="sd">        sampler: Interior sampler used for trainer-owned residual points.</span>
 <span class="sd">        constraint_sample_counts: Optional per-constraint sample-count overrides.</span>
 <span class="sd">        optimizer: Adam and optional L-BFGS settings.</span>
 <span class="sd">        log_every: Record loss diagnostics every this many Adam steps.</span>
@@ -116,6 +118,7 @@
     <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
     <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span>
     <span class="n">collocation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000</span>
+    <span class="n">sampler</span><span class="p">:</span> <span class="n">InteriorSampler</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">UniformInteriorSampler</span><span class="p">)</span>
     <span class="n">constraint_sample_counts</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerConfig</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">)</span>
     <span class="n">log_every</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
@@ -133,6 +136,8 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;collocation_count must be &gt;= 1&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_every</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;log_every must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">,</span> <span class="s2">&quot;sample&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sampler must define a sample method&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraint_sample_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;constraint sample count for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>

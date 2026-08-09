@@ -66,6 +66,31 @@ problems are the exact-solution-validated Burgers, heat and wave equations.</p>
 </pre></div>
 </div>
 </section>
+<section id="configurable-sampling">
+<h2>Configurable Sampling<a class="headerlink" href="#configurable-sampling" title="Link to this heading">¶</a></h2>
+<p>The trainer uses <code class="docutils literal notranslate"><span class="pre">pinn.sampling.UniformInteriorSampler</span></code> by default for
+residual collocation points. <code class="docutils literal notranslate"><span class="pre">LatinHypercubeInteriorSampler</span></code> provides a
+stratified space-filling policy over the same geometry bounds. Pass any object
+implementing <code class="docutils literal notranslate"><span class="pre">InteriorSampler</span></code> to <code class="docutils literal notranslate"><span class="pre">TrainerConfig.sampler</span></code> when experiments
+need a different interior point policy. Constraint sampling remains owned by
+the constraint objects, and RAR adds retained high-residual points on top of the
+configured base sampler.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BaseSamplerInteriorAdapter</span></code> wraps legacy <code class="docutils literal notranslate"><span class="pre">pinn.utils.sampling.BaseSampler</span></code>
+instances so they can feed <code class="docutils literal notranslate"><span class="pre">TrainerConfig.sampler</span></code>. <code class="docutils literal notranslate"><span class="pre">InteriorSamplerBaseAdapter</span></code>
+exposes composable samplers through the legacy NumPy <code class="docutils literal notranslate"><span class="pre">BaseSampler</span></code> interface
+for older utilities that have not migrated yet.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinn.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatinHypercubeInteriorSampler</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">TrainerConfig</span><span class="p">(</span>
+        <span class="n">collocation_count</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="o">=</span><span class="n">LatinHypercubeInteriorSampler</span><span class="p">(),</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">(</span><span class="n">adam_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="nondimensionalized-training">
 <h2>Nondimensionalized Training<a class="headerlink" href="#nondimensionalized-training" title="Link to this heading">¶</a></h2>
 <p>The composable trainer can run a model in dimensionless coordinates while
@@ -208,6 +233,12 @@ observational measurements in benchmark reports.</p>
 sampling. <code class="docutils literal notranslate"><span class="pre">Rectangle</span></code> is used for space-time heat and wave domains;
 <code class="docutils literal notranslate"><span class="pre">Interval</span></code> is available for one-dimensional domains.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pinn.sampling</span></code></dt><dd><p>Owns sampling policies used by the generic trainer. <code class="docutils literal notranslate"><span class="pre">InteriorSampler</span></code> is
+the collocation sampler protocol, <code class="docutils literal notranslate"><span class="pre">UniformInteriorSampler</span></code> preserves the
+default geometry-uniform behavior and <code class="docutils literal notranslate"><span class="pre">LatinHypercubeInteriorSampler</span></code> adds
+stratified space-filling residual collocation. Compatibility adapters bridge
+this protocol with legacy <code class="docutils literal notranslate"><span class="pre">BaseSampler</span></code> consumers during migration.</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinn.constraints</span></code></dt><dd><p>Owns soft penalty losses for initial, Dirichlet, Neumann and periodic
 constraints. Constraint objects sample their own points and evaluate their
 own loss, so the trainer does not need equation-specific branches.</p>
@@ -283,6 +314,7 @@ available as legacy solver facades.</p>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Composable Core API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#minimal-heat-example">Minimal Heat Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configurable-sampling">Configurable Sampling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#nondimensionalized-training">Nondimensionalized Training</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#siren-models">SIREN Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#residual-adaptive-refinement">Residual-Adaptive Refinement</a></li>

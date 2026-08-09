@@ -34,6 +34,34 @@ Minimal Heat Example
    result = trainer.train(problem, model)
    print(result.final_loss)
 
+Configurable Sampling
+---------------------
+
+The trainer uses ``pinn.sampling.UniformInteriorSampler`` by default for
+residual collocation points. ``LatinHypercubeInteriorSampler`` provides a
+stratified space-filling policy over the same geometry bounds. Pass any object
+implementing ``InteriorSampler`` to ``TrainerConfig.sampler`` when experiments
+need a different interior point policy. Constraint sampling remains owned by
+the constraint objects, and RAR adds retained high-residual points on top of the
+configured base sampler.
+
+``BaseSamplerInteriorAdapter`` wraps legacy ``pinn.utils.sampling.BaseSampler``
+instances so they can feed ``TrainerConfig.sampler``. ``InteriorSamplerBaseAdapter``
+exposes composable samplers through the legacy NumPy ``BaseSampler`` interface
+for older utilities that have not migrated yet.
+
+.. code-block:: python
+
+   from pinn.sampling import LatinHypercubeInteriorSampler
+
+   trainer = Trainer(
+       TrainerConfig(
+           collocation_count=512,
+           sampler=LatinHypercubeInteriorSampler(),
+           optimizer=OptimizerConfig(adam_steps=500, lr=1e-3),
+       )
+   )
+
 Nondimensionalized Training
 ---------------------------
 
@@ -186,6 +214,13 @@ Design Responsibilities
     Owns coordinate bounds, containment checks, interior sampling and boundary
     sampling. ``Rectangle`` is used for space-time heat and wave domains;
     ``Interval`` is available for one-dimensional domains.
+
+``pinn.sampling``
+    Owns sampling policies used by the generic trainer. ``InteriorSampler`` is
+    the collocation sampler protocol, ``UniformInteriorSampler`` preserves the
+    default geometry-uniform behavior and ``LatinHypercubeInteriorSampler`` adds
+    stratified space-filling residual collocation. Compatibility adapters bridge
+    this protocol with legacy ``BaseSampler`` consumers during migration.
 
 ``pinn.constraints``
     Owns soft penalty losses for initial, Dirichlet, Neumann and periodic
