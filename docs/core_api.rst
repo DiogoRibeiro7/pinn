@@ -38,19 +38,21 @@ Configurable Sampling
 ---------------------
 
 The trainer uses ``pinn.sampling.UniformInteriorSampler`` by default for
-residual collocation points. Pass any object implementing ``InteriorSampler``
-to ``TrainerConfig.sampler`` when experiments need a different interior point
-policy. Constraint sampling remains owned by the constraint objects, and RAR
-adds retained high-residual points on top of the configured base sampler.
+residual collocation points. ``LatinHypercubeInteriorSampler`` provides a
+stratified space-filling policy over the same geometry bounds. Pass any object
+implementing ``InteriorSampler`` to ``TrainerConfig.sampler`` when experiments
+need a different interior point policy. Constraint sampling remains owned by
+the constraint objects, and RAR adds retained high-residual points on top of the
+configured base sampler.
 
 .. code-block:: python
 
-   from pinn.sampling import UniformInteriorSampler
+   from pinn.sampling import LatinHypercubeInteriorSampler
 
    trainer = Trainer(
        TrainerConfig(
            collocation_count=512,
-           sampler=UniformInteriorSampler(),
+           sampler=LatinHypercubeInteriorSampler(),
            optimizer=OptimizerConfig(adam_steps=500, lr=1e-3),
        )
    )
@@ -210,8 +212,9 @@ Design Responsibilities
 
 ``pinn.sampling``
     Owns sampling policies used by the generic trainer. ``InteriorSampler`` is
-    the collocation sampler protocol, and ``UniformInteriorSampler`` preserves
-    the default geometry-uniform behavior.
+    the collocation sampler protocol, ``UniformInteriorSampler`` preserves the
+    default geometry-uniform behavior and ``LatinHypercubeInteriorSampler`` adds
+    stratified space-filling residual collocation.
 
 ``pinn.constraints``
     Owns soft penalty losses for initial, Dirichlet, Neumann and periodic

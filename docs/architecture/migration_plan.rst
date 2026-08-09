@@ -114,9 +114,10 @@ Proposed Milestones
 
 4. Sampling unification
     Partially implemented for the composable trainer through
-    ``pinn.sampling.InteriorSampler`` and ``UniformInteriorSampler``. Remaining
-    work is to migrate legacy solver LHS usage and richer sampling policies onto
-    the same interface.
+    ``pinn.sampling.InteriorSampler``, ``UniformInteriorSampler`` and
+    ``LatinHypercubeInteriorSampler``. Remaining work is to migrate legacy
+    solver LHS usage and richer adaptive sampling policies onto the same
+    interface.
 
 5. Optimizer and training state
     Unify Adam, L-BFGS, callbacks, checkpointing, adaptive weighting and causal

@@ -43,7 +43,7 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
   high-residual collocation points, optional diversity-aware selection and
   recorded RAR diagnostics
 - **Composable Sampling**: Configurable interior collocation samplers for the
-  generic trainer, with uniform geometry sampling as the default
+  generic trainer, with uniform and Latin-hypercube geometry sampling policies
 - **Benchmark Provenance**: JSON benchmark reports, independent residual
   scoring, and analytic/numerical/observational reference labels
 - **RAR Benchmarks**: Scripted uniform-vs-adaptive Burgers, heat and wave

@@ -14,7 +14,7 @@ from .active_learning import (
     UpperConfidenceBoundAcquisition,
 )
 from .importance import GradientBasedImportanceSampler
-from .core import InteriorSampler, UniformInteriorSampler
+from .core import InteriorSampler, LatinHypercubeInteriorSampler, UniformInteriorSampler
 from .multifidelity import (
     CoKrigingModel,
     HierarchicalConfig,
@@ -37,6 +37,7 @@ __all__ = [
     "create_boundary_points",
     "LatinHypercubeSampler",
     "InteriorSampler",
+    "LatinHypercubeInteriorSampler",
     "UniformInteriorSampler",
     "GradientBasedImportanceSampler",
     "MultiFidelitySampler",

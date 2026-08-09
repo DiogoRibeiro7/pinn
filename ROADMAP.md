@@ -31,7 +31,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   diversity-aware residual-adaptive collocation on composable Burgers, heat and
   wave problems
 - Configurable composable interior samplers (`pinn.sampling.InteriorSampler`)
-  for trainer-owned residual collocation points
+  for trainer-owned residual collocation points, including uniform and
+  Latin-hypercube policies
 - Benchmark reporting primitives (`pinn.benchmarks`) with JSON serialization,
   independent residual evaluation on fresh points and explicit reference
   provenance labels (`analytic`, `numerical`, `observational`)
@@ -51,7 +52,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
 
 **Sampling** (`pinn.sampling`)
 - Latin-Hypercube space-filling sampling
-- Uniform interior sampler for composable problem geometries
+- Uniform and Latin-hypercube interior samplers for composable problem
+  geometries
 - Gradient-based importance sampling
 - Active learning (uncertainty / query-by-committee / expected-improvement acquisitions)
 
