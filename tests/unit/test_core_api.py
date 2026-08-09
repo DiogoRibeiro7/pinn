@@ -21,7 +21,12 @@ from pinn.solvers import HeatPINN, WavePINN
 from pinn.solvers._base import TrainConfig as LegacyExactTrainConfig
 from pinn.solvers.heat import HeatConfig
 from pinn.solvers.wave import WaveConfig
-from pinn.training import OptimizerConfig, Trainer, TrainerConfig
+from pinn.training import (
+    OptimizerConfig,
+    ResidualAdaptiveConfig,
+    Trainer,
+    TrainerConfig,
+)
 
 
 class AnalyticHeatModel(nn.Module):
@@ -211,6 +216,10 @@ def test_new_training_config_rejects_invalid_options() -> None:
         TrainerConfig(dtype="float16").validate()
     with pytest.raises(ValueError, match="non-negative"):
         TrainerConfig(loss_weights={"pde": -1.0}).validate()
+    with pytest.raises(ValueError, match="candidate_count"):
+        TrainerConfig(
+            adaptive_refinement=ResidualAdaptiveConfig(candidate_count=0)
+        ).validate()
 
 
 def test_legacy_heat_wave_imports_still_work() -> None:

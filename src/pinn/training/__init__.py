@@ -17,6 +17,7 @@ from .causal_weighting import (
     causal_weights,
     temporal_chunk_index,
 )
+from .adaptive_refinement import ResidualAdaptiveConfig, ResidualAdaptiveRefiner
 from .curriculum import curriculum_train
 from .memory_efficient import MemoryEfficientPINN, MemoryProfiler, MemoryUsageRecord
 from .meta_learning import meta_learning_step
@@ -50,6 +51,8 @@ def __getattr__(name: str):
 
 __all__ = [
     "CausalWeightConfig",
+    "ResidualAdaptiveConfig",
+    "ResidualAdaptiveRefiner",
     "causal_residual_loss",
     "causal_weights",
     "temporal_chunk_index",

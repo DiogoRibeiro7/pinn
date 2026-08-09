@@ -37,6 +37,8 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
   abstractions for equation-agnostic heat/wave training
 - **Nondimensionalization**: Characteristic physical scales, derivative scale
   factors and FP32/FP64-preserving transforms for the composable trainer
+- **Residual-Adaptive Refinement**: Generic trainer support for retaining
+  high-residual collocation points with recorded RAR diagnostics
 - **Generic Framework**: Easy extension to new PDEs
 - **GPU Acceleration**: CUDA support with automatic detection
 - **Distributed Training**: Data-parallel scaling across multiple GPUs

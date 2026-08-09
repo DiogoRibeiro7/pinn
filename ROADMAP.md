@@ -24,6 +24,9 @@ Contributions toward any item are welcome — open an issue to coordinate.
 - Physical nondimensionalization for the composable trainer, including
   characteristic scales, derivative scale factors, dimensional model wrappers
   and FP32/FP64 smoke coverage
+- Residual-based adaptive refinement (RAR) in the composable trainer, with
+  candidate residual scoring, retained high-residual collocation points and
+  training-state diagnostics
 
 **Architectures** (`pinn.models`)
 - `MLP`, `FourierFeaturePINN`, `MultiScalePINN`, `FourierMultiScalePINN`,
@@ -76,7 +79,8 @@ Contributions toward any item are welcome — open an issue to coordinate.
   - Move legacy solver scaling and precision behavior onto the shared
     nondimensionalization path; the new composable trainer preserves configured
     FP32/FP64 dtypes, but legacy paths still need the same audit
-  - Residual-based adaptive refinement (RAR) wired into the training loop
+  - Extend the composable trainer RAR path with diversity-aware selection and
+    benchmark comparisons against uniform collocation
 - **Quality**
   - CI that executes notebooks and example scripts to prevent regressions
   - Expand test coverage for solvers, sampling, and transfer modules. Coverage is

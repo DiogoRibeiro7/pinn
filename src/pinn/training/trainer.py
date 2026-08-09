@@ -13,6 +13,7 @@ from torch import Tensor, nn
 from ..problems import PDEProblem
 from ..residuals import AutogradDerivativeBackend, DerivativeBackend, StrongFormResidual
 from ..scaling import ScaledModel
+from .adaptive_refinement import ResidualAdaptiveRefiner
 from .causal_weighting import causal_residual_loss
 from .config import TrainerConfig, resolve_dtype
 from .state import TrainingResult, TrainingState
@@ -62,6 +63,7 @@ class Trainer:
         generator: torch.Generator,
         device: torch.device,
         dtype: torch.dtype,
+        extra_collocation_points: Tensor | None = None,
     ) -> Dict[str, Tensor]:
         """Evaluate residual and constraint losses."""
         coordinates = problem.geometry.sample_interior(
@@ -70,6 +72,11 @@ class Trainer:
             device=device,
             dtype=dtype,
         )
+        if extra_collocation_points is not None:
+            coordinates = torch.cat(
+                [coordinates, extra_collocation_points.to(device=device, dtype=dtype)],
+                dim=0,
+            )
         coordinates = coordinates.detach().requires_grad_(True)
         residual = self.residual_form.evaluate(
             problem, model, coordinates, self.derivative_backend
@@ -121,6 +128,7 @@ class Trainer:
         start_time: float,
         total: Tensor,
         components: Mapping[str, Tensor],
+        extra_diagnostics: Mapping[str, float] | None = None,
     ) -> TrainingState:
         """Convert tensor losses to an immutable state record."""
         named_losses = {
@@ -133,6 +141,8 @@ class Trainer:
             for name, value in components.items()
             if name.startswith("min_")
         }
+        if extra_diagnostics is not None:
+            diagnostics.update(extra_diagnostics)
         weights = {name: self._weight(name) for name in named_losses}
         return TrainingState(
             step=step,
@@ -155,6 +165,11 @@ class Trainer:
             loss_model = ScaledModel(model, self.config.scaling)
         else:
             loss_model = model
+        refiner = (
+            ResidualAdaptiveRefiner(self.config.adaptive_refinement)
+            if self.config.adaptive_refinement is not None
+            else None
+        )
         generator = self._seed(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.config.optimizer.lr)
         history: list[TrainingState] = []
@@ -162,8 +177,28 @@ class Trainer:
 
         for step in range(1, self.config.optimizer.adam_steps + 1):
             optimizer.zero_grad(set_to_none=True)
+            if refiner is not None and refiner.should_refine(step):
+                refiner.refine(
+                    problem,
+                    loss_model,
+                    self.residual_form,
+                    self.derivative_backend,
+                    generator=generator,
+                    device=device,
+                    dtype=dtype,
+                )
+            extra_points = (
+                refiner.current_points(device=device, dtype=dtype)
+                if refiner is not None
+                else None
+            )
             components = self._loss_components(
-                problem, loss_model, generator, device, dtype
+                problem,
+                loss_model,
+                generator,
+                device,
+                dtype,
+                extra_collocation_points=extra_points,
             )
             total = self._total_loss(components)
             total.backward()
@@ -173,7 +208,15 @@ class Trainer:
                 or step % self.config.log_every == 0
                 or step == self.config.optimizer.adam_steps
             ):
-                history.append(self._record_state(step, start_time, total, components))
+                history.append(
+                    self._record_state(
+                        step,
+                        start_time,
+                        total,
+                        components,
+                        refiner.diagnostics() if refiner is not None else None,
+                    )
+                )
 
         if self.config.optimizer.lbfgs_max_iter > 0:
             lbfgs = torch.optim.LBFGS(
@@ -185,30 +228,74 @@ class Trainer:
 
             def closure() -> Tensor:
                 lbfgs.zero_grad(set_to_none=True)
+                extra_points = (
+                    refiner.current_points(device=device, dtype=dtype)
+                    if refiner is not None
+                    else None
+                )
                 closure_components = self._loss_components(
-                    problem, loss_model, generator, device, dtype
+                    problem,
+                    loss_model,
+                    generator,
+                    device,
+                    dtype,
+                    extra_collocation_points=extra_points,
                 )
                 closure_total = self._total_loss(closure_components)
                 closure_total.backward()
                 return closure_total
 
             lbfgs.step(closure)
+            extra_points = (
+                refiner.current_points(device=device, dtype=dtype)
+                if refiner is not None
+                else None
+            )
             components = self._loss_components(
-                problem, loss_model, generator, device, dtype
+                problem,
+                loss_model,
+                generator,
+                device,
+                dtype,
+                extra_collocation_points=extra_points,
             )
             total = self._total_loss(components)
             final_step = (
                 self.config.optimizer.adam_steps + self.config.optimizer.lbfgs_max_iter
             )
             history.append(
-                self._record_state(final_step, start_time, total, components)
+                self._record_state(
+                    final_step,
+                    start_time,
+                    total,
+                    components,
+                    refiner.diagnostics() if refiner is not None else None,
+                )
             )
 
         if not history:
+            extra_points = (
+                refiner.current_points(device=device, dtype=dtype)
+                if refiner is not None
+                else None
+            )
             components = self._loss_components(
-                problem, loss_model, generator, device, dtype
+                problem,
+                loss_model,
+                generator,
+                device,
+                dtype,
+                extra_collocation_points=extra_points,
             )
             total = self._total_loss(components)
-            history.append(self._record_state(0, start_time, total, components))
+            history.append(
+                self._record_state(
+                    0,
+                    start_time,
+                    total,
+                    components,
+                    refiner.diagnostics() if refiner is not None else None,
+                )
+            )
 
         return TrainingResult(history=tuple(history), final_state=history[-1])

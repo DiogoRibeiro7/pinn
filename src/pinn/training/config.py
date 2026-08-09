@@ -8,6 +8,7 @@ from typing import Mapping
 import torch
 
 from .causal_weighting import CausalWeightConfig
+from .adaptive_refinement import ResidualAdaptiveConfig
 from ..scaling import Nondimensionalizer
 
 
@@ -64,6 +65,8 @@ class TrainerConfig:
         scaling: Optional physical nondimensionalization transform. When set,
             the raw model is trained in dimensionless input/output variables
             while problems and constraints still see dimensional values.
+        adaptive_refinement: Optional residual-based adaptive refinement
+            configuration for adding high-residual collocation points.
     """
 
     seed: int = 0
@@ -76,6 +79,7 @@ class TrainerConfig:
     loss_weights: Mapping[str, float] = field(default_factory=dict)
     causal: CausalWeightConfig | None = None
     scaling: Nondimensionalizer | None = None
+    adaptive_refinement: ResidualAdaptiveConfig | None = None
 
     def validate(self) -> None:
         """Raise ``ValueError`` when the configuration is invalid."""
@@ -93,3 +97,5 @@ class TrainerConfig:
         self.optimizer.validate()
         if self.causal is not None:
             self.causal.validate()
+        if self.adaptive_refinement is not None:
+            self.adaptive_refinement.validate()
