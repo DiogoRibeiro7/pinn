@@ -1,7 +1,7 @@
 # Core dependencies
 torch>=2.13.0
 numpy>=2.2.6
-PyYAML>=6.0.0
+PyYAML>=6.0.3
 
 # Visualization
 matplotlib>=3.10.9
@@ -12,8 +12,8 @@ scipy>=1.15.3
 plotly>=6.9.0
 
 # Deployment
-fastapi>=0.95
-uvicorn>=0.20
+fastapi>=0.141.1
+uvicorn>=0.52.1
 grpcio>=1.54
 
 # Development and testing (optional)
@@ -22,4 +22,4 @@ jupyter>=1.1.1
 ipykernel>=7.3.0
 
 # Progress bars
-tqdm>=4.68.3
+tqdm>=4.70.0
