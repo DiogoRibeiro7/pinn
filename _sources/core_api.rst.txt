@@ -76,6 +76,39 @@ network sees them and scale outputs back before losses are evaluated.
    # evaluating with physical coordinates.
    physical_model = ScaledModel(model, scaling)
 
+Residual-Adaptive Refinement
+----------------------------
+
+The generic trainer can add high-residual interior collocation points during
+Adam training. Configure ``ResidualAdaptiveConfig`` when you want residual-based
+adaptive refinement (RAR) on the composable problem path.
+
+.. code-block:: python
+
+   from pinn.training import (
+       OptimizerConfig,
+       ResidualAdaptiveConfig,
+       Trainer,
+       TrainerConfig,
+   )
+
+   trainer = Trainer(
+       TrainerConfig(
+           collocation_count=512,
+           adaptive_refinement=ResidualAdaptiveConfig(
+               candidate_count=2048,
+               points_per_refinement=128,
+               refresh_every=100,
+               max_refined_points=512,
+           ),
+           optimizer=OptimizerConfig(adam_steps=1000, lr=1e-3),
+       )
+   )
+
+RAR diagnostics are recorded in ``TrainingState.diagnostics`` with keys such as
+``rar_points``, ``rar_new_points``, ``rar_candidate_mean_residual`` and
+``rar_candidate_max_residual``.
+
 Design Responsibilities
 -----------------------
 
@@ -107,9 +140,9 @@ Design Responsibilities
 
 ``pinn.training.Trainer``
     Combines residual and constraint losses, applies configured loss weights,
-    and performs Adam plus optional L-BFGS optimization. It records typed
-    ``TrainingState`` entries with named losses, weights, elapsed time and
-    diagnostics.
+    optionally retains high-residual RAR collocation points, and performs Adam
+    plus optional L-BFGS optimization. It records typed ``TrainingState`` entries
+    with named losses, weights, elapsed time and diagnostics.
 
 Compatibility
 -------------

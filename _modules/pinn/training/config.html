@@ -41,6 +41,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.causal_weighting</span><span class="w"> </span><span class="kn">import</span> <span class="n">CausalWeightConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.adaptive_refinement</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResidualAdaptiveConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..scaling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Nondimensionalizer</span>
 
 
@@ -105,6 +106,8 @@
 <span class="sd">        scaling: Optional physical nondimensionalization transform. When set,</span>
 <span class="sd">            the raw model is trained in dimensionless input/output variables</span>
 <span class="sd">            while problems and constraints still see dimensional values.</span>
+<span class="sd">        adaptive_refinement: Optional residual-based adaptive refinement</span>
+<span class="sd">            configuration for adding high-residual collocation points.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -117,6 +120,7 @@
     <span class="n">loss_weights</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">causal</span><span class="p">:</span> <span class="n">CausalWeightConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">scaling</span><span class="p">:</span> <span class="n">Nondimensionalizer</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">adaptive_refinement</span><span class="p">:</span> <span class="n">ResidualAdaptiveConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="TrainerConfig.validate">
 <a class="viewcode-back" href="../../../api/index.html#pinn.TrainerConfig.validate">[docs]</a>
@@ -135,7 +139,9 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loss weight for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be non-negative&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">causal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">causal</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">causal</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_refinement</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_refinement</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
 </div>
 
 </pre></div>

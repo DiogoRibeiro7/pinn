@@ -106,6 +106,36 @@ network sees them and scale outputs back before losses are evaluated.</p>
 </pre></div>
 </div>
 </section>
+<section id="residual-adaptive-refinement">
+<h2>Residual-Adaptive Refinement<a class="headerlink" href="#residual-adaptive-refinement" title="Link to this heading">¶</a></h2>
+<p>The generic trainer can add high-residual interior collocation points during
+Adam training. Configure <code class="docutils literal notranslate"><span class="pre">ResidualAdaptiveConfig</span></code> when you want residual-based
+adaptive refinement (RAR) on the composable problem path.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinn.training</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">OptimizerConfig</span><span class="p">,</span>
+    <span class="n">ResidualAdaptiveConfig</span><span class="p">,</span>
+    <span class="n">Trainer</span><span class="p">,</span>
+    <span class="n">TrainerConfig</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">TrainerConfig</span><span class="p">(</span>
+        <span class="n">collocation_count</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">adaptive_refinement</span><span class="o">=</span><span class="n">ResidualAdaptiveConfig</span><span class="p">(</span>
+            <span class="n">candidate_count</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+            <span class="n">points_per_refinement</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">refresh_every</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">max_refined_points</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">(</span><span class="n">adam_steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>RAR diagnostics are recorded in <code class="docutils literal notranslate"><span class="pre">TrainingState.diagnostics</span></code> with keys such as
+<code class="docutils literal notranslate"><span class="pre">rar_points</span></code>, <code class="docutils literal notranslate"><span class="pre">rar_new_points</span></code>, <code class="docutils literal notranslate"><span class="pre">rar_candidate_mean_residual</span></code> and
+<code class="docutils literal notranslate"><span class="pre">rar_candidate_max_residual</span></code>.</p>
+</section>
 <section id="design-responsibilities">
 <h2>Design Responsibilities<a class="headerlink" href="#design-responsibilities" title="Link to this heading">¶</a></h2>
 <dl class="simple">
@@ -131,9 +161,9 @@ preserve the configured dtype, so FP32 and FP64 training paths can be tested
 without silent downcasts.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinn.training.Trainer</span></code></dt><dd><p>Combines residual and constraint losses, applies configured loss weights,
-and performs Adam plus optional L-BFGS optimization. It records typed
-<code class="docutils literal notranslate"><span class="pre">TrainingState</span></code> entries with named losses, weights, elapsed time and
-diagnostics.</p>
+optionally retains high-residual RAR collocation points, and performs Adam
+plus optional L-BFGS optimization. It records typed <code class="docutils literal notranslate"><span class="pre">TrainingState</span></code> entries
+with named losses, weights, elapsed time and diagnostics.</p>
 </dd>
 </dl>
 </section>
@@ -181,6 +211,7 @@ reference solutions, but the legacy solver classes have not been removed.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Composable Core API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#minimal-heat-example">Minimal Heat Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#nondimensionalized-training">Nondimensionalized Training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#residual-adaptive-refinement">Residual-Adaptive Refinement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#design-responsibilities">Design Responsibilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#compatibility">Compatibility</a></li>
 </ul>
