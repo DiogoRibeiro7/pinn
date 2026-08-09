@@ -31,6 +31,21 @@ interior points and evaluates the PDE residual independently from trainer state.
 Classical comparison data can be generated with helpers such as
 ``pinn.numerics.solve_heat_explicit``.
 
+RAR benchmark
+-------------
+
+The ``scripts/benchmark_rar.py`` helper compares uniform collocation,
+residual-adaptive refinement and diversity-aware residual-adaptive refinement
+on the composable heat problem. It writes the shared
+``pinn.benchmarks.BenchmarkReport`` schema:
+
+.. code-block:: bash
+
+   python scripts/benchmark_rar.py --steps 100 --output rar_benchmark.json
+
+Use ``--modes uniform rar`` to limit the comparison, or tune
+``--diversity-weight`` when evaluating spread-aware candidate selection.
+
 Memory-aware training
 ---------------------
 

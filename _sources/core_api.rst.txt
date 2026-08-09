@@ -120,6 +120,7 @@ adaptive refinement (RAR) on the composable problem path.
                points_per_refinement=128,
                refresh_every=100,
                max_refined_points=512,
+               diversity_weight=0.25,
            ),
            optimizer=OptimizerConfig(adam_steps=1000, lr=1e-3),
        )
@@ -127,7 +128,10 @@ adaptive refinement (RAR) on the composable problem path.
 
 RAR diagnostics are recorded in ``TrainingState.diagnostics`` with keys such as
 ``rar_points``, ``rar_new_points``, ``rar_candidate_mean_residual`` and
-``rar_candidate_max_residual``.
+``rar_candidate_max_residual``. Set ``diversity_weight`` above zero to trade a
+portion of residual rank for normalized coordinate spread; diagnostics then
+also include ``rar_selection_diversity_weight`` and
+``rar_selected_min_distance``.
 
 Benchmark Reports
 -----------------

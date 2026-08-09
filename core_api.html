@@ -144,6 +144,7 @@ adaptive refinement (RAR) on the composable problem path.</p>
             <span class="n">points_per_refinement</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
             <span class="n">refresh_every</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
             <span class="n">max_refined_points</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+            <span class="n">diversity_weight</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">optimizer</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">(</span><span class="n">adam_steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">),</span>
     <span class="p">)</span>
@@ -152,7 +153,10 @@ adaptive refinement (RAR) on the composable problem path.</p>
 </div>
 <p>RAR diagnostics are recorded in <code class="docutils literal notranslate"><span class="pre">TrainingState.diagnostics</span></code> with keys such as
 <code class="docutils literal notranslate"><span class="pre">rar_points</span></code>, <code class="docutils literal notranslate"><span class="pre">rar_new_points</span></code>, <code class="docutils literal notranslate"><span class="pre">rar_candidate_mean_residual</span></code> and
-<code class="docutils literal notranslate"><span class="pre">rar_candidate_max_residual</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">rar_candidate_max_residual</span></code>. Set <code class="docutils literal notranslate"><span class="pre">diversity_weight</span></code> above zero to trade a
+portion of residual rank for normalized coordinate spread; diagnostics then
+also include <code class="docutils literal notranslate"><span class="pre">rar_selection_diversity_weight</span></code> and
+<code class="docutils literal notranslate"><span class="pre">rar_selected_min_distance</span></code>.</p>
 </section>
 <section id="benchmark-reports">
 <h2>Benchmark Reports<a class="headerlink" href="#benchmark-reports" title="Link to this heading">¶</a></h2>

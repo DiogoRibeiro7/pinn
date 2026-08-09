@@ -61,6 +61,9 @@
 <span class="sd">        refresh_every: Optimizer-step interval between refinement passes.</span>
 <span class="sd">        start_step: First Adam step at which refinement may run.</span>
 <span class="sd">        max_refined_points: Maximum retained adaptive collocation points.</span>
+<span class="sd">        diversity_weight: Non-negative weight for normalized coordinate</span>
+<span class="sd">            separation during candidate selection. ``0.0`` preserves strict</span>
+<span class="sd">            residual top-k selection.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">candidate_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span>
@@ -68,6 +71,7 @@
     <span class="n">refresh_every</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
     <span class="n">start_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">max_refined_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span>
+    <span class="n">diversity_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 
 <div class="viewcode-block" id="ResidualAdaptiveConfig.validate">
 <a class="viewcode-back" href="../../../api/index.html#pinn.training.ResidualAdaptiveConfig.validate">[docs]</a>
@@ -84,7 +88,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start_step must be &gt;= 1&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_refined_points</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">points_per_refinement</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_refined_points must be &gt;= points_per_refinement&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_refined_points must be &gt;= points_per_refinement&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">diversity_weight</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;diversity_weight must be non-negative&quot;</span><span class="p">)</span></div>
 </div>
 
 
@@ -154,7 +160,7 @@
         <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Score candidate points by residual magnitude and retain the largest.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Score candidates and retain high-residual, optionally diverse points.&quot;&quot;&quot;</span>
         <span class="n">candidates</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">sample_interior</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">candidate_count</span><span class="p">,</span>
             <span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">,</span>
@@ -167,17 +173,62 @@
         <span class="p">)</span>
         <span class="n">scores</span> <span class="o">=</span> <span class="n">residual</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">candidates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">points_per_refinement</span><span class="p">,</span> <span class="n">candidates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">top</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
-        <span class="n">selected_points</span> <span class="o">=</span> <span class="n">candidates</span><span class="o">.</span><span class="n">detach</span><span class="p">()[</span><span class="n">top</span><span class="p">]</span>
-        <span class="n">selected_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">top</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="n">selected_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_candidates</span><span class="p">(</span>
+            <span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="o">.</span><span class="n">detach</span><span class="p">(),</span> <span class="n">scores</span><span class="p">,</span> <span class="n">k</span>
+        <span class="p">)</span>
+        <span class="n">selected_points</span> <span class="o">=</span> <span class="n">candidates</span><span class="o">.</span><span class="n">detach</span><span class="p">()[</span><span class="n">selected_indices</span><span class="p">]</span>
+        <span class="n">selected_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">selected_indices</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_retain</span><span class="p">(</span><span class="n">selected_points</span><span class="p">,</span> <span class="n">selected_scores</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_diagnostics</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;rar_new_points&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="p">),</span>
             <span class="s2">&quot;rar_candidate_mean_residual&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span>
             <span class="s2">&quot;rar_candidate_max_residual&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+            <span class="s2">&quot;rar_selection_diversity_weight&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">diversity_weight</span><span class="p">),</span>
+            <span class="s2">&quot;rar_selected_min_distance&quot;</span><span class="p">:</span> <span class="n">_minimum_pairwise_distance</span><span class="p">(</span><span class="n">selected_points</span><span class="p">),</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">()</span></div>
 
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_select_candidates</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">PDEProblem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">scores</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select candidates by residual score plus optional coordinate spread.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">diversity_weight</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
+
+        <span class="n">normalized</span> <span class="o">=</span> <span class="n">_normalize_points</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span>
+        <span class="n">residual_score</span> <span class="o">=</span> <span class="n">_minmax_normalize</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">candidates</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">is_selected</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">candidates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="n">candidates</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+
+        <span class="n">nearest_distance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="n">candidates</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">candidates</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">retained</span> <span class="o">=</span> <span class="n">_normalize_points</span><span class="p">(</span>
+                <span class="n">problem</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">candidates</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">candidates</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">nearest_distance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">normalized</span><span class="p">,</span> <span class="n">retained</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">slot</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">composite</span> <span class="o">=</span> <span class="n">residual_score</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">composite</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">residual_score</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">diversity_weight</span> <span class="o">*</span> <span class="n">nearest_distance</span>
+                <span class="p">)</span>
+            <span class="n">composite</span> <span class="o">=</span> <span class="n">composite</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">is_selected</span><span class="p">,</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+            <span class="n">chosen</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">composite</span><span class="p">)</span>
+            <span class="n">selected</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">chosen</span>
+            <span class="n">is_selected</span><span class="p">[</span><span class="n">chosen</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">distances</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normalized</span> <span class="o">-</span> <span class="n">normalized</span><span class="p">[</span><span class="n">chosen</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">slot</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">nearest_distance</span> <span class="o">=</span> <span class="n">distances</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nearest_distance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">nearest_distance</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">selected</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_retain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">scores</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Keep the highest-scoring retained adaptive points.&quot;&quot;&quot;</span>
@@ -190,6 +241,31 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">detach</span><span class="p">()[</span><span class="n">keep</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">detach</span><span class="p">()[</span><span class="n">keep</span><span class="p">]</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_points</span><span class="p">(</span><span class="n">problem</span><span class="p">:</span> <span class="n">PDEProblem</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scale coordinates to unit-box geometry coordinates.&quot;&quot;&quot;</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">lower_bounds</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">points</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">points</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">upper</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">upper_bounds</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">points</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">points</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">points</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">upper</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_minmax_normalize</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize scores to ``[0, 1]`` while handling constant vectors.&quot;&quot;&quot;</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">span</span> <span class="o">&lt;=</span> <span class="n">torch</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">values</span> <span class="o">-</span> <span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">span</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_minimum_pairwise_distance</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the minimum selected point distance, or zero for one point.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">distances</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">distances</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
 </pre></div>
 
           </div>
