@@ -25,7 +25,11 @@ import traceback
 import functools
 import logging
 import time
-import psutil
+
+try:  # Optional dependency, matching logging.py, profiling.py and the rest
+    import psutil  # type: ignore
+except Exception:  # pragma: no cover - optional
+    psutil = None  # type: ignore
 from typing import Dict, Any, Optional, Callable, List, Tuple
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -158,12 +162,15 @@ class PINNError(Exception):
     def _capture_system_context(self) -> None:
         """Capture current system state."""
         try:
-            # Memory usage
-            process = psutil.Process()
-            self.context.memory_usage = process.memory_info().rss / 1024 / 1024  # MB
+            if psutil is not None:
+                # Memory usage
+                process = psutil.Process()
+                self.context.memory_usage = (
+                    process.memory_info().rss / 1024 / 1024
+                )  # MB
 
-            # CPU usage
-            self.context.cpu_usage = psutil.cpu_percent()
+                # CPU usage
+                self.context.cpu_usage = psutil.cpu_percent()
 
             # GPU memory if available
             if torch.cuda.is_available():

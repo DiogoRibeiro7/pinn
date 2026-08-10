@@ -7,6 +7,8 @@ install_requires = [
     "numpy>=1.20.0",
     "PyYAML>=6.0.0",
     "tqdm>=4.60.0",
+    "matplotlib>=3.10.9",
+    "seaborn>=0.13.2",
 ]
 
 extras_require = {

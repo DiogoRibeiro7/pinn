@@ -10,6 +10,26 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [0.4.0] - 2026-08-10
 
+### Fixed
+
+- `import pinnlab` failed on a clean install. `utils/error_handling.py`
+  imported `psutil` unguarded while four sibling modules already treated it as
+  optional, so a `pip install` with only the declared dependencies raised
+  `ModuleNotFoundError: No module named 'psutil'` before any user code ran.
+  The import is now guarded to match, and its single use site checks for it.
+- `matplotlib` and `seaborn` are declared as required dependencies. They were
+  listed only in the `viz` extra, but `utils/__init__.py` imports the
+  visualisation module eagerly, so the package could not be imported without
+  them and the extra was advertising a configuration that does not work. The
+  `viz` extra now holds `plotly` and `scipy`, which genuinely degrade with a
+  warning when absent. Guarding the visualisation imports instead, and
+  returning matplotlib to the extra, remains open.
+
+Both were found by rehearsing the publish workflow rather than by the test
+suite, which had never exercised an install limited to the declared
+dependencies. `tests/unit/test_packaging.py` now does: it imports the package
+with each optional dependency blocked, and with all of them blocked at once.
+
 ### Changed
 
 - **The distribution and import package are now `pinnlab`.** `pinn` on PyPI is
