@@ -4,9 +4,9 @@
 import argparse
 from pathlib import Path
 
-from pinn.config.management import ConfigLoader
-from pinn.models import MLP
-from pinn.utils.logging import get_logger
+from pinnkit.config.management import ConfigLoader
+from pinnkit.models import MLP
+from pinnkit.utils.logging import get_logger
 
 
 def main() -> None:

@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 
-from pinn.visualization import TrainingDashboard, export_animation
+from pinnkit.visualization import TrainingDashboard, export_animation
 
 
 def test_dashboard_records_losses(tmp_path):

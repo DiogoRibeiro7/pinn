@@ -6,14 +6,14 @@ from pathlib import Path
 
 import torch
 
-from pinn.models import MLP
-from pinn.solvers.raissi_improved import (
+from pinnkit.models import MLP
+from pinnkit.solvers.raissi_improved import (
     BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,
 )
-from pinn.utils.logging import get_logger
+from pinnkit.utils.logging import get_logger
 
 
 def main() -> None:

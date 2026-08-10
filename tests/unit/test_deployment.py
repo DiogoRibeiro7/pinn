@@ -7,7 +7,7 @@ except Exception:  # pragma: no cover
     TestClient = None  # type: ignore
     pytest.skip("fastapi not installed", allow_module_level=True)
 
-from pinn.deployment import PINNModelServer, create_app, save_model, load_model
+from pinnkit.deployment import PINNModelServer, create_app, save_model, load_model
 
 
 class TinyModel(torch.nn.Module):

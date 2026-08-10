@@ -1,6 +1,6 @@
 """Test helper models."""
 
-from pinn.models.mlp import MLP
+from pinnkit.models.mlp import MLP
 
 
 def simple_mlp() -> MLP:

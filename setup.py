@@ -1,4 +1,4 @@
-"""Setup script for the pinn package."""
+"""Setup script for the pinnkit package."""
 
 from setuptools import setup, find_packages
 
@@ -24,7 +24,7 @@ extras_require = {
 
 if __name__ == "__main__":
     setup(
-        name="pinn",
+        name="pinnkit",
         version="0.2.0",
         author="Diogo Ribeiro",
         author_email="dfr@esmad.ipp.pt",
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         extras_require=extras_require,
         entry_points={
             "console_scripts": [
-                "pinn=pinn.cli:main",
+                "pinnkit=pinnkit.cli:main",
             ]
         },
     )

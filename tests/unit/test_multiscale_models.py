@@ -1,6 +1,6 @@
 import torch
 
-from pinn.models import (
+from pinnkit.models import (
     FourierMultiScalePINN,
     HierarchicalPINN,
     MLP,

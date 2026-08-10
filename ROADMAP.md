@@ -21,7 +21,11 @@ Release state:
 - Validation before release: full test suite passed (`285 passed`), Sphinx HTML
   documentation build succeeded, `python -m build` produced release artifacts,
   and `twine check` passed for both artifacts
-- PyPI: not uploaded; publication remains manual
+- PyPI: not yet uploaded. The distribution is named `pinnkit`, because
+  `pinn` on PyPI belongs to an unrelated REST-API client that also occupies
+  the `import pinn` name. Publishing is wired up through
+  `.github/workflows/publish.yml` using trusted publishing and runs on a
+  version tag once the publisher is registered on pypi.org
 
 What `v0.3.0` means architecturally:
 - The project is no longer only a solver-centric collection of PINN examples.
@@ -59,10 +63,10 @@ Current limitation:
 ### References And Benchmarks
 
 Available reference and benchmark infrastructure:
-- Cole-Hopf reference solution for viscous Burgers in `pinn.solvers.reference`
+- Cole-Hopf reference solution for viscous Burgers in `pinnkit.solvers.reference`
 - Classical explicit finite-difference heat-equation reference solver in
-  `pinn.numerics`
-- Benchmark report primitives in `pinn.benchmarks`, including JSON
+  `pinnkit.numerics`
+- Benchmark report primitives in `pinnkit.benchmarks`, including JSON
   serialization and explicit reference provenance labels:
   `analytic`, `numerical`, and `observational`
 - Benchmark scripts for precision and residual-adaptive refinement workflows
@@ -78,16 +82,16 @@ Current limitation:
 ### Composable Core API
 
 Implemented composable pieces:
-- `pinn.geometry`: `Interval`, `Rectangle`, shape validation, containment
+- `pinnkit.geometry`: `Interval`, `Rectangle`, shape validation, containment
   checks, interior sampling and boundary masks
-- `pinn.constraints`: soft initial, Dirichlet, Neumann and periodic constraints
-- `pinn.residuals`: strong-form residual evaluation through a derivative
+- `pinnkit.constraints`: soft initial, Dirichlet, Neumann and periodic constraints
+- `pinnkit.residuals`: strong-form residual evaluation through a derivative
   backend
-- `pinn.problems`: equation identity, dimensions, geometry, constraints and
+- `pinnkit.problems`: equation identity, dimensions, geometry, constraints and
   residual definitions for migrated problems
-- `pinn.training.Trainer`: equation-agnostic training loop with typed config,
+- `pinnkit.training.Trainer`: equation-agnostic training loop with typed config,
   state, result, named losses and diagnostics
-- `pinn.scaling`: characteristic scales, nondimensionalization transforms,
+- `pinnkit.scaling`: characteristic scales, nondimensionalization transforms,
   derivative scale factors and scaled model wrappers
 
 Current limitation:
@@ -103,12 +107,12 @@ Implemented adaptive and sampling features:
 - Optional diversity-aware RAR selection
 - RAR diagnostics recorded in training state
 - Configurable trainer-owned interior sampler protocol:
-  `pinn.sampling.InteriorSampler`
+  `pinnkit.sampling.InteriorSampler`
 - `UniformInteriorSampler` as the default composable sampler
 - `LatinHypercubeInteriorSampler` for stratified composable geometry sampling
 - Compatibility adapters between the composable `InteriorSampler` protocol and
   legacy `BaseSampler` consumers
-- Shared `pinn.sampling.latin_hypercube`, re-exported by legacy solver modules
+- Shared `pinnkit.sampling.latin_hypercube`, re-exported by legacy solver modules
   for backward-compatible LHS imports
 
 Current limitation:
@@ -247,7 +251,7 @@ Concrete work:
 - Keep `raissi_improved` as the compatibility facade until caching,
   checkpoints, active learning and batching have generic equivalents.
 - Continue centralizing duplicated helpers, following the pattern used for
-  `pinn.sampling.latin_hypercube`.
+  `pinnkit.sampling.latin_hypercube`.
 
 Done when:
 - Public import compatibility tests cover the retained legacy symbols.
@@ -276,7 +280,7 @@ Done when:
 ### 4. Unify Sampling And Adaptive Strategies
 
 Why it matters:
-Sampling is now split across `pinn.sampling`, `pinn.utils.sampling` and solver
+Sampling is now split across `pinnkit.sampling`, `pinnkit.utils.sampling` and solver
 modules. `v0.3.0` introduced the bridge; the next step is reducing the need for
 bridges.
 
@@ -285,8 +289,8 @@ Concrete work:
   possible.
 - Add adapter examples showing old `BaseSampler` consumers and new
   `InteriorSampler` policies working together.
-- Decide whether `pinn.utils.sampling.Domain` remains as a compatibility type
-  or becomes a wrapper around `pinn.geometry`.
+- Decide whether `pinnkit.utils.sampling.Domain` remains as a compatibility type
+  or becomes a wrapper around `pinnkit.geometry`.
 - Extend RAR benchmark comparisons beyond Burgers, heat and wave after new
   composable problem adapters exist.
 
@@ -411,7 +415,7 @@ Use this checklist for the next release.
 Before tagging:
 - Update `CHANGELOG.md`.
 - Bump `pyproject.toml`.
-- Update fallback `__version__` in `src/pinn/__init__.py`.
+- Update fallback `__version__` in `src/pinnkit/__init__.py`.
 - Update `CITATION.cff`, `.zenodo.json` and README citation metadata.
 - Search for stale version strings.
 - Run the full test suite.
@@ -427,6 +431,21 @@ After tagging:
 - Push the tag.
 - Create the GitHub Release and attach wheel/source artifacts.
 - Decide explicitly whether PyPI upload is in scope for that release.
+
+PyPI publishing (one-time setup, not yet done):
+- On pypi.org, add a trusted publisher for the project with owner
+  `DiogoRibeiro7`, repository `pinn`, workflow `publish.yml` and environment
+  `pypi`. Do the same on test.pypi.org with environment `testpypi` to
+  rehearse.
+- Create the matching `pypi` and `testpypi` environments in the repository
+  settings on GitHub. Adding required reviewers there makes a publish need
+  manual approval.
+- Rehearse with `gh workflow run publish.yml -f target=testpypi` before
+  relying on the tag path. The build, metadata check, tag/version agreement
+  check, clean-environment install and stray-file scan all run first, so a
+  dry run is safe even before the publisher exists.
+- The first upload claims the name permanently. Confirm `pinnkit` is still
+  free immediately before publishing.
 - Update this roadmap with the new release status and next active stage.
 
 ---

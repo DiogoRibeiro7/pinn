@@ -7,12 +7,12 @@ import pytest
 import torch
 from torch import Tensor, nn
 
-from pinn.models import MLP
-from pinn.problems import HeatProblem
-from pinn.residuals import AutogradDerivativeBackend, StrongFormResidual
-from pinn.scaling import CharacteristicScales, Nondimensionalizer, ScaledModel
-from pinn.solvers.heat import HeatConfig
-from pinn.training import OptimizerConfig, Trainer, TrainerConfig
+from pinnkit.models import MLP
+from pinnkit.problems import HeatProblem
+from pinnkit.residuals import AutogradDerivativeBackend, StrongFormResidual
+from pinnkit.scaling import CharacteristicScales, Nondimensionalizer, ScaledModel
+from pinnkit.solvers.heat import HeatConfig
+from pinnkit.training import OptimizerConfig, Trainer, TrainerConfig
 
 
 class QuadraticDimensionlessModel(nn.Module):

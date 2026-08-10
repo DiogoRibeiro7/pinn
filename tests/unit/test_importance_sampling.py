@@ -5,8 +5,8 @@ from __future__ import annotations
 import numpy as np
 import torch
 
-from pinn.sampling import GradientBasedImportanceSampler
-from pinn.utils.sampling import Domain, LatinHypercubeSampler
+from pinnkit.sampling import GradientBasedImportanceSampler
+from pinnkit.utils.sampling import Domain, LatinHypercubeSampler
 
 
 class IdentityModel(torch.nn.Module):

@@ -13,7 +13,7 @@ The long-term target is:
 
 .. code-block:: text
 
-   src/pinn/
+   src/pinnkit/
    |-- problems/
    |-- geometry/
    |-- constraints/
@@ -38,12 +38,12 @@ Core Abstraction Mapping
 
 Problems
     Move equation identity, dimensions, parameters, exact/reference solutions
-    and residual definitions into ``pinn.problems``. Initial candidates are
+    and residual definitions into ``pinnkit.problems``. Initial candidates are
     ``HeatProblem``, ``WaveProblem`` and ``BurgersProblem`` because they already
     have reference solutions and tests.
 
 Geometry
-    Replace duplicated ``Domain1D`` and ``pinn.utils.sampling.Domain`` usage in
+    Replace duplicated ``Domain1D`` and ``pinnkit.utils.sampling.Domain`` usage in
     solver code with geometry objects such as ``Interval`` and
     ``Rectangle``. Geometry should own bounds, dimensionality, containment
     checks, interior sampling and boundary identification.
@@ -82,11 +82,11 @@ Compatibility Strategy
 
 No public import should be removed during the migration. Instead:
 
-* Keep ``pinn.solvers.heat.HeatPINN`` and ``pinn.solvers.wave.WavePINN`` as
+* Keep ``pinnkit.solvers.heat.HeatPINN`` and ``pinnkit.solvers.wave.WavePINN`` as
   compatibility wrappers around the new problem plus generic trainer.
-* Keep ``pinn.solvers._base.TrainConfig`` importable until callers have a
+* Keep ``pinnkit.solvers._base.TrainConfig`` importable until callers have a
   documented replacement.
-* Keep ``pinn.solvers.raissi_improved.ContinuousPINN`` and
+* Keep ``pinnkit.solvers.raissi_improved.ContinuousPINN`` and
   ``DiscreteRKPINN`` available while a Burgers problem adapter is introduced.
 * Keep top-level ``pinn.ContinuousPINN``, ``pinn.DiscreteRKPINN`` and
   ``pinn.TrainConfig`` bound to the legacy Burgers symbols until a deliberate
@@ -107,17 +107,17 @@ Proposed Milestones
     backend.
 
 3. Burgers adapter
-    Implemented through ``pinn.problems.BurgersProblem`` with initial and
+    Implemented through ``pinnkit.problems.BurgersProblem`` with initial and
     Dirichlet constraints plus the Cole-Hopf reference evaluator. Keep
     ``raissi_improved`` as the compatibility facade until the new trainer
     supports all of its required features.
 
 4. Sampling unification
     Partially implemented for the composable trainer through
-    ``pinn.sampling.InteriorSampler``, ``UniformInteriorSampler`` and
+    ``pinnkit.sampling.InteriorSampler``, ``UniformInteriorSampler`` and
     ``LatinHypercubeInteriorSampler``. Compatibility adapters bridge the
     composable protocol with legacy ``BaseSampler`` consumers. Legacy solver
-    ``latin_hypercube`` names now re-export a shared ``pinn.sampling.core``
+    ``latin_hypercube`` names now re-export a shared ``pinnkit.sampling.core``
     helper. Remaining work is to migrate richer adaptive sampling policies onto
     the same interface directly.
 
@@ -130,9 +130,9 @@ Proposed Milestones
     Validate against heat-equation equivalence tests before expanding further.
 
 7. Benchmarks and classical references
-    Implemented for the composable heat path through ``pinn.benchmarks`` report
+    Implemented for the composable heat path through ``pinnkit.benchmarks`` report
     serialization, independent residual evaluation and
-    ``pinn.numerics.solve_heat_explicit``. Reference data is explicitly labelled
+    ``pinnkit.numerics.solve_heat_explicit``. Reference data is explicitly labelled
     as analytic, numerical or observational.
 
 8. Advanced methods
@@ -150,38 +150,38 @@ Old-to-New Mapping
      - Future home
      - Migration note
    * - ``HeatConfig`` / ``HeatPINN`` / ``heat_exact``
-     - ``pinn.problems`` plus ``pinn.solvers.heat`` wrappers
+     - ``pinnkit.problems`` plus ``pinnkit.solvers.heat`` wrappers
      - Best first target for generic trainer migration.
    * - ``WaveConfig`` / ``WavePINN`` / ``wave_exact``
-     - ``pinn.problems`` plus ``pinn.solvers.wave`` wrappers
+     - ``pinnkit.problems`` plus ``pinnkit.solvers.wave`` wrappers
      - Exercises second-time-derivative residuals and initial velocity.
    * - ``BurgersConfig`` / ``burgers_residual``
-     - ``pinn.problems`` and ``pinn.residuals``
+     - ``pinnkit.problems`` and ``pinnkit.residuals``
      - ``BurgersProblem`` now covers the composable forward-problem path; legacy
        solver features such as caching and checkpoints remain in
        ``raissi_improved``.
    * - ``Domain1D``
-     - ``pinn.geometry.Interval`` or space-time rectangle composition
+     - ``pinnkit.geometry.Interval`` or space-time rectangle composition
      - Preserve old dataclass import during transition.
    * - ``ContinuousPINNGeneric``
      - Generic trainer plus problem/constraint instances
      - Its callable-based extension point becomes the compatibility adapter.
    * - ``NavierStokesPINN``
-     - ``pinn.problems`` plus multi-output residuals and periodic constraints
+     - ``pinnkit.problems`` plus multi-output residuals and periodic constraints
      - Migrate after derivative and constraint abstractions support systems.
-   * - ``pinn.utils.sampling.Domain``
-     - ``pinn.geometry`` for domain semantics; ``pinn.sampling`` for policies
+   * - ``pinnkit.utils.sampling.Domain``
+     - ``pinnkit.geometry`` for domain semantics; ``pinnkit.sampling`` for policies
      - Composable trainer now consumes ``InteriorSampler`` policies; keep
        legacy sampling APIs backward compatible while migrating callers.
    * - solver-local ``latin_hypercube``
-     - ``pinn.sampling.core.latin_hypercube``
+     - ``pinnkit.sampling.core.latin_hypercube``
      - Solver modules preserve the old names as compatibility imports.
    * - ``AdaptiveLossWeighting`` and ``causal_residual_loss``
-     - ``pinn.training`` strategies used by generic trainer
+     - ``pinnkit.training`` strategies used by generic trainer
      - Avoid equation-specific special cases.
    * - ``burgers_cole_hopf`` and ``relative_l2_error``
-     - ``pinn.numerics.references`` or ``pinn.problems`` reference helpers
-     - Re-export from ``pinn.solvers.reference``.
+     - ``pinnkit.numerics.references`` or ``pinnkit.problems`` reference helpers
+     - Re-export from ``pinnkit.solvers.reference``.
 
 Validation Requirements for Each Migration Step
 -----------------------------------------------

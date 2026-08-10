@@ -27,7 +27,7 @@ from .load_balancing import DynamicLoadBalancer, FailureTracker
 from .trainer import DistributedTrainer
 
 if TYPE_CHECKING:  # pragma: no cover - optional dependency for typing only
-    from pinn.utils.checkpointing import CheckpointManager
+    from pinnkit.utils.checkpointing import CheckpointManager
 
 __all__ = [
     "DistributedEnvironment",

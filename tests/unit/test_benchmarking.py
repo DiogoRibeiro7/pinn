@@ -7,16 +7,16 @@ import pytest
 import torch
 from torch import nn
 
-from pinn.benchmarks import (
+from pinnkit.benchmarks import (
     BenchmarkCase,
     BenchmarkMetric,
     BenchmarkReference,
     BenchmarkReport,
     evaluate_independent_residual,
 )
-from pinn.numerics import solve_heat_explicit
-from pinn.problems import HeatProblem
-from pinn.solvers.heat import HeatConfig, heat_exact
+from pinnkit.numerics import solve_heat_explicit
+from pinnkit.problems import HeatProblem
+from pinnkit.solvers.heat import HeatConfig, heat_exact
 
 
 class AnalyticHeatModel(nn.Module):

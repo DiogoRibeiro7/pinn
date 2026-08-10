@@ -21,7 +21,7 @@ from typing import Callable, Optional
 import torch
 from torch import Tensor
 
-from pinn.utils.sampling import BaseSampler, Domain
+from pinnkit.utils.sampling import BaseSampler, Domain
 
 
 @dataclass

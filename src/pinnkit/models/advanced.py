@@ -1,7 +1,7 @@
 """Advanced PINN architectures.
 
 This module collects several neural network architectures that extend the
-basic :class:`~pinn.models.MLP` model with additional capabilities tailored
+basic :class:`~pinnkit.models.MLP` model with additional capabilities tailored
 for challenging PDE problems.  The implementations are lightweight and focus
 on demonstrating the interfaces required for experimentation rather than being
 state of the art.  Each model is fully differentiable and can be composed with

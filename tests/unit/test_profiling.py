@@ -1,4 +1,8 @@
-from pinn.utils.profiling import profile_performance, MemoryTracker, PerformanceReport
+from pinnkit.utils.profiling import (
+    profile_performance,
+    MemoryTracker,
+    PerformanceReport,
+)
 
 
 def test_profile_decorator_records_duration():

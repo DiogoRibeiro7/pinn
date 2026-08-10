@@ -2,8 +2,8 @@
 
 import torch
 
-from pinn.solvers.raissi_improved import BurgersConfig, TrainConfig, burgers_residual
-from pinn.training.memory_efficient import MemoryEfficientPINN, MemoryProfiler
+from pinnkit.solvers.raissi_improved import BurgersConfig, TrainConfig, burgers_residual
+from pinnkit.training.memory_efficient import MemoryEfficientPINN, MemoryProfiler
 from tests.fixtures.models import simple_mlp
 
 

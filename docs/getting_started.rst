@@ -20,6 +20,6 @@ Quick check
 .. doctest::
    :options: +ELLIPSIS
 
-   >>> import pinn
+   >>> import pinnkit
    >>> hasattr(pinn, '__version__')
    True

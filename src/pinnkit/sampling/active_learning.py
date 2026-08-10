@@ -31,8 +31,8 @@ from typing import Callable, Iterable, Optional, Sequence
 import torch
 from torch import Tensor, nn
 
-from pinn.uncertainty import deep_ensemble_predict, mc_dropout_predict
-from pinn.utils.logging import get_logger
+from pinnkit.uncertainty import deep_ensemble_predict, mc_dropout_predict
+from pinnkit.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

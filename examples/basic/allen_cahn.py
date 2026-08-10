@@ -9,10 +9,10 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from pinn.models import MLP
-from pinn.utils.checkpointing import CheckpointManager
-from pinn.utils.logging import get_logger
-from pinn.utils.visualization import PINNVisualizer
+from pinnkit.models import MLP
+from pinnkit.utils.checkpointing import CheckpointManager
+from pinnkit.utils.logging import get_logger
+from pinnkit.utils.visualization import PINNVisualizer
 
 
 def allen_cahn_residual(model: MLP, t: Tensor, x: Tensor, eps: float) -> Tensor:

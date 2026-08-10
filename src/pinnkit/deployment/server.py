@@ -71,7 +71,7 @@ def create_app(model_server: Optional[PINNModelServer] = None) -> FastAPI:
     return app
 
 
-# Application used by ``uvicorn pinn.deployment.server:app``
+# Application used by ``uvicorn pinnkit.deployment.server:app``
 try:  # pragma: no cover - executed in deployment scenarios
     app = create_app()
 except Exception:  # pragma: no cover - during import without model

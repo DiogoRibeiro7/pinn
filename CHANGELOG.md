@@ -8,7 +8,26 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Changed
+
+- **The distribution and import package are now `pinnkit`.** `pinn` on PyPI is
+  taken by an unrelated REST-API client, and that package occupies the
+  `import pinn` name too, so publishing under a different distribution name
+  while keeping `import pinn` would have broken any environment holding both.
+  Install with `pip install pinnkit` and use `import pinnkit`; the console
+  script is `pinnkit`. The repository, its URLs and the Zenodo DOI are
+  unchanged. There is deliberately no `pinn` compatibility shim, since
+  providing one would re-occupy the name this rename exists to avoid.
+
 ### Added
+
+- `.github/workflows/publish.yml` publishes to PyPI on a version tag using
+  trusted publishing, so no API token is stored in the repository. Before any
+  upload it builds, runs `twine check --strict`, verifies the tag matches the
+  version in `pyproject.toml`, installs the wheel into a clean environment and
+  imports it, and rejects artifacts containing caches or benchmark leftovers.
+  `workflow_dispatch` can rehearse the whole path against TestPyPI. The
+  one-time trusted-publisher setup on pypi.org is described in `ROADMAP.md`.
 
 - Callback hooks for the composable trainer. `Trainer.train` accepts
   `callbacks=[...]`, and `TrainerCallback` exposes `on_train_begin`,
@@ -77,7 +96,7 @@ tag, publish the GitHub release, and — if desired — build and upload with
 ### Changed
 
 - Legacy solver `latin_hypercube` names now re-export the shared
-  `pinn.sampling.latin_hypercube` helper, keeping old import paths working while
+  `pinnkit.sampling.latin_hypercube` helper, keeping old import paths working while
   avoiding solver-local implementation drift.
 - Development and runtime dependency floors were refreshed by Dependabot.
 - Architecture, core API, performance and roadmap documentation now describe
@@ -94,11 +113,11 @@ tag, publish the GitHub release, and — if desired — build and upload with
   equation, both through `relative_l2_error`. With the budgets used in the
   examples they reach 1.7e-3 and 4.0e-2 respectively; a two-mode heat initial
   condition, which is stiffer, reaches 2.3e-3.
-- `pinn.solvers.reference.burgers_cole_hopf`: the exact solution of the viscous
+- `pinnkit.solvers.reference.burgers_cole_hopf`: the exact solution of the viscous
   Burgers equation via the Cole-Hopf transform, so the existing Burgers solvers
   can be scored. Cross-checked against an independent explicit finite-difference
   solve, agreeing to 1.9e-5 relative L2 at `nu = 0.05`.
-- `pinn.training.causal_weighting`: temporal causality weighting from Wang,
+- `pinnkit.training.causal_weighting`: temporal causality weighting from Wang,
   Sankaran and Perdikaris (2022). The weighting formula is unit-tested, but no
   accuracy benefit has been demonstrated on the problems in this package -- see
   the module docstring for the measurements and `ROADMAP.md` for the follow-up.
@@ -188,7 +207,7 @@ Python version, and citable.
 
 - `ci.yml` was an invalid workflow file: a job-level `if: runner.os == 'Linux'`
   referenced a context that does not exist there, so no CI job had ever run.
-- A bare `except:` in `pinn.utils.metrics` also caught `KeyboardInterrupt` and
+- A bare `except:` in `pinnkit.utils.metrics` also caught `KeyboardInterrupt` and
   `SystemExit`.
 - The Navier-Stokes example computed the true v-velocity field but never scored
   it; the v-velocity error is now reported alongside u.

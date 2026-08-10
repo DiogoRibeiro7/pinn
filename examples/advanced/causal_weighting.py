@@ -29,10 +29,10 @@ matplotlib.use("Agg")  # headless backend; no display required
 
 import numpy as np  # noqa: E402
 
-from pinn.solvers._base import TrainConfig  # noqa: E402
-from pinn.solvers.wave import WaveConfig, WavePINN, wave_exact  # noqa: E402
-from pinn.training.causal_weighting import CausalWeightConfig  # noqa: E402
-from pinn.utils.logging import get_logger  # noqa: E402
+from pinnkit.solvers._base import TrainConfig  # noqa: E402
+from pinnkit.solvers.wave import WaveConfig, WavePINN, wave_exact  # noqa: E402
+from pinnkit.training.causal_weighting import CausalWeightConfig  # noqa: E402
+from pinnkit.utils.logging import get_logger  # noqa: E402
 
 logger = get_logger(__name__)
 

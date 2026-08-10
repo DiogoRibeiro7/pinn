@@ -4,9 +4,9 @@
 import json
 from pathlib import Path
 
-from pinn.models.mlp import MLP
-from pinn.solvers.raissi_improved import BurgersConfig, TrainConfig, burgers_residual
-from pinn.training.memory_efficient import MemoryEfficientPINN, MemoryProfiler
+from pinnkit.models.mlp import MLP
+from pinnkit.solvers.raissi_improved import BurgersConfig, TrainConfig, burgers_residual
+from pinnkit.training.memory_efficient import MemoryEfficientPINN, MemoryProfiler
 
 
 def main() -> None:

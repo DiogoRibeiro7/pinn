@@ -10,18 +10,18 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinn.benchmarks import (
+from pinnkit.benchmarks import (
     BenchmarkCase,
     BenchmarkMetric,
     BenchmarkReference,
     BenchmarkReport,
     evaluate_independent_residual,
 )
-from pinn.models import MLP
-from pinn.problems import HeatProblem
-from pinn.scaling import CharacteristicScales, Nondimensionalizer, ScaledModel
-from pinn.solvers.heat import HeatConfig
-from pinn.training import OptimizerConfig, Trainer, TrainerConfig
+from pinnkit.models import MLP
+from pinnkit.problems import HeatProblem
+from pinnkit.scaling import CharacteristicScales, Nondimensionalizer, ScaledModel
+from pinnkit.solvers.heat import HeatConfig
+from pinnkit.training import OptimizerConfig, Trainer, TrainerConfig
 
 
 def _relative_l2(pred: np.ndarray, truth: np.ndarray) -> float:

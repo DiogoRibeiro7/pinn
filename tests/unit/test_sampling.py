@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 from hypothesis import assume, given, strategies as st
 
-from pinn.sampling import latin_hypercube as shared_latin_hypercube
-from pinn.solvers import navier_stokes, raissi, raissi_generic, raissi_improved
-from pinn.solvers.raissi_improved import latin_hypercube
+from pinnkit.sampling import latin_hypercube as shared_latin_hypercube
+from pinnkit.solvers import navier_stokes, raissi, raissi_generic, raissi_improved
+from pinnkit.solvers.raissi_improved import latin_hypercube
 
 
 @given(

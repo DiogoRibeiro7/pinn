@@ -8,17 +8,17 @@ from typing import Sequence
 import torch
 from torch import Tensor, nn
 
-from pinn.constraints import Constraint
-from pinn.geometry import Geometry, Rectangle
-from pinn.models import MLP
-from pinn.problems import HeatProblem
-from pinn.residuals import (
+from pinnkit.constraints import Constraint
+from pinnkit.geometry import Geometry, Rectangle
+from pinnkit.models import MLP
+from pinnkit.problems import HeatProblem
+from pinnkit.residuals import (
     AutogradDerivativeBackend,
     DerivativeBackend,
     StrongFormResidual,
 )
-from pinn.solvers.heat import HeatConfig
-from pinn.training import (
+from pinnkit.solvers.heat import HeatConfig
+from pinnkit.training import (
     OptimizerConfig,
     ResidualAdaptiveConfig,
     ResidualAdaptiveRefiner,

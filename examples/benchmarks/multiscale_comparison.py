@@ -7,13 +7,13 @@ from pathlib import Path
 
 import torch
 
-from pinn.models import (
+from pinnkit.models import (
     MLP,
     MultiScalePINN,
     MultiScaleTrainer,
     MultiScaleTrainingConfig,
 )
-from pinn.utils.logging import get_logger
+from pinnkit.utils.logging import get_logger
 
 
 def create_dataset(

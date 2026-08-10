@@ -7,10 +7,10 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinn.models import MLP
-from pinn.solvers.raissi_improved import BurgersConfig, burgers_residual
-from pinn.utils.logging import get_logger
-from pinn.utils.metrics import compute_error_metrics
+from pinnkit.models import MLP
+from pinnkit.solvers.raissi_improved import BurgersConfig, burgers_residual
+from pinnkit.utils.logging import get_logger
+from pinnkit.utils.metrics import compute_error_metrics
 
 
 def analytical_solution(t: np.ndarray, x: np.ndarray, nu: float) -> np.ndarray:

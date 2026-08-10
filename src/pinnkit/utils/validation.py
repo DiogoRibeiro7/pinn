@@ -74,7 +74,7 @@ def check_range(
 
     Examples
     --------
-    >>> from pinn.utils.validation import check_range
+    >>> from pinnkit.utils.validation import check_range
     >>> check_range("lr", 0.1, min=0.0, max=1.0)
     >>> check_range("lr", -1.0, min=0.0)
     Traceback (most recent call last):

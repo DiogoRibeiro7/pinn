@@ -1,6 +1,6 @@
 import torch
 
-from pinn.training import (
+from pinnkit.training import (
     adversarial_training_step,
     adaptive_loss_weights,
     architecture_search,
@@ -10,7 +10,7 @@ from pinn.training import (
     multi_fidelity_train,
     second_order_step,
 )
-from pinn.models import MLP
+from pinnkit.models import MLP
 
 
 def test_curriculum_train():

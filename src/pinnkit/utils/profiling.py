@@ -7,7 +7,7 @@ way to detect performance bottlenecks and regressions.
 
 Example
 -------
->>> from pinn.utils.profiling import profile_performance, MemoryTracker
+>>> from pinnkit.utils.profiling import profile_performance, MemoryTracker
 >>> @profile_performance
 ... def step():
 ...     pass

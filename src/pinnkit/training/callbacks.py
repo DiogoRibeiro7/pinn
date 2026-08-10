@@ -2,7 +2,7 @@
 
 Callbacks are the supported way to observe a training run without editing the
 trainer or post-processing its history. They receive the same immutable
-:class:`~pinn.training.state.TrainingState` records the trainer stores, so a
+:class:`~pinnkit.training.state.TrainingState` records the trainer stores, so a
 logger, a checkpointer and a custom diagnostic can coexist without competing
 for the training loop.
 

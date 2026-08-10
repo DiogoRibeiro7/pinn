@@ -7,20 +7,20 @@ import argparse
 from dataclasses import replace
 from pathlib import Path
 
-from pinn.models import MLP
-from pinn.sampling import (
+from pinnkit.models import MLP
+from pinnkit.sampling import (
     ActiveLearningConfig,
     ActiveLearningStrategy,
     ActivePINNTrainer,
     UncertaintyAcquisition,
 )
-from pinn.solvers.raissi_improved import (
+from pinnkit.solvers.raissi_improved import (
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,
     burgers_residual,
 )
-from pinn.utils.logging import get_logger
+from pinnkit.utils.logging import get_logger
 
 
 def run_baseline(pinn: ContinuousPINN, config: TrainConfig) -> float:

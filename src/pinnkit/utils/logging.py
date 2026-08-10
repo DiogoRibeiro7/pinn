@@ -9,7 +9,7 @@ This module provides a flexible logging framework with support for:
 - Memory and GPU utilisation tracking
 
 Example:
-    from pinn.utils.logging import get_logger, log_performance
+    from pinnkit.utils.logging import get_logger, log_performance
 
     logger = get_logger(__name__)
 

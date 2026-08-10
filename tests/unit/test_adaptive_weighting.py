@@ -6,14 +6,14 @@ import numpy as np
 import pytest
 import torch
 
-from pinn.models.mlp import MLP
-from pinn.solvers.raissi import (
+from pinnkit.models.mlp import MLP
+from pinnkit.solvers.raissi import (
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,
     burgers_residual,
 )
-from pinn.training.adaptive_weighting import (
+from pinnkit.training.adaptive_weighting import (
     AdaptiveLossWeighting,
     AdaptiveWeightingConfig,
     WeightEvolutionVisualizer,

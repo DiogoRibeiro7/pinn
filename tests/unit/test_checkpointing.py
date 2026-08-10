@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from pinn.utils.checkpointing import CheckpointManager
+from pinnkit.utils.checkpointing import CheckpointManager
 
 
 def test_checkpoint_save_load(tmp_path, device):

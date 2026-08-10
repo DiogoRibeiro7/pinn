@@ -2,7 +2,7 @@
 
 import torch
 
-from pinn.models import (
+from pinnkit.models import (
     AttentionPINN,
     EnsemblePINN,
     FourierFeaturePINN,

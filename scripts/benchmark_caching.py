@@ -10,9 +10,9 @@ from statistics import mean
 
 import torch
 
-from pinn.models.mlp import MLP
-from pinn.optimization.caching import CacheConfig
-from pinn.solvers.raissi_improved import (
+from pinnkit.models.mlp import MLP
+from pinnkit.optimization.caching import CacheConfig
+from pinnkit.solvers.raissi_improved import (
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,

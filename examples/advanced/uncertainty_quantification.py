@@ -7,15 +7,15 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinn.models import MLP
-from pinn.solvers.raissi_improved import (
+from pinnkit.models import MLP
+from pinnkit.solvers.raissi_improved import (
     BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,
 )
-from pinn.utils.logging import get_logger
-from pinn.utils.visualization import PINNVisualizer
+from pinnkit.utils.logging import get_logger
+from pinnkit.utils.visualization import PINNVisualizer
 
 
 def main() -> None:

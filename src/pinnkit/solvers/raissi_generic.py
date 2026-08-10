@@ -6,7 +6,7 @@ Extensions for Physics-Informed Neural Networks (PINNs):
 
 Usage
 -----
-1) Drop this module next to your existing `pinn.solvers.raissi` module (or use standalone).
+1) Drop this module next to your existing `pinnkit.solvers.raissi` module (or use standalone).
 2) Run the `demo_allen_cahn()` or `demo_schrodinger()` functions at the bottom.
 
 Other PDEs: Replace `*_residual` with your PDE residual f(t,x) using autograd
@@ -57,7 +57,7 @@ def set_seed(seed: int = 123) -> None:
     torch.cuda.manual_seed_all(seed)
 
 
-# latin_hypercube is imported from pinn.sampling.core. It used to be defined
+# latin_hypercube is imported from pinnkit.sampling.core. It used to be defined
 # independently in solver modules, and one copy was broken for d > 1. Keeping a
 # single implementation avoids shape bugs and drift while preserving this
 # module-level compatibility name.

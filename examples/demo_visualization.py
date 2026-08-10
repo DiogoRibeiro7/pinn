@@ -15,15 +15,15 @@ matplotlib.use("Agg")  # headless backend; no display required
 
 import numpy as np  # noqa: E402
 
-from pinn.models import MLP  # noqa: E402
-from pinn.solvers.raissi_improved import (  # noqa: E402
+from pinnkit.models import MLP  # noqa: E402
+from pinnkit.solvers.raissi_improved import (  # noqa: E402
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,
     burgers_residual,
 )
-from pinn.utils.logging import get_logger  # noqa: E402
-from pinn.visualization import PINNVisualizer  # noqa: E402
+from pinnkit.utils.logging import get_logger  # noqa: E402
+from pinnkit.visualization import PINNVisualizer  # noqa: E402
 
 
 def main() -> None:

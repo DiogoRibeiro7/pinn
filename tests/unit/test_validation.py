@@ -3,7 +3,7 @@ import torch
 import pytest
 from dataclasses import dataclass
 
-from pinn.utils.validation import (
+from pinnkit.utils.validation import (
     ValidationError,
     validate_arrays,
     validate_config,

@@ -29,7 +29,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from pinn.utils.sampling import BaseSampler, Domain, LatinHypercubeSampler
+from pinnkit.utils.sampling import BaseSampler, Domain, LatinHypercubeSampler
 
 # ---------------------------------------------------------------------------
 # Multi-fidelity sampler

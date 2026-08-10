@@ -6,14 +6,14 @@ import numpy as np
 import pytest
 import torch
 
-from pinn.geometry import Rectangle
-from pinn.sampling import (
+from pinnkit.geometry import Rectangle
+from pinnkit.sampling import (
     BaseSamplerInteriorAdapter,
     InteriorSamplerBaseAdapter,
     LatinHypercubeInteriorSampler,
     UniformInteriorSampler,
 )
-from pinn.utils.sampling import BaseSampler, Domain, LatinHypercubeSampler
+from pinnkit.utils.sampling import BaseSampler, Domain, LatinHypercubeSampler
 
 
 class OutOfBoundsSampler(BaseSampler):

@@ -5,13 +5,13 @@ from __future__ import annotations
 import numpy as np
 import torch
 
-from pinn.sampling import (
+from pinnkit.sampling import (
     HierarchicalConfig,
     HierarchicalPINNTrainer,
     MultiFidelityGaussianProcess,
     MultiFidelitySampler,
 )
-from pinn.utils.sampling import Domain, LatinHypercubeSampler
+from pinnkit.utils.sampling import Domain, LatinHypercubeSampler
 
 
 def test_hierarchical_schedule_allocates_more_to_low_fidelity() -> None:

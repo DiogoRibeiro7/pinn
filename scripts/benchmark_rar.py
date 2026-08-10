@@ -11,19 +11,19 @@ from typing import Any
 import numpy as np
 import torch
 
-from pinn.benchmarks import (
+from pinnkit.benchmarks import (
     BenchmarkCase,
     BenchmarkMetric,
     BenchmarkReference,
     BenchmarkReport,
     evaluate_independent_residual,
 )
-from pinn.models import MLP
-from pinn.problems import BurgersProblem, HeatProblem, WaveProblem
-from pinn.solvers.heat import HeatConfig
-from pinn.solvers.raissi_improved import BurgersConfig
-from pinn.solvers.wave import WaveConfig
-from pinn.training import (
+from pinnkit.models import MLP
+from pinnkit.problems import BurgersProblem, HeatProblem, WaveProblem
+from pinnkit.solvers.heat import HeatConfig
+from pinnkit.solvers.raissi_improved import BurgersConfig
+from pinnkit.solvers.wave import WaveConfig
+from pinnkit.training import (
     OptimizerConfig,
     ResidualAdaptiveConfig,
     Trainer,

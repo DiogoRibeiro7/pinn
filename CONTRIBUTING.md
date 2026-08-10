@@ -83,7 +83,7 @@ squashed.
 
 The most common contribution. The path of least resistance:
 
-1. Start from the generic residual framework in `pinn.solvers.raissi_generic`
+1. Start from the generic residual framework in `pinnkit.solvers.raissi_generic`
    rather than writing a solver from scratch.
 2. Express the PDE residual as a function of the network output and its autograd
    derivatives.
