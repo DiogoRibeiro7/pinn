@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pinnlab.transfer.domain_adaptation &#8212; pinnlab  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pinnlab.transfer.domain_adaptation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Domain adaptation utilities for transfer learning between PDE domains.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.pretrain</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_batch_dict</span><span class="p">,</span> <span class="n">move_batch_to_device</span>
+
+<span class="n">BatchType</span> <span class="o">=</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="DomainAdaptationConfig">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.DomainAdaptationConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DomainAdaptationConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for :class:`DomainAdaptationPINN`.&quot;&quot;&quot;</span>
+
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;adversarial&quot;</span>
+    <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="n">discriminator_hidden</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+    <span class="n">coral_lambda</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">mmd_bandwidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="DomainAdaptationPINN">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.DomainAdaptationPINN">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DomainAdaptationPINN</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapt a source PINN to a target domain using different strategies.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="n">feature_extractor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DomainAdaptationConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span> <span class="o">=</span> <span class="n">source_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="n">DomainAdaptationConfig</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_feature_extractor</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;adversarial&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_discriminator</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="DomainAdaptationPINN.adapt">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.DomainAdaptationPINN.adapt">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adapt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+        <span class="n">target_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adapt the source model to the target domain and return diagnostics.&quot;&quot;&quot;</span>
+
+        <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">method</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;adversarial&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adversarial_adaptation</span><span class="p">(</span><span class="n">source_loader</span><span class="p">,</span> <span class="n">target_loader</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;coral&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coral_adaptation</span><span class="p">(</span><span class="n">source_loader</span><span class="p">,</span> <span class="n">target_loader</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;mmd&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmd_adaptation</span><span class="p">(</span><span class="n">source_loader</span><span class="p">,</span> <span class="n">target_loader</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown adaptation method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Adaptation strategies</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_adversarial_adaptation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+        <span class="n">target_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">feature_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">lr</span>
+        <span class="p">)</span>
+        <span class="n">discriminator_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">lr</span>
+        <span class="p">)</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;discriminator_loss&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;adversarial_loss&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+
+        <span class="n">target_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">target_loader</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">source_batch</span> <span class="ow">in</span> <span class="n">_iterate_batches</span><span class="p">(</span><span class="n">source_loader</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">target_batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">target_iter</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                    <span class="n">target_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">target_loader</span><span class="p">)</span>
+                    <span class="n">target_batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">target_iter</span><span class="p">)</span>
+                <span class="n">source_batch</span> <span class="o">=</span> <span class="n">move_batch_to_device</span><span class="p">(</span><span class="n">source_batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">target_batch</span> <span class="o">=</span> <span class="n">move_batch_to_device</span><span class="p">(</span>
+                    <span class="n">ensure_batch_dict</span><span class="p">(</span><span class="n">target_batch</span><span class="p">),</span> <span class="n">device</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Train discriminator</span>
+                <span class="n">discriminator_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">source_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">source_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">target_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">target_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">src_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span><span class="p">(</span><span class="n">source_features</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+                <span class="n">tgt_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span><span class="p">(</span><span class="n">target_features</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+                <span class="n">loss_src</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+                    <span class="n">src_logits</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">src_logits</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">loss_tgt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+                    <span class="n">tgt_logits</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">tgt_logits</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">disc_loss</span> <span class="o">=</span> <span class="n">loss_src</span> <span class="o">+</span> <span class="n">loss_tgt</span>
+                <span class="n">disc_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">discriminator_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                <span class="c1"># Train feature extractor to fool discriminator</span>
+                <span class="n">feature_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">target_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">target_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">fool_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span><span class="p">(</span><span class="n">target_features</span><span class="p">)</span>
+                <span class="n">adversarial_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span>
+                    <span class="n">fool_logits</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">fool_logits</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">adversarial_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">feature_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                <span class="n">history</span><span class="p">[</span><span class="s2">&quot;discriminator_loss&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">disc_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">history</span><span class="p">[</span><span class="s2">&quot;adversarial_loss&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">adversarial_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epochs</span> <span class="o">//</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Adversarial adaptation epoch </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> - D </span><span class="si">%.4e</span><span class="s2">, A </span><span class="si">%.4e</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span>
+                    <span class="n">history</span><span class="p">[</span><span class="s2">&quot;discriminator_loss&quot;</span><span class="p">],</span>
+                    <span class="n">history</span><span class="p">[</span><span class="s2">&quot;adversarial_loss&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">history</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coral_adaptation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+        <span class="n">target_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;coral_loss&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;task_loss&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">source_batch</span><span class="p">,</span> <span class="n">target_batch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">_iterate_batches</span><span class="p">(</span><span class="n">source_loader</span><span class="p">),</span> <span class="n">_iterate_batches</span><span class="p">(</span><span class="n">target_loader</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">source_batch</span> <span class="o">=</span> <span class="n">move_batch_to_device</span><span class="p">(</span><span class="n">source_batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">target_batch</span> <span class="o">=</span> <span class="n">move_batch_to_device</span><span class="p">(</span><span class="n">target_batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">source_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">source_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">target_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">target_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">coral_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coral_loss</span><span class="p">(</span><span class="n">source_features</span><span class="p">,</span> <span class="n">target_features</span><span class="p">)</span>
+                <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">(</span><span class="n">source_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">])</span>
+                <span class="n">task_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;target&quot;</span> <span class="ow">in</span> <span class="n">source_batch</span><span class="p">:</span>
+                    <span class="n">task_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span>
+                        <span class="n">preds</span><span class="p">,</span> <span class="n">source_batch</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="n">loss</span> <span class="o">=</span> <span class="n">task_loss</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">coral_lambda</span> <span class="o">*</span> <span class="n">coral_loss</span>
+                <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                <span class="n">history</span><span class="p">[</span><span class="s2">&quot;coral_loss&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">coral_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">history</span><span class="p">[</span><span class="s2">&quot;task_loss&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">task_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">history</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_mmd_adaptation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+        <span class="n">target_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mmd_loss&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epochs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">source_batch</span><span class="p">,</span> <span class="n">target_batch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">_iterate_batches</span><span class="p">(</span><span class="n">source_loader</span><span class="p">),</span> <span class="n">_iterate_batches</span><span class="p">(</span><span class="n">target_loader</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">source_batch</span> <span class="o">=</span> <span class="n">move_batch_to_device</span><span class="p">(</span><span class="n">source_batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">target_batch</span> <span class="o">=</span> <span class="n">move_batch_to_device</span><span class="p">(</span><span class="n">target_batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">source_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">source_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">target_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_model</span><span class="p">,</span> <span class="n">target_batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">mmd_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maximum_mean_discrepancy</span><span class="p">(</span>
+                    <span class="n">source_features</span><span class="p">,</span> <span class="n">target_features</span>
+                <span class="p">)</span>
+                <span class="n">mmd_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                <span class="n">history</span><span class="p">[</span><span class="s2">&quot;mmd_loss&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">mmd_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">history</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Helper utilities</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_discriminator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+        <span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">hidden</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">discriminator_hidden</span><span class="p">:</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">LazyLinear</span><span class="p">(</span><span class="n">hidden</span><span class="p">))</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">LazyLinear</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_default_feature_extractor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;feature_extractor&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">outputs</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">outputs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">outputs</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_coral_loss</span><span class="p">(</span>
+        <span class="n">source_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">source_features</span> <span class="o">-</span> <span class="n">source_features</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">target_features</span> <span class="o">-</span> <span class="n">target_features</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cov_source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">t</span><span class="p">()</span> <span class="o">@</span> <span class="n">source</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">cov_target</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">t</span><span class="p">()</span> <span class="o">@</span> <span class="n">target</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cov_source</span> <span class="o">-</span> <span class="n">cov_target</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="s2">&quot;fro&quot;</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_maximum_mean_discrepancy</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">source_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">bandwidth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">mmd_bandwidth</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_kernel</span><span class="p">(</span><span class="n">source_features</span><span class="p">,</span> <span class="n">source_features</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
+        <span class="n">kernel</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_kernel</span><span class="p">(</span><span class="n">target_features</span><span class="p">,</span> <span class="n">target_features</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
+        <span class="n">kernel</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_kernel</span><span class="p">(</span><span class="n">source_features</span><span class="p">,</span> <span class="n">target_features</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">kernel</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gaussian_kernel</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">diff</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">bandwidth</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_iterate_batches</span><span class="p">(</span><span class="n">loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">ensure_batch_dict</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DomainAdaptationPINN&quot;</span><span class="p">,</span> <span class="s2">&quot;DomainAdaptationConfig&quot;</span><span class="p">]</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">pinnlab</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_api.html">Composable Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/migration_plan.html">Migration Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config_reference.html">Configuration Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance_guide.html">Performance Optimization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deployment/index.html">Deployment Guides</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Diogo Ribeiro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

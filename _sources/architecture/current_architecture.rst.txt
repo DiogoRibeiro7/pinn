@@ -9,29 +9,29 @@ responsibilities should remain.
 Package Layout
 --------------
 
-The package currently lives under ``src/pinnkit`` and is organized around a set of
+The package currently lives under ``src/pinnlab`` and is organized around a set of
 mostly independent feature areas:
 
-``pinnkit.solvers``
+``pinnlab.solvers``
     Equation-specific PINN implementations. Burgers, generic 1-D PDEs,
     Navier-Stokes, heat and wave each own some combination of sampling, residual
     calculation, constraints, training loops and prediction.
 
-``pinnkit.models``
+``pinnlab.models``
     Neural network architectures, including MLP, SIREN, Fourier-feature,
     multiscale, attention, ensemble and wavelet variants.
 
-``pinnkit.sampling`` and ``pinnkit.utils.sampling``
+``pinnlab.sampling`` and ``pinnlab.utils.sampling``
     Latin-hypercube, Sobol, residual-adaptive, active-learning, importance and
     multi-fidelity sampling utilities. Solver training loops still use local
     sampling helpers in several places.
 
-``pinnkit.training``
+``pinnlab.training``
     Reusable training utilities such as adaptive loss weighting, causal
     weighting, curriculum hooks, memory-efficient training, adversarial
     training and optimizer helper routines.
 
-``pinnkit.uncertainty``
+``pinnlab.uncertainty``
     MC-dropout, deep ensemble, GP-prior and Bayesian PINN helper APIs.
 
 Other support packages
@@ -45,39 +45,39 @@ The following symbols are part of the observed public surface because they are
 exported from package modules, used in examples/tests, or documented in the
 README:
 
-``pinnkit.solvers.raissi``
+``pinnlab.solvers.raissi``
     ``BurgersConfig``, ``Domain1D``, ``TrainConfig``, ``ContinuousPINN``,
     ``DiscreteRKPINN``, ``RKTableau``, ``rk4_tableau``, ``burgers_residual``,
     ``burgers_rhs``, ``u0_true``, ``u_left_bc``, ``u_right_bc``,
     ``latin_hypercube`` and ``set_seed``.
 
-``pinnkit.solvers.raissi_improved``
+``pinnlab.solvers.raissi_improved``
     The main legacy Burgers implementation. It exports the same core symbols as
     ``raissi`` with additional adaptive sampling, active learning,
     memory-efficiency, caching, checkpointing and loss-history behavior.
     Top-level ``pinn`` imports ``BurgersConfig``, ``ContinuousPINN``,
     ``DiscreteRKPINN`` and ``TrainConfig`` from here.
 
-``pinnkit.solvers.raissi_generic``
+``pinnlab.solvers.raissi_generic``
     ``Domain1D``, ``ContinuousPINNGeneric``, ``allen_cahn_residual_factory``,
     ``schrodinger_residual``, ``demo_allen_cahn`` and ``demo_schrodinger``.
-    It imports ``latin_hypercube`` from ``pinnkit.sampling.core`` to avoid a
+    It imports ``latin_hypercube`` from ``pinnlab.sampling.core`` to avoid a
     solver-local drift-prone copy.
 
-``pinnkit.solvers._base``
+``pinnlab.solvers._base``
     ``ExactlySolvablePINN``, shared ``TrainConfig``, ``Domain1D`` re-export and
     ``gradient`` for the exact heat/wave path.
 
-``pinnkit.solvers.heat`` and ``pinnkit.solvers.wave``
+``pinnlab.solvers.heat`` and ``pinnlab.solvers.wave``
     ``HeatConfig``, ``HeatPINN``, ``heat_exact``, ``WaveConfig``, ``WavePINN``
     and ``wave_exact``. These derive from ``ExactlySolvablePINN``.
 
-``pinnkit.solvers.reference``
+``pinnlab.solvers.reference``
     ``burgers_cole_hopf``, ``burgers_reference_grid`` and
     ``relative_l2_error``. Tests cross-check the Burgers reference against an
     independent finite-difference solve.
 
-``pinnkit.solvers.navier_stokes``
+``pinnlab.solvers.navier_stokes``
     ``NSConfig``, ``TrainConfig``, ``NavierStokesPINN``, ``tgv_u``, ``tgv_v``,
     ``tgv_p`` and ``demo_tgv``.
 
@@ -90,7 +90,7 @@ Domain objects
     Navier-Stokes. ``Domain1D`` is duplicated across ``raissi``,
     ``raissi_improved`` and ``raissi_generic``; ``_base`` re-exports the
     ``raissi_generic`` version. General rectangular sampling uses
-    ``pinnkit.utils.sampling.Domain``.
+    ``pinnlab.utils.sampling.Domain``.
 
 Solver base classes
     ``ExactlySolvablePINN`` is the only current base with shared production
@@ -122,18 +122,18 @@ Constraint and boundary-condition handling
     ``Constraint`` abstraction.
 
 Samplers
-    ``latin_hypercube`` is owned by ``pinnkit.sampling.core`` and re-exported from
-    legacy solver modules for compatibility. Separately, ``pinnkit.utils.sampling``
+    ``latin_hypercube`` is owned by ``pinnlab.sampling.core`` and re-exported from
+    legacy solver modules for compatibility. Separately, ``pinnlab.utils.sampling``
     defines ``BaseSampler``, ``LatinHypercubeSampler``, ``SobolSampler``,
     ``AdaptiveSampler``, ``BoundarySampler``, ``TimeSteppingSampler`` and
-    ``CompositeSampler``. ``pinnkit.sampling`` adds composable interior samplers,
+    ``CompositeSampler``. ``pinnlab.sampling`` adds composable interior samplers,
     adapters, importance, active-learning and multi-fidelity samplers.
 
 Loss weighting
     Static weights are passed directly to solver training methods. Adaptive
-    weighting is implemented in ``pinnkit.training.adaptive_weighting`` and wired
+    weighting is implemented in ``pinnlab.training.adaptive_weighting`` and wired
     into the legacy Burgers and generic paths. Causal residual weighting is
-    implemented in ``pinnkit.training.causal_weighting`` and wired into
+    implemented in ``pinnlab.training.causal_weighting`` and wired into
     ``ExactlySolvablePINN`` through ``TrainConfig.causal``.
 
 Optimizer selection and training loops
@@ -147,7 +147,7 @@ Prediction and evaluation
     Each solver has its own ``predict`` implementation converting numpy inputs
     to float32 tensors. Heat and wave add ``evaluation_grid`` and
     ``relative_l2_error`` in ``ExactlySolvablePINN``. Burgers has reference-grid
-    utilities in ``pinnkit.solvers.reference``.
+    utilities in ``pinnlab.solvers.reference``.
 
 Reference and exact solutions
     Heat and wave have analytic closed-form functions. Burgers has a Cole-Hopf
@@ -207,7 +207,7 @@ Additional Measurements
 -----------------------
 
 Package import time
-    ``import pinnkit`` took 5.292538 seconds in a fresh Python process. The import
+    ``import pinnlab`` took 5.292538 seconds in a fresh Python process. The import
     emitted a warning that SciPy was not available for advanced metrics and
     NumExpr selected 16 threads.
 
@@ -222,12 +222,12 @@ Current Test Coverage Hot Spots
 
 The measured coverage table highlights the following low-coverage modules:
 
-* ``pinnkit.solvers.raissi_generic``: 17%
-* ``pinnkit.solvers.navier_stokes``: 23%
-* ``pinnkit.utils.metrics``: 24%
-* ``pinnkit.utils.error_handling``: 29%
-* ``pinnkit.utils.sampling``: 41%
-* ``pinnkit.config.management``: 43%
+* ``pinnlab.solvers.raissi_generic``: 17%
+* ``pinnlab.solvers.navier_stokes``: 23%
+* ``pinnlab.utils.metrics``: 24%
+* ``pinnlab.utils.error_handling``: 29%
+* ``pinnlab.utils.sampling``: 41%
+* ``pinnlab.config.management``: 43%
 
 Factual Status Notes
 --------------------

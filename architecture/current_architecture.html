@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Current Architecture &#8212; pinnkit  documentation</title>
+    <title>Current Architecture &#8212; pinnlab  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
@@ -41,25 +41,25 @@ define the target design and it does not imply that existing duplicated
 responsibilities should remain.</p>
 <section id="package-layout">
 <h2>Package Layout<a class="headerlink" href="#package-layout" title="Link to this heading">¶</a></h2>
-<p>The package currently lives under <code class="docutils literal notranslate"><span class="pre">src/pinnkit</span></code> and is organized around a set of
+<p>The package currently lives under <code class="docutils literal notranslate"><span class="pre">src/pinnlab</span></code> and is organized around a set of
 mostly independent feature areas:</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers</span></code></dt><dd><p>Equation-specific PINN implementations. Burgers, generic 1-D PDEs,
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers</span></code></dt><dd><p>Equation-specific PINN implementations. Burgers, generic 1-D PDEs,
 Navier-Stokes, heat and wave each own some combination of sampling, residual
 calculation, constraints, training loops and prediction.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.models</span></code></dt><dd><p>Neural network architectures, including MLP, SIREN, Fourier-feature,
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.models</span></code></dt><dd><p>Neural network architectures, including MLP, SIREN, Fourier-feature,
 multiscale, attention, ensemble and wavelet variants.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.sampling</span></code> and <code class="docutils literal notranslate"><span class="pre">pinnkit.utils.sampling</span></code></dt><dd><p>Latin-hypercube, Sobol, residual-adaptive, active-learning, importance and
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.sampling</span></code> and <code class="docutils literal notranslate"><span class="pre">pinnlab.utils.sampling</span></code></dt><dd><p>Latin-hypercube, Sobol, residual-adaptive, active-learning, importance and
 multi-fidelity sampling utilities. Solver training loops still use local
 sampling helpers in several places.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.training</span></code></dt><dd><p>Reusable training utilities such as adaptive loss weighting, causal
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.training</span></code></dt><dd><p>Reusable training utilities such as adaptive loss weighting, causal
 weighting, curriculum hooks, memory-efficient training, adversarial
 training and optimizer helper routines.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.uncertainty</span></code></dt><dd><p>MC-dropout, deep ensemble, GP-prior and Bayesian PINN helper APIs.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.uncertainty</span></code></dt><dd><p>MC-dropout, deep ensemble, GP-prior and Bayesian PINN helper APIs.</p>
 </dd>
 <dt>Other support packages</dt><dd><p>Supporting subsystems for parallelism, caching, transfer learning, serving,
 plotting and configuration management.</p>
@@ -72,33 +72,33 @@ plotting and configuration management.</p>
 exported from package modules, used in examples/tests, or documented in the
 README:</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.raissi</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">BurgersConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code>, <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">ContinuousPINN</span></code>,
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.raissi</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">BurgersConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code>, <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">ContinuousPINN</span></code>,
 <code class="docutils literal notranslate"><span class="pre">DiscreteRKPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">RKTableau</span></code>, <code class="docutils literal notranslate"><span class="pre">rk4_tableau</span></code>, <code class="docutils literal notranslate"><span class="pre">burgers_residual</span></code>,
 <code class="docutils literal notranslate"><span class="pre">burgers_rhs</span></code>, <code class="docutils literal notranslate"><span class="pre">u0_true</span></code>, <code class="docutils literal notranslate"><span class="pre">u_left_bc</span></code>, <code class="docutils literal notranslate"><span class="pre">u_right_bc</span></code>,
 <code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> and <code class="docutils literal notranslate"><span class="pre">set_seed</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.raissi_improved</span></code></dt><dd><p>The main legacy Burgers implementation. It exports the same core symbols as
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.raissi_improved</span></code></dt><dd><p>The main legacy Burgers implementation. It exports the same core symbols as
 <code class="docutils literal notranslate"><span class="pre">raissi</span></code> with additional adaptive sampling, active learning,
 memory-efficiency, caching, checkpointing and loss-history behavior.
 Top-level <code class="docutils literal notranslate"><span class="pre">pinn</span></code> imports <code class="docutils literal notranslate"><span class="pre">BurgersConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">ContinuousPINN</span></code>,
 <code class="docutils literal notranslate"><span class="pre">DiscreteRKPINN</span></code> and <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code> from here.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.raissi_generic</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">Domain1D</span></code>, <code class="docutils literal notranslate"><span class="pre">ContinuousPINNGeneric</span></code>, <code class="docutils literal notranslate"><span class="pre">allen_cahn_residual_factory</span></code>,
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.raissi_generic</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">Domain1D</span></code>, <code class="docutils literal notranslate"><span class="pre">ContinuousPINNGeneric</span></code>, <code class="docutils literal notranslate"><span class="pre">allen_cahn_residual_factory</span></code>,
 <code class="docutils literal notranslate"><span class="pre">schrodinger_residual</span></code>, <code class="docutils literal notranslate"><span class="pre">demo_allen_cahn</span></code> and <code class="docutils literal notranslate"><span class="pre">demo_schrodinger</span></code>.
-It imports <code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> from <code class="docutils literal notranslate"><span class="pre">pinnkit.sampling.core</span></code> to avoid a
+It imports <code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> from <code class="docutils literal notranslate"><span class="pre">pinnlab.sampling.core</span></code> to avoid a
 solver-local drift-prone copy.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers._base</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code>, shared <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code> re-export and
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers._base</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code>, shared <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code> re-export and
 <code class="docutils literal notranslate"><span class="pre">gradient</span></code> for the exact heat/wave path.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.heat</span></code> and <code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.wave</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">HeatConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">HeatPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">heat_exact</span></code>, <code class="docutils literal notranslate"><span class="pre">WaveConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">WavePINN</span></code>
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.heat</span></code> and <code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.wave</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">HeatConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">HeatPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">heat_exact</span></code>, <code class="docutils literal notranslate"><span class="pre">WaveConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">WavePINN</span></code>
 and <code class="docutils literal notranslate"><span class="pre">wave_exact</span></code>. These derive from <code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.reference</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">burgers_cole_hopf</span></code>, <code class="docutils literal notranslate"><span class="pre">burgers_reference_grid</span></code> and
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.reference</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">burgers_cole_hopf</span></code>, <code class="docutils literal notranslate"><span class="pre">burgers_reference_grid</span></code> and
 <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code>. Tests cross-check the Burgers reference against an
 independent finite-difference solve.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.navier_stokes</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">NSConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">NavierStokesPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">tgv_u</span></code>, <code class="docutils literal notranslate"><span class="pre">tgv_v</span></code>,
+<dt><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.navier_stokes</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">NSConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">TrainConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">NavierStokesPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">tgv_u</span></code>, <code class="docutils literal notranslate"><span class="pre">tgv_v</span></code>,
 <code class="docutils literal notranslate"><span class="pre">tgv_p</span></code> and <code class="docutils literal notranslate"><span class="pre">demo_tgv</span></code>.</p>
 </dd>
 </dl>
@@ -111,7 +111,7 @@ parameters and space-time bounds for Burgers. <code class="docutils literal notr
 Navier-Stokes. <code class="docutils literal notranslate"><span class="pre">Domain1D</span></code> is duplicated across <code class="docutils literal notranslate"><span class="pre">raissi</span></code>,
 <code class="docutils literal notranslate"><span class="pre">raissi_improved</span></code> and <code class="docutils literal notranslate"><span class="pre">raissi_generic</span></code>; <code class="docutils literal notranslate"><span class="pre">_base</span></code> re-exports the
 <code class="docutils literal notranslate"><span class="pre">raissi_generic</span></code> version. General rectangular sampling uses
-<code class="docutils literal notranslate"><span class="pre">pinnkit.utils.sampling.Domain</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">pinnlab.utils.sampling.Domain</span></code>.</p>
 </dd>
 <dt>Solver base classes</dt><dd><p><code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code> is the only current base with shared production
 training behavior. <code class="docutils literal notranslate"><span class="pre">ContinuousPINN</span></code>, <code class="docutils literal notranslate"><span class="pre">DiscreteRKPINN</span></code>,
@@ -138,17 +138,17 @@ Taylor-Green initial data and periodic paired samples inside
 <code class="docutils literal notranslate"><span class="pre">_make_training_points</span></code> and <code class="docutils literal notranslate"><span class="pre">train</span></code>. There is no first-class
 <code class="docutils literal notranslate"><span class="pre">Constraint</span></code> abstraction.</p>
 </dd>
-<dt>Samplers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> is owned by <code class="docutils literal notranslate"><span class="pre">pinnkit.sampling.core</span></code> and re-exported from
-legacy solver modules for compatibility. Separately, <code class="docutils literal notranslate"><span class="pre">pinnkit.utils.sampling</span></code>
+<dt>Samplers</dt><dd><p><code class="docutils literal notranslate"><span class="pre">latin_hypercube</span></code> is owned by <code class="docutils literal notranslate"><span class="pre">pinnlab.sampling.core</span></code> and re-exported from
+legacy solver modules for compatibility. Separately, <code class="docutils literal notranslate"><span class="pre">pinnlab.utils.sampling</span></code>
 defines <code class="docutils literal notranslate"><span class="pre">BaseSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">LatinHypercubeSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">SobolSampler</span></code>,
 <code class="docutils literal notranslate"><span class="pre">AdaptiveSampler</span></code>, <code class="docutils literal notranslate"><span class="pre">BoundarySampler</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeSteppingSampler</span></code> and
-<code class="docutils literal notranslate"><span class="pre">CompositeSampler</span></code>. <code class="docutils literal notranslate"><span class="pre">pinnkit.sampling</span></code> adds composable interior samplers,
+<code class="docutils literal notranslate"><span class="pre">CompositeSampler</span></code>. <code class="docutils literal notranslate"><span class="pre">pinnlab.sampling</span></code> adds composable interior samplers,
 adapters, importance, active-learning and multi-fidelity samplers.</p>
 </dd>
 <dt>Loss weighting</dt><dd><p>Static weights are passed directly to solver training methods. Adaptive
-weighting is implemented in <code class="docutils literal notranslate"><span class="pre">pinnkit.training.adaptive_weighting</span></code> and wired
+weighting is implemented in <code class="docutils literal notranslate"><span class="pre">pinnlab.training.adaptive_weighting</span></code> and wired
 into the legacy Burgers and generic paths. Causal residual weighting is
-implemented in <code class="docutils literal notranslate"><span class="pre">pinnkit.training.causal_weighting</span></code> and wired into
+implemented in <code class="docutils literal notranslate"><span class="pre">pinnlab.training.causal_weighting</span></code> and wired into
 <code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code> through <code class="docutils literal notranslate"><span class="pre">TrainConfig.causal</span></code>.</p>
 </dd>
 <dt>Optimizer selection and training loops</dt><dd><p>Burgers, generic, exact-solvable and Navier-Stokes solvers each implement
@@ -160,7 +160,7 @@ training contract.</p>
 <dt>Prediction and evaluation</dt><dd><p>Each solver has its own <code class="docutils literal notranslate"><span class="pre">predict</span></code> implementation converting numpy inputs
 to float32 tensors. Heat and wave add <code class="docutils literal notranslate"><span class="pre">evaluation_grid</span></code> and
 <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code> in <code class="docutils literal notranslate"><span class="pre">ExactlySolvablePINN</span></code>. Burgers has reference-grid
-utilities in <code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.reference</span></code>.</p>
+utilities in <code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.reference</span></code>.</p>
 </dd>
 <dt>Reference and exact solutions</dt><dd><p>Heat and wave have analytic closed-form functions. Burgers has a Cole-Hopf
 reference implementation that is treated as exact for the configured
@@ -228,7 +228,7 @@ descriptions and a Navier-Stokes docstring parse issue.</p></td>
 <section id="additional-measurements">
 <h2>Additional Measurements<a class="headerlink" href="#additional-measurements" title="Link to this heading">¶</a></h2>
 <dl class="simple">
-<dt>Package import time</dt><dd><p><code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pinnkit</span></code> took 5.292538 seconds in a fresh Python process. The import
+<dt>Package import time</dt><dd><p><code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pinnlab</span></code> took 5.292538 seconds in a fresh Python process. The import
 emitted a warning that SciPy was not available for advanced metrics and
 NumExpr selected 16 threads.</p>
 </dd>
@@ -243,12 +243,12 @@ claims.</p>
 <h2>Current Test Coverage Hot Spots<a class="headerlink" href="#current-test-coverage-hot-spots" title="Link to this heading">¶</a></h2>
 <p>The measured coverage table highlights the following low-coverage modules:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.raissi_generic</span></code>: 17%</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pinnkit.solvers.navier_stokes</span></code>: 23%</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pinnkit.utils.metrics</span></code>: 24%</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pinnkit.utils.error_handling</span></code>: 29%</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pinnkit.utils.sampling</span></code>: 41%</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">pinnkit.config.management</span></code>: 43%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.raissi_generic</span></code>: 17%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.navier_stokes</span></code>: 23%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pinnlab.utils.metrics</span></code>: 24%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pinnlab.utils.error_handling</span></code>: 29%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pinnlab.utils.sampling</span></code>: 41%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pinnlab.config.management</span></code>: 43%</p></li>
 </ul>
 </section>
 <section id="factual-status-notes">
@@ -275,7 +275,7 @@ framework with a stable modern architecture.</p></li>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">pinnkit</a></h1>
+<h1 class="logo"><a href="../index.html">pinnlab</a></h1>
 
 
 

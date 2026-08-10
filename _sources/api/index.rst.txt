@@ -1,22 +1,22 @@
 API Reference
 =============
 
-.. automodule:: pinnkit
+.. automodule:: pinnlab
    :members:
    :undoc-members:
 
-.. automodule:: pinnkit.models.advanced
+.. automodule:: pinnlab.models.advanced
    :members:
    :undoc-members:
 
-.. automodule:: pinnkit.training
+.. automodule:: pinnlab.training
    :members:
    :undoc-members:
 
-.. automodule:: pinnkit.uncertainty
+.. automodule:: pinnlab.uncertainty
    :members:
    :undoc-members:
 
-.. automodule:: pinnkit.visualization
+.. automodule:: pinnlab.visualization
    :members:
    :undoc-members:
