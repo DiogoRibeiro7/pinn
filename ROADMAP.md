@@ -215,11 +215,17 @@ Concrete work:
 - ✅ Adam/L-BFGS transitions are inspectable. `TrainingState.phase` names the
   optimizer that produced each record and `TrainingResult.states_for_phase`
   filters on it, instead of leaving the boundary implicit in step numbering.
-- ✅ Documented the responsibilities of every `TrainingState` and
-  `TrainingResult` field. `TrainerConfig` still needs the same treatment.
-- 🚧 Tests: callbacks, phase reporting, loss weights, causal diagnostics and
-  dtype behaviour are covered. Custom samplers and scaling interactions are
-  still only exercised end to end.
+- ✅ Documented the responsibilities of `TrainerConfig`, `TrainingState` and
+  `TrainingResult`, including the boundary between them: config owns how to
+  train, the problem owns what is solved, and the state records what happened.
+  (An earlier note here claimed `TrainerConfig` was undocumented; it already
+  carried per-field docs, and what was missing was the boundary itself.)
+- ✅ Tests: callbacks, phase reporting, loss weights, causal diagnostics, dtype
+  behaviour, custom samplers and scaling interactions are all covered by
+  focused tests. `tests/unit/test_trainer_components.py` asserts the configured
+  sampler is genuinely consulted, with the promised geometry, count, dtype and
+  seeded generator -- a trainer that ignored `config.sampler` would otherwise
+  still produce a falling loss and look correct.
 - 🔭 Identify which `raissi_improved` training features should become generic
   trainer features first.
 

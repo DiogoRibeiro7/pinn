@@ -52,6 +52,26 @@ class OptimizerConfig:
 class TrainerConfig:
     """Configuration for equation-agnostic PINN training.
 
+    This object owns *how* to train and nothing about *what* is being solved.
+    The split across the three core types is:
+
+    - ``TrainerConfig`` -- budget, precision, sampling policy, loss weights and
+      optional strategies. Reusable across equations; changing it should never
+      change the problem's meaning, only how well or how quickly it is solved.
+    - :class:`~pinnlab.problems.PDEProblem` -- geometry, residual and
+      constraints. Everything equation-specific lives there, so the trainer can
+      stay ignorant of which PDE it is optimising.
+    - :class:`~pinnlab.training.state.TrainingState` /
+      :class:`~pinnlab.training.state.TrainingResult` -- what happened, as
+      immutable records. Nothing here feeds back into the configuration.
+
+    Two consequences worth knowing. Entries in ``loss_weights`` are matched by
+    name against the components a problem produces (``"pde"`` plus one per
+    constraint), so a weight for a name the problem never emits is silently
+    unused rather than an error. And ``scaling`` wraps the model rather than the
+    problem: the network trains in dimensionless variables while geometry,
+    constraints and residuals continue to work in physical ones.
+
     Args:
         seed: Random seed propagated to Python, NumPy and PyTorch.
         device: Torch device used for model and sampled tensors.
