@@ -37,7 +37,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -47,6 +47,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">..residuals</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutogradDerivativeBackend</span><span class="p">,</span> <span class="n">DerivativeBackend</span><span class="p">,</span> <span class="n">StrongFormResidual</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..scaling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScaledModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.adaptive_refinement</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResidualAdaptiveRefiner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrainerCallback</span><span class="p">,</span> <span class="n">_notify</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.causal_weighting</span><span class="w"> </span><span class="kn">import</span> <span class="n">causal_residual_loss</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrainerConfig</span><span class="p">,</span> <span class="n">resolve_dtype</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrainingResult</span><span class="p">,</span> <span class="n">TrainingState</span>
@@ -158,6 +159,35 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no trainable loss components were produced&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">total</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">problem</span><span class="p">:</span> <span class="n">PDEProblem</span><span class="p">,</span>
+        <span class="n">loss_model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="n">generator</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">refiner</span><span class="p">:</span> <span class="n">ResidualAdaptiveRefiner</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample, evaluate every loss component and combine them.</span>
+
+<span class="sd">        Both optimizers and the no-step fallback need exactly this sequence, so</span>
+<span class="sd">        it lives in one place rather than being repeated at each call site.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">extra_points</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">refiner</span><span class="o">.</span><span class="n">current_points</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_components</span><span class="p">(</span>
+            <span class="n">problem</span><span class="p">,</span>
+            <span class="n">loss_model</span><span class="p">,</span>
+            <span class="n">generator</span><span class="p">,</span>
+            <span class="n">device</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="p">,</span>
+            <span class="n">extra_collocation_points</span><span class="o">=</span><span class="n">extra_points</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_loss</span><span class="p">(</span><span class="n">components</span><span class="p">),</span> <span class="n">components</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_record_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -165,6 +195,7 @@
         <span class="n">total</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
         <span class="n">components</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
         <span class="n">extra_diagnostics</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">phase</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;adam&quot;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TrainingState</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert tensor losses to an immutable state record.&quot;&quot;&quot;</span>
         <span class="n">named_losses</span> <span class="o">=</span> <span class="p">{</span>
@@ -187,12 +218,34 @@
             <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
             <span class="n">elapsed_time</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">,</span>
             <span class="n">diagnostics</span><span class="o">=</span><span class="n">diagnostics</span><span class="p">,</span>
+            <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="Trainer.train">
 <a class="viewcode-back" href="../../../api/index.html#pinn.Trainer.train">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">PDEProblem</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TrainingResult</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Train ``model`` on ``problem`` and return recorded state history.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">problem</span><span class="p">:</span> <span class="n">PDEProblem</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">callbacks</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TrainerCallback</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TrainingResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Train ``model`` on ``problem`` and return recorded state history.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            problem: The PDE problem supplying geometry, residual and constraints.</span>
+<span class="sd">            model: Network mapping coordinates to the solution field.</span>
+<span class="sd">            callbacks: Optional observers notified as training progresses. They</span>
+<span class="sd">                see each recorded state, each phase transition and the final</span>
+<span class="sd">                result. Exceptions raised by a callback propagate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The recorded history and the final state.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the problem&#39;s input or output dimension is not positive.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">callbacks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">callbacks</span> <span class="ow">or</span> <span class="p">())</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">resolve_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">problem</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -213,6 +266,24 @@
         <span class="n">history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TrainingState</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
+        <span class="n">_notify</span><span class="p">(</span><span class="n">callbacks</span><span class="p">,</span> <span class="s2">&quot;on_train_begin&quot;</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span>
+            <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="n">phase</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TrainingState</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Append a state to the history and notify callbacks.&quot;&quot;&quot;</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record_state</span><span class="p">(</span>
+                <span class="n">step</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="p">,</span>
+                <span class="n">total</span><span class="p">,</span>
+                <span class="n">components</span><span class="p">,</span>
+                <span class="n">refiner</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">()</span> <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="n">_notify</span><span class="p">(</span><span class="n">callbacks</span><span class="p">,</span> <span class="s2">&quot;on_state_recorded&quot;</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">state</span>
+
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">adam_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">refiner</span><span class="o">.</span><span class="n">should_refine</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
@@ -225,20 +296,9 @@
                     <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
                     <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
                 <span class="p">)</span>
-            <span class="n">extra_points</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">refiner</span><span class="o">.</span><span class="n">current_points</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">total</span><span class="p">,</span> <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span>
+                <span class="n">problem</span><span class="p">,</span> <span class="n">loss_model</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">refiner</span>
             <span class="p">)</span>
-            <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_components</span><span class="p">(</span>
-                <span class="n">problem</span><span class="p">,</span>
-                <span class="n">loss_model</span><span class="p">,</span>
-                <span class="n">generator</span><span class="p">,</span>
-                <span class="n">device</span><span class="p">,</span>
-                <span class="n">dtype</span><span class="p">,</span>
-                <span class="n">extra_collocation_points</span><span class="o">=</span><span class="n">extra_points</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_loss</span><span class="p">(</span><span class="n">components</span><span class="p">)</span>
             <span class="n">total</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
             <span class="k">if</span> <span class="p">(</span>
@@ -246,15 +306,10 @@
                 <span class="ow">or</span> <span class="n">step</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">log_every</span> <span class="o">==</span> <span class="mi">0</span>
                 <span class="ow">or</span> <span class="n">step</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">adam_steps</span>
             <span class="p">):</span>
-                <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_record_state</span><span class="p">(</span>
-                        <span class="n">step</span><span class="p">,</span>
-                        <span class="n">start_time</span><span class="p">,</span>
-                        <span class="n">total</span><span class="p">,</span>
-                        <span class="n">components</span><span class="p">,</span>
-                        <span class="n">refiner</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">()</span> <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+                <span class="n">record</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="s2">&quot;adam&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">history</span><span class="p">:</span>
+            <span class="n">_notify</span><span class="p">(</span><span class="n">callbacks</span><span class="p">,</span> <span class="s2">&quot;on_phase_end&quot;</span><span class="p">,</span> <span class="s2">&quot;adam&quot;</span><span class="p">,</span> <span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">lbfgs_max_iter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">lbfgs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">LBFGS</span><span class="p">(</span>
@@ -266,77 +321,33 @@
 
             <span class="k">def</span><span class="w"> </span><span class="nf">closure</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
                 <span class="n">lbfgs</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">extra_points</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">refiner</span><span class="o">.</span><span class="n">current_points</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">closure_total</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span>
+                    <span class="n">problem</span><span class="p">,</span> <span class="n">loss_model</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">refiner</span>
                 <span class="p">)</span>
-                <span class="n">closure_components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_components</span><span class="p">(</span>
-                    <span class="n">problem</span><span class="p">,</span>
-                    <span class="n">loss_model</span><span class="p">,</span>
-                    <span class="n">generator</span><span class="p">,</span>
-                    <span class="n">device</span><span class="p">,</span>
-                    <span class="n">dtype</span><span class="p">,</span>
-                    <span class="n">extra_collocation_points</span><span class="o">=</span><span class="n">extra_points</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="n">closure_total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_loss</span><span class="p">(</span><span class="n">closure_components</span><span class="p">)</span>
                 <span class="n">closure_total</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">closure_total</span>
 
             <span class="n">lbfgs</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">closure</span><span class="p">)</span>
-            <span class="n">extra_points</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">refiner</span><span class="o">.</span><span class="n">current_points</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">total</span><span class="p">,</span> <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span>
+                <span class="n">problem</span><span class="p">,</span> <span class="n">loss_model</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">refiner</span>
             <span class="p">)</span>
-            <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_components</span><span class="p">(</span>
-                <span class="n">problem</span><span class="p">,</span>
-                <span class="n">loss_model</span><span class="p">,</span>
-                <span class="n">generator</span><span class="p">,</span>
-                <span class="n">device</span><span class="p">,</span>
-                <span class="n">dtype</span><span class="p">,</span>
-                <span class="n">extra_collocation_points</span><span class="o">=</span><span class="n">extra_points</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_loss</span><span class="p">(</span><span class="n">components</span><span class="p">)</span>
             <span class="n">final_step</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">adam_steps</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">lbfgs_max_iter</span>
             <span class="p">)</span>
-            <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_record_state</span><span class="p">(</span>
-                    <span class="n">final_step</span><span class="p">,</span>
-                    <span class="n">start_time</span><span class="p">,</span>
-                    <span class="n">total</span><span class="p">,</span>
-                    <span class="n">components</span><span class="p">,</span>
-                    <span class="n">refiner</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">()</span> <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">lbfgs_state</span> <span class="o">=</span> <span class="n">record</span><span class="p">(</span><span class="n">final_step</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="s2">&quot;lbfgs&quot;</span><span class="p">)</span>
+            <span class="n">_notify</span><span class="p">(</span><span class="n">callbacks</span><span class="p">,</span> <span class="s2">&quot;on_phase_end&quot;</span><span class="p">,</span> <span class="s2">&quot;lbfgs&quot;</span><span class="p">,</span> <span class="n">lbfgs_state</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">history</span><span class="p">:</span>
-            <span class="n">extra_points</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">refiner</span><span class="o">.</span><span class="n">current_points</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="kc">None</span>
+            <span class="c1"># No optimizer steps were requested; still report where the model</span>
+            <span class="c1"># starts so callers always get a usable state.</span>
+            <span class="n">total</span><span class="p">,</span> <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span>
+                <span class="n">problem</span><span class="p">,</span> <span class="n">loss_model</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">refiner</span>
             <span class="p">)</span>
-            <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_components</span><span class="p">(</span>
-                <span class="n">problem</span><span class="p">,</span>
-                <span class="n">loss_model</span><span class="p">,</span>
-                <span class="n">generator</span><span class="p">,</span>
-                <span class="n">device</span><span class="p">,</span>
-                <span class="n">dtype</span><span class="p">,</span>
-                <span class="n">extra_collocation_points</span><span class="o">=</span><span class="n">extra_points</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_loss</span><span class="p">(</span><span class="n">components</span><span class="p">)</span>
-            <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_record_state</span><span class="p">(</span>
-                    <span class="mi">0</span><span class="p">,</span>
-                    <span class="n">start_time</span><span class="p">,</span>
-                    <span class="n">total</span><span class="p">,</span>
-                    <span class="n">components</span><span class="p">,</span>
-                    <span class="n">refiner</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">()</span> <span class="k">if</span> <span class="n">refiner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">record</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="s2">&quot;initial&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">TrainingResult</span><span class="p">(</span><span class="n">history</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">history</span><span class="p">),</span> <span class="n">final_state</span><span class="o">=</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">TrainingResult</span><span class="p">(</span><span class="n">history</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">history</span><span class="p">),</span> <span class="n">final_state</span><span class="o">=</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">_notify</span><span class="p">(</span><span class="n">callbacks</span><span class="p">,</span> <span class="s2">&quot;on_train_end&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 </div>
 
 </pre></div>

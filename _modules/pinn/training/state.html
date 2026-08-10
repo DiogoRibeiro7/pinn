@@ -43,14 +43,32 @@
 <a class="viewcode-back" href="../../../api/index.html#pinn.TrainingState">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">TrainingState</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Loss and diagnostic values recorded at one optimization step.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Loss and diagnostic values recorded at one optimization step.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        step: Optimizer step the record belongs to. L-BFGS contributes a single</span>
+<span class="sd">            record whose step is the total budget, since its internal line</span>
+<span class="sd">            search does not expose per-iteration boundaries.</span>
+<span class="sd">        total_loss: Weighted sum of the named losses.</span>
+<span class="sd">        named_losses: Unweighted loss per component, keyed by ``&quot;pde&quot;`` or a</span>
+<span class="sd">            constraint name.</span>
+<span class="sd">        weights: Weight applied to each named loss.</span>
+<span class="sd">        elapsed_time: Seconds since training began.</span>
+<span class="sd">        diagnostics: Values that describe the run rather than drive it, such as</span>
+<span class="sd">            the smallest causal weight or refinement counters. These are</span>
+<span class="sd">            excluded from ``total_loss``.</span>
+<span class="sd">        phase: Which optimizer produced the record -- ``&quot;adam&quot;``, ``&quot;lbfgs&quot;``,</span>
+<span class="sd">            or ``&quot;initial&quot;`` for the single record emitted when no optimizer</span>
+<span class="sd">            steps were requested at all.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">step</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">total_loss</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">named_losses</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="n">weights</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="n">elapsed_time</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">diagnostics</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+    <span class="n">diagnostics</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">phase</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;adam&quot;</span></div>
 
 
 
@@ -58,7 +76,14 @@
 <a class="viewcode-back" href="../../../api/index.html#pinn.TrainingResult">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">TrainingResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned by the generic trainer.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result returned by the generic trainer.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        history: Every recorded state, in order. Adam contributes one record</span>
+<span class="sd">            per ``log_every`` steps plus the first and last; L-BFGS contributes</span>
+<span class="sd">            one final record.</span>
+<span class="sd">        final_state: The last recorded state, repeated here for convenience.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">history</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TrainingState</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">final_state</span><span class="p">:</span> <span class="n">TrainingState</span>
@@ -66,7 +91,21 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">final_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the final recorded total loss.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_state</span><span class="o">.</span><span class="n">total_loss</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_state</span><span class="o">.</span><span class="n">total_loss</span>
+
+<div class="viewcode-block" id="TrainingResult.states_for_phase">
+<a class="viewcode-back" href="../../../api/index.html#pinn.TrainingResult.states_for_phase">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">states_for_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TrainingState</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the recorded states produced by one optimizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            phase: ``&quot;adam&quot;``, ``&quot;lbfgs&quot;`` or ``&quot;initial&quot;``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The matching states, in order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">state</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="n">phase</span><span class="p">)</span></div>
+</div>
 
 </pre></div>
 
