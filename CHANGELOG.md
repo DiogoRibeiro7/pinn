@@ -24,10 +24,10 @@ tag, publish the GitHub release, and — if desired — build and upload with
 - `.github/workflows/publish.yml` publishes to PyPI on a version tag using
   trusted publishing, so no API token is stored in the repository. Before any
   upload it builds, runs `twine check --strict`, verifies the tag matches the
-  version in `pyproject.toml`, installs the wheel into a clean environment and
-  imports it, and rejects artifacts containing caches or benchmark leftovers.
-  `workflow_dispatch` can rehearse the whole path against TestPyPI. The
-  one-time trusted-publisher setup on pypi.org is described in `ROADMAP.md`.
+  version in `pyproject.toml`, installs the wheel into an isolated environment
+  and imports it, and rejects artifacts containing caches or benchmark
+  leftovers. A manual `workflow_dispatch` run performs every check without
+  uploading, which is how to rehearse a release.
 
 - Callback hooks for the composable trainer. `Trainer.train` accepts
   `callbacks=[...]`, and `TrainerCallback` exposes `on_train_begin`,

@@ -432,21 +432,22 @@ After tagging:
 - Create the GitHub Release and attach wheel/source artifacts.
 - Decide explicitly whether PyPI upload is in scope for that release.
 
-PyPI publishing (one-time setup, not yet done):
-- On pypi.org, add a trusted publisher for the project with owner
-  `DiogoRibeiro7`, repository `pinn`, workflow `publish.yml` and environment
-  `pypi`. Do the same on test.pypi.org with environment `testpypi` to
-  rehearse.
-- Create the matching `pypi` and `testpypi` environments in the repository
-  settings on GitHub. Adding required reviewers there makes a publish need
-  manual approval.
-- Rehearse with `gh workflow run publish.yml -f target=testpypi` before
-  relying on the tag path. The build, metadata check, tag/version agreement
-  check, clean-environment install and stray-file scan all run first, so a
-  dry run is safe even before the publisher exists.
-- The first upload claims the name permanently. Confirm `pinnlab` is still
-  free immediately before publishing.
-- Update this roadmap with the new release status and next active stage.
+PyPI publishing:
+- The distribution is `pinnlab`. `pinn` is taken by an unrelated REST-API
+  client, and `pinnkit` was rejected as too similar to the existing `pinn-kit`,
+  because PyPI strips non-alphanumeric characters before comparing names.
+- A trusted publisher is registered on pypi.org for project `pinnlab`, owner
+  `DiogoRibeiro7`, repository `pinn`, workflow `publish.yml`, with no
+  environment set. The environment field is optional; `publish.yml` therefore
+  declares no GitHub environment either. Adding one later would allow gating a
+  publish behind required reviewers, and would need adding on PyPI to match.
+- Publishing runs on a `v*.*.*` tag. A manual `workflow_dispatch` run builds and
+  runs every check without uploading, which is how to rehearse. TestPyPI is not
+  used.
+- Before any upload the workflow runs `twine check --strict`, asserts the tag
+  matches the version in `pyproject.toml`, installs the wheel into an isolated
+  environment and imports it, and fails on stray files in the artifacts.
+- The first upload claims the name permanently.
 
 ---
 

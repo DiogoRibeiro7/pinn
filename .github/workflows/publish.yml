@@ -2,30 +2,28 @@ name: Publish
 
 # Publishes to PyPI when a version tag is pushed, using PyPI's trusted
 # publishing: the job authenticates with a short-lived OIDC token minted by
-# GitHub for this specific repository, workflow and environment. No API token
-# is stored in the repository, so there is no long-lived credential to leak or
-# rotate.
+# GitHub for this specific repository and workflow. No API token is stored in
+# the repository, so there is no long-lived credential to leak or rotate.
 #
-# One-time setup on pypi.org, under the project's Publishing settings:
-#   owner:       DiogoRibeiro7
-#   repository:  pinn
-#   workflow:    publish.yml
-#   environment: pypi
-# Until that publisher exists, the upload step fails with an authentication
-# error -- the build and the checks above it still run, so a dry run via
-# workflow_dispatch is safe.
+# The trusted publisher registered on pypi.org is:
+#   PyPI project: pinnlab
+#   owner:        DiogoRibeiro7
+#   repository:   pinn
+#   workflow:     publish.yml
+#   environment:  (not set)
+#
+# The environment field is optional on PyPI and is left unset here, so no
+# GitHub environment is declared below either. Adding one later would let you
+# gate a publish behind required reviewers; it would also have to be added to
+# the publisher on PyPI to keep matching.
+#
+# Running this workflow manually builds and runs every check without
+# uploading anything, which is the way to rehearse a release.
 on:
   push:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
-    inputs:
-      target:
-        description: 'Where to upload'
-        required: true
-        default: testpypi
-        type: choice
-        options: [testpypi, none]
 
 permissions:
   contents: read
@@ -72,7 +70,10 @@ jobs:
           PY
 
       # Catches the classic packaging mistake: a wheel that installs but is
-      # missing modules, or one carrying caches and test leftovers.
+      # missing modules, or one carrying caches and test leftovers. The venv is
+      # deliberately isolated -- with --system-site-packages pip would find the
+      # package already satisfied and skip installing the artifact, and the
+      # check would pass without testing anything.
       - name: Install the wheel in a clean environment and import it
         run: |
           python -m venv /tmp/probe
@@ -121,9 +122,9 @@ jobs:
   pypi:
     name: Upload to PyPI
     needs: build
+    # Only a version tag publishes. A manual run stops after the checks above.
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    environment: pypi
     permissions:
       id-token: write  # required to mint the OIDC token
     steps:
@@ -132,20 +133,3 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
-
-  testpypi:
-    name: Upload to TestPyPI
-    needs: build
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
-    runs-on: ubuntu-latest
-    environment: testpypi
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
