@@ -25,6 +25,10 @@ htmlcov/
 .pytest_cache/
 .hypothesis/
 .benchmarks/
+# Written into the working directory by scripts/benchmark_training.py and
+# consumed by the Performance workflow.
+benchmark_report.json
+benchmark.json
 
 # Type checker / linter caches
 .mypy_cache/

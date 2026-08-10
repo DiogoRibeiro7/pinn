@@ -10,9 +10,9 @@ import time
 
 import torch
 
-from pinn.config.management import ConfigFactory
 from pinn.models import MLP
 from pinn.solvers.raissi_improved import (
+    BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,
@@ -21,7 +21,7 @@ from pinn.distributed import DistributedPINNTrainer, DistributedTrainer
 
 
 def run_single() -> tuple[float, DistributedTrainer]:
-    cfg = ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()
     model = MLP(in_dim=2, hidden_layers=2, width=20, out_dim=1)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     pinn = ContinuousPINN(model, device, burgers_residual, cfg)
@@ -35,7 +35,7 @@ def run_single() -> tuple[float, DistributedTrainer]:
 
 
 def run_with_devices(num_devices: int) -> tuple[float, DistributedTrainer]:
-    cfg = ConfigFactory.create_burgers_config()
+    cfg = BurgersConfig()
     model = MLP(in_dim=2, hidden_layers=2, width=20, out_dim=1)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     pinn = ContinuousPINN(model, device, burgers_residual, cfg)
