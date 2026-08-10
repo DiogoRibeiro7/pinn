@@ -143,6 +143,16 @@ class FixedInteriorSampler:
 
         TrainerConfig(sampler=FixedInteriorSampler())
 
+    Measured, it costs accuracy rather than buying it. On the heat problem from
+    identical initial weights, 1500 Adam steps with 3000 collocation points,
+    fixed sampling reached a relative L2 error of 1.69e-2 against 7.53e-3 for
+    the default resampling, and with a further 100 L-BFGS iterations 1.17e-3
+    against 7.72e-4. Resampling explores the domain and that matters more than
+    a stationary objective. The determinism L-BFGS needs is supplied by the
+    trainer reseeding inside its closure, not by this sampler, so reach for
+    this only when a fixed collocation set is what you actually want -- to
+    reproduce a published fixed-point result, for instance.
+
     Points are cached per requested count, so a caller asking for a different
     ``n`` gets its own fixed set rather than an error or a silent resize. The
     cache is per instance: share one sampler to share the points, or construct

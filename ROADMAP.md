@@ -253,26 +253,39 @@ Concrete work:
 - 🚧 Route safe pieces of heat and wave wrappers through composable problem and
   trainer objects. `HeatProblem` and `WaveProblem` are faithful equivalents,
   including the wave equation's separate `initial_velocity` constraint.
-  Comparing the two paths from identical initial weights on the heat problem,
-  at 1500 Adam steps plus 100 L-BFGS iterations, exposed a defect in the
-  generic trainer rather than a migration obstacle: its L-BFGS closure
-  resampled on every evaluation, so the strong Wolfe line search compared
-  slightly different objectives. L-BFGS improved the legacy loop 8.9x and the
-  generic trainer only 2.3x. Reseeding inside the closure fixed it; the
-  trainer now improves 14.4x and reaches 1.17e-3 against the legacy loop's
-  1.31e-3.
 
-  Two earlier hypotheses were wrong and are recorded so they are not retried:
-  fixed versus resampled interior collocation made no measurable difference
-  (6.474e-3 against 6.472e-3), and halving the per-boundary weight to match the
-  legacy single combined boundary term made accuracy worse, not better
-  (8.5e-3 against 6.5e-3). `FixedInteriorSampler` was added on the first of
-  those premises; it remains a legitimate strategy but it was not what
-  unblocked anything.
+  There is no longer an accuracy blocker. Measured on the heat problem from
+  identical initial weights, 1500 Adam steps plus 100 L-BFGS iterations, 3000
+  collocation points, the generic trainer on its defaults now beats the legacy
+  loop in both regimes:
 
-  A smaller gap remains under Adam alone, 1.69e-2 against the legacy 1.16e-2,
-  cause not yet established. The delegation should wait until that is
-  understood, since it would otherwise move the published accuracy figures.
+  | | legacy | generic trainer |
+  | --- | --- | --- |
+  | Adam only | 1.161e-2 | 7.530e-3 |
+  | Adam + L-BFGS | 1.309e-3 | 7.723e-4 |
+
+  Getting there corrected three wrong conclusions of mine, recorded here so
+  they are not repeated. The first comparison was run through a defective
+  L-BFGS closure and with a non-default sampler, and every conclusion drawn
+  from it was unsound:
+
+  - "Fixed versus resampled interior collocation makes no measurable
+    difference." Wrong. The broken closure was masking it. A direct A/B puts
+    resampling ahead 7.53e-3 to 1.69e-2 under Adam and 7.72e-4 to 1.17e-3 with
+    L-BFGS. `FixedInteriorSampler` costs accuracy; its docstring now says so.
+  - "A gap remains under Adam alone, 1.69e-2 against 1.16e-2." Wrong. That run
+    used `FixedInteriorSampler`. On the default sampler the trainer reaches
+    7.53e-3 and is ahead of the legacy loop.
+  - "Halving the per-boundary weight makes accuracy worse." Right conclusion,
+    unsound measurement -- it too ran through the broken closure. Retested, it
+    is a wash under Adam (7.28e-3 against 7.53e-3) and clearly worse with
+    L-BFGS (1.89e-3 against 7.72e-4), so keeping `bc_left` and `bc_right` at
+    weight 1.0 each is correct despite the legacy loop using one combined term.
+
+  The remaining work is the delegation itself: rewrite the wrappers over
+  `Trainer`, keep their public API, and confirm the published figures. Expect
+  them to improve rather than hold, which is a change to the documented numbers
+  and should be stated in the release notes.
 - Convert callable-based generic PDE examples into explicit problem/constraint
   adapters where practical.
 - Keep `raissi_improved` as the compatibility facade until caching,

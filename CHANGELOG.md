@@ -24,11 +24,12 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 - `FixedInteriorSampler` draws interior collocation points once and reuses
   them, which is what the solvers in `pinnlab.solvers` do and what the original
-  Raissi implementations do. A fixed set also makes the loss deterministic,
-  which suits L-BFGS. Note that fixed versus resampled interior points made no
-  measurable accuracy difference on the heat problem; the L-BFGS problem above
-  was the resampling *inside the closure*, which this sampler does not address
-  on its own.
+  Raissi implementations do. It is offered for reproducing fixed-point results,
+  not as an improvement: measured on the heat problem from identical initial
+  weights it is worse than the default resampling, 1.69e-2 against 7.53e-3
+  under Adam and 1.17e-3 against 7.72e-4 with L-BFGS. The determinism L-BFGS
+  needs comes from the trainer reseeding inside its closure, not from this
+  sampler.
 
 ## [0.4.0] - 2026-08-10
 
