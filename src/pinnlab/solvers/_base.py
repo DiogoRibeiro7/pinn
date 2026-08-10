@@ -10,17 +10,21 @@ network actually is from the truth, and the tests can assert on it.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 from torch import Tensor, nn
 
 from ..models.mlp import MLP
-from ..training.causal_weighting import CausalWeightConfig, causal_residual_loss
+from ..training.causal_weighting import CausalWeightConfig
 from ..utils.logging import get_logger
-from .raissi_generic import Domain1D, latin_hypercube, set_seed
+from .raissi_generic import Domain1D, set_seed
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from ..training.config import TrainerConfig
+    from ..training.state import TrainingState
 
 logger = get_logger(__name__)
 
@@ -91,21 +95,6 @@ class TrainConfig:
             )
 
 
-@dataclass
-class _Samples:
-    """Collocation, initial and boundary points for one training run."""
-
-    t_ic: Tensor
-    x_ic: Tensor
-    u_ic: Tensor
-    v_ic: Optional[Tensor]
-    t_bc: Tensor
-    x_bc: Tensor
-    t_f: Tensor
-    x_f: Tensor
-    history: List[Dict[str, float]] = field(default_factory=list)
-
-
 class ExactlySolvablePINN(ABC):
     """Base for 1-D time-dependent PINNs with homogeneous Dirichlet boundaries.
 
@@ -159,96 +148,103 @@ class ExactlySolvablePINN(ABC):
         """Return ``u_t(0, x)``, or ``None`` for first-order problems."""
         return None
 
-    # -- sampling ----------------------------------------------------------
+    def composable_problem(self):
+        """Return the composable problem this wrapper trains through.
 
-    def _sample(self, cfg: TrainConfig) -> _Samples:
-        """Draw the initial, boundary and collocation points for a run."""
-        d = self.domain
+        Subclasses build the equivalent :mod:`pinnlab.problems` object. The
+        wrapper keeps its own :meth:`residual` for direct use and testing, but
+        training runs through the problem so the optimisation logic lives in
+        one place.
+        """
+        raise NotImplementedError
 
-        x_ic = np.random.uniform(d.xmin, d.xmax, size=(cfg.n_ic, 1)).astype(np.float32)
-        t_ic = np.zeros_like(x_ic)
-        u_ic = np.asarray(self.initial_condition(x_ic), dtype=np.float32)
-        v_ic_np = self.initial_velocity(x_ic)
+    def _require_composable_domain(self) -> None:
+        """Reject a domain the composable problem cannot represent.
 
-        t_bc = np.random.uniform(d.tmin, d.tmax, size=(cfg.n_bc, 1)).astype(np.float32)
-        # Both boundaries in one batch: the first half is x = xmin.
-        t_bc = np.vstack([t_bc, t_bc])
-        x_bc = np.vstack(
-            [
-                np.full((cfg.n_bc, 1), d.xmin, dtype=np.float32),
-                np.full((cfg.n_bc, 1), d.xmax, dtype=np.float32),
-            ]
-        )
-
-        unit = latin_hypercube(cfg.n_f, 2, 0.0, 1.0)
-        t_f = (d.tmin + (d.tmax - d.tmin) * unit[:, [0]]).astype(np.float32)
-        x_f = (d.xmin + (d.xmax - d.xmin) * unit[:, [1]]).astype(np.float32)
-
-        def to_tensor(a: np.ndarray) -> Tensor:
-            return torch.from_numpy(a).to(self.device)
-
-        return _Samples(
-            t_ic=to_tensor(t_ic),
-            x_ic=to_tensor(x_ic),
-            u_ic=to_tensor(u_ic),
-            v_ic=(
-                to_tensor(np.asarray(v_ic_np, dtype=np.float32))
-                if v_ic_np is not None
-                else None
-            ),
-            t_bc=to_tensor(t_bc),
-            x_bc=to_tensor(x_bc),
-            t_f=to_tensor(t_f),
-            x_f=to_tensor(x_f),
-        )
-
-    # -- losses ------------------------------------------------------------
-
-    def _loss(self, s: _Samples, cfg: TrainConfig) -> Tuple[Tensor, Dict[str, float]]:
-        """Return the total loss and a breakdown of its components."""
-        w_ic, w_bc, w_pde = cfg.weights
-
-        # Initial condition. Second-order problems also constrain u_t(0, x),
-        # which needs a graph through t.
-        needs_velocity = s.v_ic is not None
-        t_ic = s.t_ic.clone().requires_grad_(needs_velocity)
-        u0 = self.model(torch.cat([t_ic, s.x_ic], dim=1))
-        ic = torch.mean((u0 - s.u_ic) ** 2)
-        if needs_velocity:
-            u0_t = gradient(u0, t_ic)
-            ic = ic + torch.mean((u0_t - s.v_ic) ** 2)
-
-        # Homogeneous Dirichlet boundaries.
-        u_b = self.model(torch.cat([s.t_bc, s.x_bc], dim=1))
-        bc = torch.mean(u_b**2)
-
-        # PDE residual, optionally weighted to respect causality in time.
-        t_f = s.t_f.clone().requires_grad_(True)
-        x_f = s.x_f.clone().requires_grad_(True)
-        res = self.residual(t_f, x_f)
-        if cfg.causal is not None and cfg.causal.enabled:
-            pde, weights = causal_residual_loss(
-                res, t_f, cfg.causal, self.domain.tmin, self.domain.tmax
+        The problems in :mod:`pinnlab.problems` build their geometry from the
+        physical config, spanning ``[0, t_final] x [0, length]``. A wrapper
+        constructed on a shifted or rescaled domain would otherwise be trained
+        against a different region than it reports, silently.
+        """
+        length = getattr(self.config, "length", None)
+        if (
+            self.domain.tmin != 0.0
+            or self.domain.xmin != 0.0
+            or (length is not None and self.domain.xmax != length)
+        ):
+            raise ValueError(
+                "this solver trains through the composable problem, whose "
+                "geometry spans [0, t_final] x [0, length]; got "
+                f"t in [{self.domain.tmin}, {self.domain.tmax}], "
+                f"x in [{self.domain.xmin}, {self.domain.xmax}] "
+                f"with length={length}"
             )
-            min_weight = float(weights.min())
-        else:
-            pde = torch.mean(res**2)
-            min_weight = 1.0
 
-        total = w_ic * ic + w_bc * bc + w_pde * pde
-        breakdown = {
-            "total": float(total.detach()),
-            "ic": float(ic.detach()),
-            "bc": float(bc.detach()),
-            "pde": float(pde.detach()),
-            "min_causal_weight": min_weight,
+    def _trainer_config(self, cfg: TrainConfig) -> "TrainerConfig":
+        """Translate the wrapper's TrainConfig into a TrainerConfig.
+
+        The two describe the same run with different vocabulary. The mapping
+        that is not one-to-one is the loss weights: this wrapper exposes a
+        single boundary weight, while the composable problem carries separate
+        ``bc_left`` and ``bc_right`` constraints, so the weight applies to each.
+        A second-order problem's initial velocity is a constraint of its own and
+        takes the initial-condition weight.
+        """
+        # Imported here rather than at module scope: pinnlab.problems imports
+        # from pinnlab.solvers, so a top-level import of the trainer closes a
+        # cycle. The lazy exports in pinnlab.training exist for the same reason.
+        from ..training.config import OptimizerConfig, TrainerConfig
+
+        w_ic, w_bc, w_pde = cfg.weights
+        return TrainerConfig(
+            seed=cfg.seed,
+            device=self.device,
+            collocation_count=cfg.n_f,
+            log_every=cfg.log_every,
+            causal=cfg.causal,
+            loss_weights={
+                "pde": w_pde,
+                "ic": w_ic,
+                "initial_velocity": w_ic,
+                "bc_left": w_bc,
+                "bc_right": w_bc,
+            },
+            constraint_sample_counts={
+                "ic": cfg.n_ic,
+                "initial_velocity": cfg.n_ic,
+                "bc_left": cfg.n_bc,
+                "bc_right": cfg.n_bc,
+            },
+            optimizer=OptimizerConfig(
+                lr=cfg.lr,
+                adam_steps=cfg.adam_steps,
+                lbfgs_max_iter=cfg.lbfgs_max_iter,
+            ),
+        )
+
+    @staticmethod
+    def _legacy_record(state: "TrainingState") -> Dict[str, float]:
+        """Render a TrainingState in this wrapper's historical shape.
+
+        Callers depend on the ``total``/``ic``/``bc``/``pde`` keys, so the
+        problem's separate boundary constraints are summed back into one ``bc``
+        entry and a second-order problem's initial-velocity term is folded into
+        ``ic``, matching how this wrapper has always reported them.
+        """
+        losses = state.named_losses
+        record = {
+            "step": float(state.step),
+            "total": state.total_loss,
+            "ic": losses.get("ic", 0.0) + losses.get("initial_velocity", 0.0),
+            "bc": losses.get("bc_left", 0.0) + losses.get("bc_right", 0.0),
+            "pde": losses.get("pde", 0.0),
         }
-        return total, breakdown
-
-    # -- training ----------------------------------------------------------
+        record.update(state.diagnostics)
+        record.setdefault("min_causal_weight", 1.0)
+        return record
 
     def train(self, cfg: Optional[TrainConfig] = None) -> List[Dict[str, float]]:
-        """Fit the network.
+        """Fit the network through the generic trainer.
 
         Args:
             cfg: Training settings. Defaults to :class:`TrainConfig`.
@@ -264,48 +260,15 @@ class ExactlySolvablePINN(ABC):
         if cfg.causal is not None:
             cfg.causal.validate()
 
+        from ..training.trainer import Trainer
+
         set_seed(cfg.seed)
-        samples = self._sample(cfg)
         self.model.train()
-        history: List[Dict[str, float]] = []
-
-        optimiser = torch.optim.Adam(self.model.parameters(), lr=cfg.lr)
-        for step in range(1, cfg.adam_steps + 1):
-            optimiser.zero_grad(set_to_none=True)
-            total, breakdown = self._loss(samples, cfg)
-            total.backward()
-            optimiser.step()
-
-            if step == 1 or step % cfg.log_every == 0 or step == cfg.adam_steps:
-                breakdown["step"] = float(step)
-                history.append(breakdown)
-                logger.info(
-                    "Adam step",
-                    extra={"step": step, "loss": breakdown["total"]},
-                )
-
-        if cfg.lbfgs_max_iter > 0:
-            lbfgs = torch.optim.LBFGS(
-                self.model.parameters(),
-                max_iter=cfg.lbfgs_max_iter,
-                history_size=50,
-                line_search_fn="strong_wolfe",
-            )
-
-            def closure() -> Tensor:
-                lbfgs.zero_grad(set_to_none=True)
-                total, _ = self._loss(samples, cfg)
-                total.backward()
-                return total
-
-            lbfgs.step(closure)
-            _, breakdown = self._loss(samples, cfg)
-            breakdown["step"] = float(cfg.adam_steps + cfg.lbfgs_max_iter)
-            history.append(breakdown)
-            logger.info("L-BFGS finished", extra={"loss": breakdown["total"]})
-
-        self.loss_history = history
-        return history
+        result = Trainer(self._trainer_config(cfg)).train(
+            self.composable_problem(), self.model
+        )
+        self.loss_history = [self._legacy_record(s) for s in result.history]
+        return self.loss_history
 
     # -- evaluation --------------------------------------------------------
 

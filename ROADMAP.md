@@ -250,42 +250,40 @@ stop drifting across solver modules.
 Concrete work:
 - Keep `HeatPINN`, `WavePINN`, `ContinuousPINN`, `DiscreteRKPINN`,
   `ContinuousPINNGeneric` and `NavierStokesPINN` importable.
-- 🚧 Route safe pieces of heat and wave wrappers through composable problem and
-  trainer objects. `HeatProblem` and `WaveProblem` are faithful equivalents,
-  including the wave equation's separate `initial_velocity` constraint.
+- ✅ Heat and wave wrappers now train through `Trainer` and their composable
+  problem. `HeatPINN` and `WavePINN` keep their public API -- same
+  `TrainConfig` in, same history dicts out -- while `_base.py` lost its own
+  sampling and loss machinery, 88 lines. A domain guard rejects wrappers whose
+  geometry the composable problem cannot express, rather than training against
+  a different region than the object reports.
 
-  There is no longer an accuracy blocker. Measured on the heat problem from
-  identical initial weights, 1500 Adam steps plus 100 L-BFGS iterations, 3000
-  collocation points, the generic trainer on its defaults now beats the legacy
-  loop in both regimes:
+  On accuracy the honest answer is that the two paths are indistinguishable at
+  the sample size measured. Three seeds each, heat problem, 2000 Adam steps
+  plus 150 L-BFGS iterations, 3000 collocation points:
 
-  | | legacy | generic trainer |
+  | | legacy | delegated |
   | --- | --- | --- |
-  | Adam only | 1.161e-2 | 7.530e-3 |
-  | Adam + L-BFGS | 1.309e-3 | 7.723e-4 |
+  | median | 4.28e-4 | 6.58e-4 |
+  | range | 3.94e-4 to 8.70e-4 | 3.73e-4 to 9.12e-4 |
 
-  Getting there corrected three wrong conclusions of mine, recorded here so
-  they are not repeated. The first comparison was run through a defective
-  L-BFGS closure and with a non-default sampler, and every conclusion drawn
-  from it was unsound:
+  The within-path spread is 2.2x to 2.4x while the median difference is 1.54x,
+  and the delegated path wins on one of the three seeds.
 
-  - "Fixed versus resampled interior collocation makes no measurable
-    difference." Wrong. The broken closure was masking it. A direct A/B puts
-    resampling ahead 7.53e-3 to 1.69e-2 under Adam and 7.72e-4 to 1.17e-3 with
-    L-BFGS. `FixedInteriorSampler` costs accuracy; its docstring now says so.
-  - "A gap remains under Adam alone, 1.69e-2 against 1.16e-2." Wrong. That run
-    used `FixedInteriorSampler`. On the default sampler the trainer reaches
-    7.53e-3 and is ahead of the legacy loop.
-  - "Halving the per-boundary weight makes accuracy worse." Right conclusion,
-    unsound measurement -- it too ran through the broken closure. Retested, it
-    is a wash under Adam (7.28e-3 against 7.53e-3) and clearly worse with
-    L-BFGS (1.89e-3 against 7.72e-4), so keeping `bc_left` and `bc_right` at
-    weight 1.0 each is correct despite the legacy loop using one combined term.
+  **Caution for anyone comparing configurations here.** Every "A beats B"
+  claim recorded in this file before 2026-08-11 came from single runs, and a
+  single run cannot resolve a difference of 2x on this problem. That includes
+  the earlier entries reporting that the generic trainer beat the legacy loop,
+  and that resampled collocation beat fixed collocation by roughly 2x. Those
+  differences sit inside the spread measured above and should be treated as
+  unproven rather than as results. The L-BFGS closure fix is the exception: a
+  6.3x improvement, reproduced across separate experiments and supported by a
+  mechanism, comfortably exceeds the noise.
 
-  The remaining work is the delegation itself: rewrite the wrappers over
-  `Trainer`, keep their public API, and confirm the published figures. Expect
-  them to improve rather than hold, which is a change to the documented numbers
-  and should be stated in the release notes.
+  The figures quoted in the README, the notebook and the release notes are
+  single runs, and the 3.5e-4 for the single-mode heat problem is better than
+  the best of the three legacy seeds measured here. They are favourable draws
+  rather than typical results. Reporting a median over seeds would be more
+  honest and is worth doing before they are quoted again.
 - Convert callable-based generic PDE examples into explicit problem/constraint
   adapters where practical.
 - Keep `raissi_improved` as the compatibility facade until caching,

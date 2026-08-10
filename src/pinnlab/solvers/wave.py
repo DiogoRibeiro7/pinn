@@ -135,6 +135,18 @@ class WavePINN(ExactlySolvablePINN):
             domain = Domain1D(tmin=0.0, tmax=tmax, xmin=0.0, xmax=self.config.length)
         super().__init__(model=model, domain=domain, device=device)
 
+    def composable_problem(self):
+        """Return the equivalent :class:`~pinnlab.problems.WaveProblem`.
+
+        Raises:
+            ValueError: If the domain cannot be expressed as that problem's
+                geometry, which spans ``[0, t_final] x [0, length]``.
+        """
+        from ..problems import WaveProblem
+
+        self._require_composable_domain()
+        return WaveProblem(self.config, t_final=self.domain.tmax)
+
     def residual(self, t: Tensor, x: Tensor) -> Tensor:
         """Return ``u_tt - c^2 * u_xx`` at the given points."""
         u = self.model(torch.cat([t, x], dim=1))

@@ -8,6 +8,25 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Changed
+
+- `HeatPINN` and `WavePINN` train through the composable `Trainer` and their
+  `pinnlab.problems` equivalent instead of carrying their own optimisation
+  loop. Their public API is unchanged: the same `TrainConfig` goes in and the
+  same history dictionaries come out, with the problem's separate `bc_left`
+  and `bc_right` losses summed back into one `bc` entry and the wave
+  equation's `initial_velocity` folded into `ic`. A wrapper built on a domain
+  the composable problem cannot express is now rejected rather than trained
+  against a different region than it reports.
+
+  Accuracy is unchanged within measurement noise. Over three seeds at the
+  budget the notebook uses, the medians are 4.28e-4 for the old loop and
+  6.58e-4 for the new path, against a within-path spread of 2.2x to 2.4x; the
+  new path is ahead on one of the three seeds. Single-run comparisons on this
+  problem cannot resolve a 2x difference, so the accuracy figures quoted in
+  the README and notebook, which are single runs, should be read as favourable
+  draws rather than typical results.
+
 ### Fixed
 
 - L-BFGS is far more effective in the composable `Trainer`. Its closure

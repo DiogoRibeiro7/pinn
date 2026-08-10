@@ -125,6 +125,20 @@ class HeatPINN(ExactlySolvablePINN):
             domain = Domain1D(tmin=0.0, tmax=t_final, xmin=0.0, xmax=self.config.length)
         super().__init__(model=model, domain=domain, device=device)
 
+    def composable_problem(self):
+        """Return the equivalent :class:`~pinnlab.problems.HeatProblem`.
+
+        Raises:
+            ValueError: If the domain cannot be expressed as that problem's
+                geometry, which spans ``[0, t_final] x [0, length]``. A wrapper
+                on a shifted domain has no composable equivalent, so it is
+                rejected rather than trained against a different region.
+        """
+        from ..problems import HeatProblem
+
+        self._require_composable_domain()
+        return HeatProblem(self.config, t_final=self.domain.tmax)
+
     def residual(self, t: Tensor, x: Tensor) -> Tensor:
         """Return ``u_t - alpha * u_xx`` at the given points."""
         u = self.model(torch.cat([t, x], dim=1))
