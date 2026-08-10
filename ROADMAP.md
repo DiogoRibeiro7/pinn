@@ -250,8 +250,17 @@ stop drifting across solver modules.
 Concrete work:
 - Keep `HeatPINN`, `WavePINN`, `ContinuousPINN`, `DiscreteRKPINN`,
   `ContinuousPINNGeneric` and `NavierStokesPINN` importable.
-- Route safe pieces of heat and wave wrappers through composable problem and
-  trainer objects.
+- 🚧 Route safe pieces of heat and wave wrappers through composable problem and
+  trainer objects. `HeatProblem` and `WaveProblem` are faithful equivalents,
+  including the wave equation's separate `initial_velocity` constraint, but the
+  two paths do not agree on sampling: `pinnlab.solvers` draws collocation
+  points once before training and reuses them, while the generic trainer
+  resamples on every step. Delegating as-is would change training dynamics
+  rather than merely relocating code, and would move the accuracy figures the
+  examples and tests quote. `FixedInteriorSampler` now makes the legacy
+  semantics expressible on the composable path, so the delegation can be
+  attempted without that behaviour change; doing it, and confirming the
+  measured errors hold, is the next step.
 - Convert callable-based generic PDE examples into explicit problem/constraint
   adapters where practical.
 - Keep `raissi_improved` as the compatibility facade until caching,

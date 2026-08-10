@@ -237,3 +237,78 @@ class TestReproducibility:
         a = first.inner.sample(problem.geometry, 8, generator=None)
         b = second.inner.sample(problem.geometry, 8, generator=None)
         assert a.shape == b.shape
+
+
+class TestFixedInteriorSampler:
+    """Fixed collocation is the semantics the legacy solvers use.
+
+    `pinnlab.solvers` draws its points once before training and reuses them,
+    while the generic trainer resamples every step. Migrating those wrappers
+    onto the trainer therefore needs this strategy to exist, or the move would
+    silently change training dynamics rather than merely relocating code.
+    """
+
+    def test_repeated_calls_return_the_same_points(self, problem):
+        from pinnlab.sampling import FixedInteriorSampler
+
+        sampler = FixedInteriorSampler()
+        first = sampler.sample(problem.geometry, 16)
+        second = sampler.sample(problem.geometry, 16)
+        assert torch.equal(first, second)
+
+    def test_the_trainer_sees_one_unchanging_set(self, problem):
+        from pinnlab.sampling import FixedInteriorSampler
+
+        recorder = RecordingSampler(inner=FixedInteriorSampler())
+        Trainer(
+            _config(sampler=recorder, optimizer=OptimizerConfig(adam_steps=4))
+        ).train(problem, MLP(2, 1, 8, 1))
+
+        drawn = [
+            recorder.inner.sample(problem.geometry, 16)
+            for _ in range(len(recorder.calls))
+        ]
+        assert all(torch.equal(drawn[0], other) for other in drawn[1:])
+
+    def test_resampling_is_the_default_so_the_choice_is_explicit(self, problem):
+        """The uniform sampler gives different points each call, which is what
+        makes FixedInteriorSampler a distinct strategy rather than a no-op."""
+        sampler = UniformInteriorSampler()
+        first = sampler.sample(problem.geometry, 32)
+        second = sampler.sample(problem.geometry, 32)
+        assert not torch.equal(first, second)
+
+    def test_a_different_count_gets_its_own_fixed_set(self, problem):
+        from pinnlab.sampling import FixedInteriorSampler
+
+        sampler = FixedInteriorSampler()
+        small = sampler.sample(problem.geometry, 8)
+        large = sampler.sample(problem.geometry, 16)
+        assert small.shape[0] == 8 and large.shape[0] == 16
+        assert torch.equal(small, sampler.sample(problem.geometry, 8))
+
+    def test_dtype_change_moves_the_points_rather_than_redrawing(self, problem):
+        from pinnlab.sampling import FixedInteriorSampler
+
+        sampler = FixedInteriorSampler()
+        single = sampler.sample(problem.geometry, 8, dtype=torch.float32)
+        double = sampler.sample(problem.geometry, 8, dtype=torch.float64)
+        assert double.dtype == torch.float64
+        assert torch.allclose(double, single.to(torch.float64))
+
+    def test_reset_draws_a_new_set(self, problem):
+        from pinnlab.sampling import FixedInteriorSampler
+
+        sampler = FixedInteriorSampler()
+        before = sampler.sample(problem.geometry, 32)
+        sampler.reset()
+        after = sampler.sample(problem.geometry, 32)
+        assert not torch.equal(before, after)
+
+    def test_it_trains(self, problem):
+        from pinnlab.sampling import FixedInteriorSampler
+
+        result = Trainer(_config(sampler=FixedInteriorSampler())).train(
+            problem, MLP(2, 1, 8, 1)
+        )
+        assert result.history

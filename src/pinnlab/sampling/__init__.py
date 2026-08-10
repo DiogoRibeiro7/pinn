@@ -16,6 +16,7 @@ from .active_learning import (
 from .adapters import BaseSamplerInteriorAdapter, InteriorSamplerBaseAdapter
 from .importance import GradientBasedImportanceSampler
 from .core import (
+    FixedInteriorSampler,
     InteriorSampler,
     LatinHypercubeInteriorSampler,
     UniformInteriorSampler,
@@ -42,6 +43,7 @@ __all__ = [
     "create_lhs_sampler",
     "create_boundary_points",
     "LatinHypercubeSampler",
+    "FixedInteriorSampler",
     "InteriorSampler",
     "latin_hypercube",
     "BaseSamplerInteriorAdapter",

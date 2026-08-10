@@ -258,6 +258,7 @@
     "CoKrigingModel",
     "Domain",
     "ExpectedImprovementAcquisition",
+    "FixedInteriorSampler",
     "GradientBasedImportanceSampler",
     "HierarchicalConfig",
     "HierarchicalPINNTrainer",
