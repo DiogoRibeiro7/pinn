@@ -8,6 +8,8 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-10
+
 ### Changed
 
 - **The distribution and import package are now `pinnlab`.** `pinn` on PyPI is
@@ -229,7 +231,8 @@ Python version, and citable.
 - Documented the trust boundary on the cache's `pickle` loads, which only ever
   deserialise data the cache itself wrote.
 
-[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/DiogoRibeiro7/pinn/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/DiogoRibeiro7/pinn/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/DiogoRibeiro7/pinn/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/DiogoRibeiro7/pinn/compare/v0.1.0...v0.1.1

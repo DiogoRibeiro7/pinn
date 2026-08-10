@@ -12,7 +12,7 @@
   "license": "MIT",
   "access_right": "open",
   "language": "eng",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "keywords": [
     "physics-informed neural networks",
     "PINN",
