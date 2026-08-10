@@ -283,7 +283,16 @@ class Trainer:
             )
 
             def closure() -> Tensor:
+                # Reseed before every evaluation so the sampler and the
+                # constraints draw the same points each time. L-BFGS' strong
+                # Wolfe line search compares losses across trial step sizes and
+                # assumes the objective does not move between them; resampling
+                # here makes it stochastic and the search unreliable. Measured
+                # on the heat problem from identical initial weights, L-BFGS
+                # improved the legacy fixed-point loop 8.9x but this loop only
+                # 2.3x until the objective was pinned down.
                 lbfgs.zero_grad(set_to_none=True)
+                generator.manual_seed(self.config.seed)
                 closure_total, _ = self._evaluate(
                     problem, loss_model, generator, device, dtype, refiner
                 )

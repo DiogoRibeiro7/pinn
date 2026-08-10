@@ -252,15 +252,27 @@ Concrete work:
   `ContinuousPINNGeneric` and `NavierStokesPINN` importable.
 - 🚧 Route safe pieces of heat and wave wrappers through composable problem and
   trainer objects. `HeatProblem` and `WaveProblem` are faithful equivalents,
-  including the wave equation's separate `initial_velocity` constraint, but the
-  two paths do not agree on sampling: `pinnlab.solvers` draws collocation
-  points once before training and reuses them, while the generic trainer
-  resamples on every step. Delegating as-is would change training dynamics
-  rather than merely relocating code, and would move the accuracy figures the
-  examples and tests quote. `FixedInteriorSampler` now makes the legacy
-  semantics expressible on the composable path, so the delegation can be
-  attempted without that behaviour change; doing it, and confirming the
-  measured errors hold, is the next step.
+  including the wave equation's separate `initial_velocity` constraint.
+  Comparing the two paths from identical initial weights on the heat problem,
+  at 1500 Adam steps plus 100 L-BFGS iterations, exposed a defect in the
+  generic trainer rather than a migration obstacle: its L-BFGS closure
+  resampled on every evaluation, so the strong Wolfe line search compared
+  slightly different objectives. L-BFGS improved the legacy loop 8.9x and the
+  generic trainer only 2.3x. Reseeding inside the closure fixed it; the
+  trainer now improves 14.4x and reaches 1.17e-3 against the legacy loop's
+  1.31e-3.
+
+  Two earlier hypotheses were wrong and are recorded so they are not retried:
+  fixed versus resampled interior collocation made no measurable difference
+  (6.474e-3 against 6.472e-3), and halving the per-boundary weight to match the
+  legacy single combined boundary term made accuracy worse, not better
+  (8.5e-3 against 6.5e-3). `FixedInteriorSampler` was added on the first of
+  those premises; it remains a legitimate strategy but it was not what
+  unblocked anything.
+
+  A smaller gap remains under Adam alone, 1.69e-2 against the legacy 1.16e-2,
+  cause not yet established. The delegation should wait until that is
+  understood, since it would otherwise move the published accuracy figures.
 - Convert callable-based generic PDE examples into explicit problem/constraint
   adapters where practical.
 - Keep `raissi_improved` as the compatibility facade until caching,

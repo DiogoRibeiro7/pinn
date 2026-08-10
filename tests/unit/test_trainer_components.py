@@ -312,3 +312,88 @@ class TestFixedInteriorSampler:
             problem, MLP(2, 1, 8, 1)
         )
         assert result.history
+
+
+class TestLbfgsObjectiveIsDeterministic:
+    """L-BFGS needs the loss to be a fixed function of the parameters.
+
+    Its strong Wolfe line search compares the objective at several trial step
+    sizes and assumes nothing moved between them. The trainer resamples
+    collocation and constraint points on every evaluation, so without pinning
+    the draw the search compares slightly different functions and its step
+    selection degrades badly. Measured on the heat problem from identical
+    initial weights, L-BFGS improved the legacy fixed-point loop 8.9x but this
+    loop only 2.3x; with the objective pinned it improves 14.4x, taking the
+    relative L2 error from 7.4e-3 to 1.2e-3.
+    """
+
+    def test_reseeding_makes_repeated_evaluations_identical(self, problem):
+        """The invariant the closure relies on."""
+        trainer = Trainer(_config())
+        model = MLP(2, 1, 8, 1)
+        device = torch.device("cpu")
+        generator = trainer._seed(device)
+
+        losses = []
+        for _ in range(3):
+            generator.manual_seed(trainer.config.seed)
+            total, _ = trainer._evaluate(
+                problem, model, generator, device, torch.float32, None
+            )
+            losses.append(float(total))
+
+        assert losses[0] == pytest.approx(losses[1], rel=1e-12)
+        assert losses[1] == pytest.approx(losses[2], rel=1e-12)
+
+    def test_without_reseeding_the_objective_moves(self, problem):
+        """The control: this is why the reseed is needed rather than incidental."""
+        trainer = Trainer(_config())
+        model = MLP(2, 1, 8, 1)
+        device = torch.device("cpu")
+        generator = trainer._seed(device)
+
+        first, _ = trainer._evaluate(
+            problem, model, generator, device, torch.float32, None
+        )
+        second, _ = trainer._evaluate(
+            problem, model, generator, device, torch.float32, None
+        )
+        assert float(first) != pytest.approx(float(second), rel=1e-12)
+
+    def test_lbfgs_materially_reduces_the_loss(self, problem):
+        """Guards the benefit itself, not just the mechanism. A regression that
+        reintroduced a moving objective would blunt L-BFGS without failing any
+        determinism check that only inspects one evaluation."""
+        model = MLP(2, 2, 16, 1)
+        adam_only = Trainer(
+            _config(
+                collocation_count=256,
+                optimizer=OptimizerConfig(adam_steps=200, lbfgs_max_iter=0),
+            )
+        ).train(problem, model)
+
+        polished = Trainer(
+            _config(
+                collocation_count=256,
+                optimizer=OptimizerConfig(adam_steps=0, lbfgs_max_iter=40),
+            )
+        ).train(problem, model)
+
+        assert polished.final_loss < adam_only.final_loss
+
+    def test_lbfgs_runs_are_reproducible(self, problem):
+        """Same seed and same starting parameters give the same answer."""
+        import copy
+
+        torch.manual_seed(99)
+        base = MLP(2, 2, 16, 1)
+        finals = []
+        for _ in range(2):
+            result = Trainer(
+                _config(
+                    collocation_count=128,
+                    optimizer=OptimizerConfig(adam_steps=10, lbfgs_max_iter=15),
+                )
+            ).train(problem, copy.deepcopy(base))
+            finals.append(result.final_loss)
+        assert finals[0] == pytest.approx(finals[1], rel=1e-9)

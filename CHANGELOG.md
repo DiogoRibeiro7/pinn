@@ -8,6 +8,28 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Fixed
+
+- L-BFGS is far more effective in the composable `Trainer`. Its closure
+  resampled collocation and constraint points on every evaluation, so the
+  strong Wolfe line search compared the objective at several trial step sizes
+  while that objective moved underneath it. Reseeding the generator inside the
+  closure pins the draw for the duration of the search. Measured on the heat
+  problem from identical initial weights at 1500 Adam steps plus 100 L-BFGS
+  iterations, the relative L2 error improves from 7.39e-3 to 1.17e-3, and the
+  benefit L-BFGS delivers rises from 2.3x to 14.4x. Adam still resamples every
+  step, which is intended; only the line search needs a fixed objective.
+
+### Added
+
+- `FixedInteriorSampler` draws interior collocation points once and reuses
+  them, which is what the solvers in `pinnlab.solvers` do and what the original
+  Raissi implementations do. A fixed set also makes the loss deterministic,
+  which suits L-BFGS. Note that fixed versus resampled interior points made no
+  measurable accuracy difference on the heat problem; the L-BFGS problem above
+  was the resampling *inside the closure*, which this sampler does not address
+  on its own.
+
 ## [0.4.0] - 2026-08-10
 
 ### Fixed
