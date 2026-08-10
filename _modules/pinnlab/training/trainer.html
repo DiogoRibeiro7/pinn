@@ -320,7 +320,16 @@
             <span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">closure</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+                <span class="c1"># Reseed before every evaluation so the sampler and the</span>
+                <span class="c1"># constraints draw the same points each time. L-BFGS&#39; strong</span>
+                <span class="c1"># Wolfe line search compares losses across trial step sizes and</span>
+                <span class="c1"># assumes the objective does not move between them; resampling</span>
+                <span class="c1"># here makes it stochastic and the search unreliable. Measured</span>
+                <span class="c1"># on the heat problem from identical initial weights, L-BFGS</span>
+                <span class="c1"># improved the legacy fixed-point loop 8.9x but this loop only</span>
+                <span class="c1"># 2.3x until the objective was pinned down.</span>
                 <span class="n">lbfgs</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">generator</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
                 <span class="n">closure_total</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span>
                     <span class="n">problem</span><span class="p">,</span> <span class="n">loss_model</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">refiner</span>
                 <span class="p">)</span>
