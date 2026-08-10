@@ -93,6 +93,26 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">TrainerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for equation-agnostic PINN training.</span>
 
+<span class="sd">    This object owns *how* to train and nothing about *what* is being solved.</span>
+<span class="sd">    The split across the three core types is:</span>
+
+<span class="sd">    - ``TrainerConfig`` -- budget, precision, sampling policy, loss weights and</span>
+<span class="sd">      optional strategies. Reusable across equations; changing it should never</span>
+<span class="sd">      change the problem&#39;s meaning, only how well or how quickly it is solved.</span>
+<span class="sd">    - :class:`~pinnlab.problems.PDEProblem` -- geometry, residual and</span>
+<span class="sd">      constraints. Everything equation-specific lives there, so the trainer can</span>
+<span class="sd">      stay ignorant of which PDE it is optimising.</span>
+<span class="sd">    - :class:`~pinnlab.training.state.TrainingState` /</span>
+<span class="sd">      :class:`~pinnlab.training.state.TrainingResult` -- what happened, as</span>
+<span class="sd">      immutable records. Nothing here feeds back into the configuration.</span>
+
+<span class="sd">    Two consequences worth knowing. Entries in ``loss_weights`` are matched by</span>
+<span class="sd">    name against the components a problem produces (``&quot;pde&quot;`` plus one per</span>
+<span class="sd">    constraint), so a weight for a name the problem never emits is silently</span>
+<span class="sd">    unused rather than an error. And ``scaling`` wraps the model rather than the</span>
+<span class="sd">    problem: the network trains in dimensionless variables while geometry,</span>
+<span class="sd">    constraints and residuals continue to work in physical ones.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        seed: Random seed propagated to Python, NumPy and PyTorch.</span>
 <span class="sd">        device: Torch device used for model and sampled tensors.</span>
