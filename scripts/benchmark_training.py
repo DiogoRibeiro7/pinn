@@ -25,7 +25,9 @@ def main() -> None:
     )
     report = PerformanceReport()
 
-    @profile_performance(report=report)
+    # Named explicitly: the benchmark dashboard keys its history off this
+    # string, and the default would be "main.<locals>.run_train".
+    @profile_performance(report=report, name="burgers_continuous_pinn_train")
     def run_train() -> None:
         tcfg = TrainConfig(
             adam_steps=5,

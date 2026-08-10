@@ -125,7 +125,10 @@ def _current_gpu_memory_mb() -> Optional[float]:
 
 
 def profile_performance(
-    func: Optional[Callable] = None, *, report: Optional[PerformanceReport] = None
+    func: Optional[Callable] = None,
+    *,
+    report: Optional[PerformanceReport] = None,
+    name: Optional[str] = None,
 ) -> Callable:
     """Decorator to time function execution and track memory usage.
 
@@ -133,6 +136,13 @@ def profile_performance(
     ----------
     report:
         Optional :class:`PerformanceReport` to collect profiling data.
+    name:
+        Label recorded for the measurement. Defaults to the function's
+        ``__qualname__``, which for a nested function reads like
+        ``main.<locals>.run_train``. Pass an explicit name when the record is
+        published somewhere durable -- benchmark dashboards key their history
+        off this string, so a generated one is both unreadable and awkward to
+        change later without splitting the series.
     """
 
     def decorator(fn: Callable) -> Callable:
@@ -154,7 +164,7 @@ def profile_performance(
             if report is not None:
                 report.add(
                     PerformanceRecord(
-                        name=fn.__qualname__,
+                        name=name or fn.__qualname__,
                         duration_sec=duration,
                         cpu_mem_mb=cpu_delta,
                         gpu_mem_mb=gpu_delta,
