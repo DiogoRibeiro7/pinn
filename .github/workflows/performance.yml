@@ -35,16 +35,19 @@ jobs:
       - run: pytest tests/performance -q --no-cov
       - run: python scripts/benchmark_training.py
       - run: python scripts/benchmark_distributed.py
+      # customSmallerIsBetter expects a bare JSON *array* of
+      # {name, unit, value} entries. Wrapping them in a {"benchmarks": [...]}
+      # object makes the action fail with "expected array, received object".
       - run: |
           python - <<'PY'
           import json
 
           with open('benchmark_report.json') as f:
               data = json.load(f)
-          out = {'benchmarks': [
-              {'name': r['name'], 'value': r['duration_sec'], 'unit': 's'}
+          out = [
+              {'name': r['name'], 'unit': 's', 'value': r['duration_sec']}
               for r in data
-          ]}
+          ]
           with open('benchmark.json', 'w') as f:
               json.dump(out, f)
           PY
