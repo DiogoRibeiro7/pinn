@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Performance Optimization Guide &#8212; pinn  documentation</title>
+    <title>Performance Optimization Guide &#8212; pinnkit  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
@@ -36,7 +36,7 @@
   <section id="performance-optimization-guide">
 <h1>Performance Optimization Guide<a class="headerlink" href="#performance-optimization-guide" title="Link to this heading">¶</a></h1>
 <p>Use the profiling utilities to monitor training throughput and memory usage.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinn.utils.profiling</span><span class="w"> </span><span class="kn">import</span> <span class="n">profile_performance</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.utils.profiling</span><span class="w"> </span><span class="kn">import</span> <span class="n">profile_performance</span>
 
 <span class="nd">@profile_performance</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">():</span>
@@ -45,11 +45,11 @@
 </div>
 <section id="benchmark-reports">
 <h2>Benchmark reports<a class="headerlink" href="#benchmark-reports" title="Link to this heading">¶</a></h2>
-<p>Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">pinn.benchmarks</span></code> for reproducible benchmark artifacts. Reports are
+<p>Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">pinnkit.benchmarks</span></code> for reproducible benchmark artifacts. Reports are
 JSON-serializable, include the current git commit when available and require
 each case to declare whether reference data is <code class="docutils literal notranslate"><span class="pre">analytic</span></code>, <code class="docutils literal notranslate"><span class="pre">numerical</span></code> or
 <code class="docutils literal notranslate"><span class="pre">observational</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinn.benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkReport</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkReport</span>
 
 <span class="n">report</span> <span class="o">=</span> <span class="n">BenchmarkReport</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;benchmark_report.json&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">cases</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
@@ -58,14 +58,14 @@ each case to declare whether reference data is <code class="docutils literal not
 <p>For composable problems, <code class="docutils literal notranslate"><span class="pre">evaluate_independent_residual</span></code> samples fresh
 interior points and evaluates the PDE residual independently from trainer state.
 Classical comparison data can be generated with helpers such as
-<code class="docutils literal notranslate"><span class="pre">pinn.numerics.solve_heat_explicit</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">pinnkit.numerics.solve_heat_explicit</span></code>.</p>
 </section>
 <section id="rar-benchmark">
 <h2>RAR benchmark<a class="headerlink" href="#rar-benchmark" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">scripts/benchmark_rar.py</span></code> helper compares uniform collocation,
 residual-adaptive refinement and diversity-aware residual-adaptive refinement
 on composable Burgers, heat and wave problems. It writes the shared
-<code class="docutils literal notranslate"><span class="pre">pinn.benchmarks.BenchmarkReport</span></code> schema:</p>
+<code class="docutils literal notranslate"><span class="pre">pinnkit.benchmarks.BenchmarkReport</span></code> schema:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/benchmark_rar.py<span class="w"> </span>--problems<span class="w"> </span>burgers<span class="w"> </span>heat<span class="w"> </span>wave<span class="w"> </span>--steps<span class="w"> </span><span class="m">100</span><span class="w"> </span>--output<span class="w"> </span>rar_benchmark.json
 </pre></div>
 </div>
@@ -75,12 +75,12 @@ tune <code class="docutils literal notranslate"><span class="pre">--diversity-we
 <section id="memory-aware-training">
 <h2>Memory-aware training<a class="headerlink" href="#memory-aware-training" title="Link to this heading">¶</a></h2>
 <p>Large collocation sets can quickly exhaust accelerator memory.  The
-<a class="reference internal" href="api/index.html#pinn.training.MemoryEfficientPINN" title="pinn.training.memory_efficient.MemoryEfficientPINN"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryEfficientPINN</span></code></a> wrapper enables
+<a class="reference internal" href="api/index.html#pinnkit.training.MemoryEfficientPINN" title="pinnkit.training.memory_efficient.MemoryEfficientPINN"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryEfficientPINN</span></code></a> wrapper enables
 automatic batch-size selection, gradient accumulation and mixed-precision
 training:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinn.training.memory_efficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryEfficientPINN</span><span class="p">,</span> <span class="n">MemoryProfiler</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.solvers.raissi_improved</span><span class="w"> </span><span class="kn">import</span> <span class="n">BurgersConfig</span><span class="p">,</span> <span class="n">TrainConfig</span><span class="p">,</span> <span class="n">burgers_residual</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.models.mlp</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.training.memory_efficient</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryEfficientPINN</span><span class="p">,</span> <span class="n">MemoryProfiler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.solvers.raissi_improved</span><span class="w"> </span><span class="kn">import</span> <span class="n">BurgersConfig</span><span class="p">,</span> <span class="n">TrainConfig</span><span class="p">,</span> <span class="n">burgers_residual</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.models.mlp</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
 
 <span class="n">profiler</span> <span class="o">=</span> <span class="n">MemoryProfiler</span><span class="p">()</span>
 <span class="n">pinn</span> <span class="o">=</span> <span class="n">MemoryEfficientPINN</span><span class="p">(</span>
@@ -100,11 +100,11 @@ training:</p>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The trainer honours the new <a class="reference internal" href="api/index.html#pinn.TrainConfig" title="pinn.solvers.raissi_improved.TrainConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code></a>
+<p>The trainer honours the new <a class="reference internal" href="api/index.html#pinnkit.TrainConfig" title="pinnkit.solvers.raissi_improved.TrainConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code></a>
 fields <code class="docutils literal notranslate"><span class="pre">collocation_batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">effective_batch_size</span></code> and
 <code class="docutils literal notranslate"><span class="pre">gradient_checkpointing</span></code>.  When unset, a short warm-up evaluates the memory
 footprint of the PDE residual to select a safe batch size, and a
-<a class="reference internal" href="api/index.html#pinn.training.MemoryProfiler" title="pinn.training.memory_efficient.MemoryProfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryProfiler</span></code></a> instance records per-step
+<a class="reference internal" href="api/index.html#pinnkit.training.MemoryProfiler" title="pinnkit.training.memory_efficient.MemoryProfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryProfiler</span></code></a> instance records per-step
 statistics.</p>
 </section>
 <section id="benchmarking-memory-usage">
@@ -125,10 +125,10 @@ under control.</p>
 points, forward activations and PDE residuals across optimisation steps.  This
 dramatically reduces duplicate work when using hybrid strategies such as
 gradient accumulation or L-BFGS polishing.</p>
-<p>Enable caching through <a class="reference internal" href="api/index.html#pinn.TrainConfig" title="pinn.solvers.raissi_improved.TrainConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code></a> by
-supplying a <a class="reference internal" href="api/index.html#pinn.CacheConfig" title="pinn.optimization.caching.CacheConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheConfig</span></code></a> instance:</p>
+<p>Enable caching through <a class="reference internal" href="api/index.html#pinnkit.TrainConfig" title="pinnkit.solvers.raissi_improved.TrainConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code></a> by
+supplying a <a class="reference internal" href="api/index.html#pinnkit.CacheConfig" title="pinnkit.optimization.caching.CacheConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheConfig</span></code></a> instance:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pinn.optimization.caching</span><span class="w"> </span><span class="kn">import</span> <span class="n">CacheConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.optimization.caching</span><span class="w"> </span><span class="kn">import</span> <span class="n">CacheConfig</span>
 
 <span class="n">cache_cfg</span> <span class="o">=</span> <span class="n">CacheConfig</span><span class="p">(</span>
     <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -179,7 +179,7 @@ regressions.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">pinn</a></h1>
+<h1 class="logo"><a href="index.html">pinnkit</a></h1>
 
 
 

@@ -1,8 +1,8 @@
 Configuration Reference
 =======================
 
-Key configuration classes include :class:`pinn.config.management.BurgersConfig`.
+Key configuration classes include :class:`pinnkit.config.management.BurgersConfig`.
 
-.. automodule:: pinn.config.management
+.. automodule:: pinnkit.config.management
    :members:
    :undoc-members:

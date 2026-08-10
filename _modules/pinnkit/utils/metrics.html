@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pinnkit.utils.metrics &#8212; pinnkit  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pinnkit.utils.metrics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Comprehensive metrics and error analysis utilities for Physics-Informed Neural Networks.</span>
+
+<span class="sd">This module provides various metrics for evaluating PINN performance:</span>
+<span class="sd">- Point-wise error metrics (MAE, MSE, RMSE, relative errors)</span>
+<span class="sd">- Field-based metrics (energy norms, conservation laws)</span>
+<span class="sd">- Physics consistency metrics (PDE residual analysis)</span>
+<span class="sd">- Statistical analysis tools (distribution comparisons, correlation analysis)</span>
+<span class="sd">- Convergence analysis utilities</span>
+<span class="sd">- Benchmark comparison tools</span>
+
+<span class="sd">These metrics are essential for validating PINN solutions and comparing</span>
+<span class="sd">different architectures, training strategies, and hyperparameters.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># integrate is imported to probe SciPy&#39;s availability, not used directly.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span><span class="p">,</span> <span class="n">integrate</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">wasserstein_distance</span>
+
+    <span class="n">SCIPY_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">SCIPY_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;SciPy not available. Some advanced metrics will be unavailable.&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Core Error Metrics</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ErrorMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for various error metrics.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        mae: Mean Absolute Error</span>
+<span class="sd">        mse: Mean Squared Error</span>
+<span class="sd">        rmse: Root Mean Squared Error</span>
+<span class="sd">        max_error: Maximum absolute error</span>
+<span class="sd">        relative_mae: Mean Absolute Relative Error</span>
+<span class="sd">        relative_rmse: Root Mean Squared Relative Error</span>
+<span class="sd">        l2_norm: L2 norm of error</span>
+<span class="sd">        l_inf_norm: L-infinity norm of error</span>
+<span class="sd">        correlation: Pearson correlation coefficient</span>
+<span class="sd">        r2_score: R-squared coefficient of determination</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mae</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">mse</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">rmse</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">max_error</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">relative_mae</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">relative_rmse</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">l2_norm</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">l_inf_norm</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">correlation</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">r2_score</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;String representation of error metrics.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Error Metrics:</span>
+<span class="s2">  MAE:           </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mae</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  RMSE:          </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rmse</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  Max Error:     </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_error</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  Relative MAE:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">relative_mae</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  Relative RMSE: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">relative_rmse</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  L2 Norm:       </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">l2_norm</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  L∞ Norm:       </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">l_inf_norm</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  Correlation:   </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">correlation</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span>
+<span class="s2">  R² Score:      </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r2_score</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="compute_error_metrics">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.compute_error_metrics">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_error_metrics</span><span class="p">(</span>
+    <span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-10</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ErrorMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute comprehensive error metrics between true and predicted values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_true: True values, shape (N,) or (N, d)</span>
+<span class="sd">        y_pred: Predicted values, same shape as y_true</span>
+<span class="sd">        weights: Optional weights for weighted metrics, shape (N,)</span>
+<span class="sd">        eps: Small value to avoid division by zero</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ErrorMetrics object containing all computed metrics</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If arrays have incompatible shapes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">y_true</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;y_true and y_pred must have the same shape&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Flatten arrays for easier computation</span>
+    <span class="n">y_true_flat</span> <span class="o">=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">y_pred_flat</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Weights must have same length as first dimension of y_true&quot;</span>
+            <span class="p">)</span>
+        <span class="n">weights_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">y_true</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">weights_flat</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Absolute errors</span>
+    <span class="n">abs_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_pred_flat</span> <span class="o">-</span> <span class="n">y_true_flat</span><span class="p">)</span>
+    <span class="n">squared_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_pred_flat</span> <span class="o">-</span> <span class="n">y_true_flat</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="c1"># Basic metrics</span>
+    <span class="k">if</span> <span class="n">weights_flat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">abs_errors</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights_flat</span><span class="p">)</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">squared_errors</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights_flat</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">abs_errors</span><span class="p">)</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">squared_errors</span><span class="p">)</span>
+
+    <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
+    <span class="n">max_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">abs_errors</span><span class="p">)</span>
+
+    <span class="c1"># Relative errors (avoid division by zero)</span>
+    <span class="n">y_true_safe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">eps</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">y_true_flat</span><span class="p">)</span>
+    <span class="n">relative_errors</span> <span class="o">=</span> <span class="n">abs_errors</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_true_safe</span><span class="p">)</span>
+    <span class="n">relative_squared_errors</span> <span class="o">=</span> <span class="n">squared_errors</span> <span class="o">/</span> <span class="p">(</span><span class="n">y_true_safe</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">weights_flat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">relative_mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">relative_errors</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights_flat</span><span class="p">)</span>
+        <span class="n">relative_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">relative_squared_errors</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights_flat</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">relative_mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">relative_errors</span><span class="p">)</span>
+        <span class="n">relative_mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">relative_squared_errors</span><span class="p">)</span>
+
+    <span class="n">relative_rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">relative_mse</span><span class="p">)</span>
+
+    <span class="c1"># Norms</span>
+    <span class="n">l2_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">y_pred_flat</span> <span class="o">-</span> <span class="n">y_true_flat</span><span class="p">)</span>
+    <span class="n">l_inf_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">abs_errors</span><span class="p">)</span>  <span class="c1"># Same as max_error</span>
+
+    <span class="c1"># Statistical metrics</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">correlation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">,</span> <span class="n">y_pred_flat</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># R² score</span>
+        <span class="n">ss_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">squared_errors</span><span class="p">)</span>
+        <span class="n">ss_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_true_flat</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">r2_score</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">ss_res</span> <span class="o">/</span> <span class="p">(</span><span class="n">ss_tot</span> <span class="o">+</span> <span class="n">eps</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">correlation</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">abs_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">eps</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">r2_score</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">abs_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">eps</span> <span class="k">else</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="k">return</span> <span class="n">ErrorMetrics</span><span class="p">(</span>
+        <span class="n">mae</span><span class="o">=</span><span class="n">mae</span><span class="p">,</span>
+        <span class="n">mse</span><span class="o">=</span><span class="n">mse</span><span class="p">,</span>
+        <span class="n">rmse</span><span class="o">=</span><span class="n">rmse</span><span class="p">,</span>
+        <span class="n">max_error</span><span class="o">=</span><span class="n">max_error</span><span class="p">,</span>
+        <span class="n">relative_mae</span><span class="o">=</span><span class="n">relative_mae</span><span class="p">,</span>
+        <span class="n">relative_rmse</span><span class="o">=</span><span class="n">relative_rmse</span><span class="p">,</span>
+        <span class="n">l2_norm</span><span class="o">=</span><span class="n">l2_norm</span><span class="p">,</span>
+        <span class="n">l_inf_norm</span><span class="o">=</span><span class="n">l_inf_norm</span><span class="p">,</span>
+        <span class="n">correlation</span><span class="o">=</span><span class="n">correlation</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">correlation</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">r2_score</span><span class="o">=</span><span class="n">r2_score</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Physics-Based Metrics</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PhysicsMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for physics-based validation metrics.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        mean_residual: Mean PDE residual magnitude</span>
+<span class="sd">        max_residual: Maximum PDE residual magnitude</span>
+<span class="sd">        residual_std: Standard deviation of residuals</span>
+<span class="sd">        conservation_error: Error in conservation laws</span>
+<span class="sd">        energy_error: Error in energy conservation</span>
+<span class="sd">        mass_error: Error in mass conservation</span>
+<span class="sd">        momentum_error: Error in momentum conservation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mean_residual</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">max_residual</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">residual_std</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">conservation_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">energy_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">mass_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">momentum_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;String representation of physics metrics.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Physics Metrics:</span>
+<span class="s2">  Mean Residual: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mean_residual</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  Max Residual:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_residual</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span>
+<span class="s2">  Residual Std:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">residual_std</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conservation_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Conservation:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">conservation_error</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Energy Error:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_error</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Mass Error:    </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_error</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum_error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Momentum Error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">momentum_error</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_residual_metrics</span><span class="p">(</span><span class="n">residuals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhysicsMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute metrics for PDE residuals.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        residuals: PDE residual values, shape (N,) or (N, n_equations)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        PhysicsMetrics object with residual statistics</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">residuals</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Multiple equations - compute magnitude</span>
+        <span class="n">residual_magnitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">residuals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">residual_magnitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residuals</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">PhysicsMetrics</span><span class="p">(</span>
+        <span class="n">mean_residual</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">),</span>
+        <span class="n">max_residual</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">),</span>
+        <span class="n">residual_std</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_conservation_metrics</span><span class="p">(</span>
+    <span class="n">solution</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">domain_coords</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">conservation_laws</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute conservation law violations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        solution: Solution field values</span>
+<span class="sd">        domain_coords: Coordinate arrays for integration</span>
+<span class="sd">        conservation_laws: List of functions computing conserved quantities</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary of conservation errors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conservation_errors</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">law</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">conservation_laws</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Compute initial and current conserved quantity</span>
+            <span class="c1"># This is a simplified interface - real implementation would need</span>
+            <span class="c1"># access to initial conditions and proper integration</span>
+            <span class="n">conserved_quantity</span> <span class="o">=</span> <span class="n">law</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">domain_coords</span><span class="p">)</span>
+            <span class="n">conservation_errors</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;conservation_law_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conserved_quantity</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not compute conservation law </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">conservation_errors</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;conservation_law_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">conservation_errors</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Field-Based Metrics</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FieldMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Metrics for vector/tensor fields and spatial analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_energy_norm</span><span class="p">(</span>
+        <span class="n">u_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">u_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">domain_volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute L2 energy norm error.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            u_true: True field values</span>
+<span class="sd">            u_pred: Predicted field values</span>
+<span class="sd">            domain_volume: Volume of computational domain</span>
+<span class="sd">            weights: Integration weights</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Energy norm error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="n">u_pred</span> <span class="o">-</span> <span class="n">u_true</span>
+
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">energy_error</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span> <span class="o">*</span> <span class="p">(</span><span class="n">error</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">domain_volume</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energy_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">error</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">domain_volume</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">energy_error</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_sobolev_norm</span><span class="p">(</span>
+        <span class="n">u_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">u_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gradients_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gradients_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">domain_volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute H¹ Sobolev norm error.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            u_true: True field values</span>
+<span class="sd">            u_pred: Predicted field values</span>
+<span class="sd">            gradients_true: True gradient values</span>
+<span class="sd">            gradients_pred: Predicted gradient values</span>
+<span class="sd">            domain_volume: Domain volume</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            H¹ norm error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># L² norm of function error</span>
+        <span class="n">l2_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">u_pred</span> <span class="o">-</span> <span class="n">u_true</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">domain_volume</span>
+
+        <span class="c1"># L² norm of gradient error</span>
+        <span class="n">grad_error</span> <span class="o">=</span> <span class="n">gradients_pred</span> <span class="o">-</span> <span class="n">gradients_true</span>
+        <span class="n">h1_semi_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">grad_error</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">domain_volume</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">l2_error</span> <span class="o">+</span> <span class="n">h1_semi_error</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_divergence_error</span><span class="p">(</span>
+        <span class="n">velocity_field</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute divergence error for incompressible flow fields.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            velocity_field: Velocity components, shape (..., ndim)</span>
+<span class="sd">            coordinates: List of coordinate arrays for each dimension</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            RMS divergence error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">SCIPY_AVAILABLE</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;SciPy required for gradient computation&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">ndim</span> <span class="o">=</span> <span class="n">velocity_field</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">divergence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">velocity_field</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">):</span>
+            <span class="c1"># Compute gradient of i-th velocity component in i-th direction</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">velocity_field</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">divergence</span> <span class="o">+=</span> <span class="n">grad</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">divergence</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Statistical Analysis</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">StatisticalAnalysis</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Statistical analysis tools for PINN validation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_distribution_distance</span><span class="p">(</span>
+        <span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;wasserstein&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute distance between true and predicted distributions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y_true: True values</span>
+<span class="sd">            y_pred: Predicted values</span>
+<span class="sd">            method: Distance metric (&quot;wasserstein&quot;, &quot;ks&quot;, &quot;anderson&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Distribution distance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">SCIPY_AVAILABLE</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;SciPy required for distribution analysis&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">y_true_flat</span> <span class="o">=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">y_pred_flat</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;wasserstein&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">wasserstein_distance</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">,</span> <span class="n">y_pred_flat</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;ks&quot;</span><span class="p">:</span>
+            <span class="c1"># Kolmogorov-Smirnov test</span>
+            <span class="n">statistic</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">ks_2samp</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">,</span> <span class="n">y_pred_flat</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">statistic</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;anderson&quot;</span><span class="p">:</span>
+            <span class="c1"># Anderson-Darling test (requires same distribution)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">statistic</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">anderson_ksamp</span><span class="p">([</span><span class="n">y_true_flat</span><span class="p">,</span> <span class="n">y_pred_flat</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">statistic</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_moment_errors</span><span class="p">(</span>
+        <span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">moments</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute errors in statistical moments.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y_true: True values</span>
+<span class="sd">            y_pred: Predicted values</span>
+<span class="sd">            moments: List of moment orders to compute</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary mapping moment order to relative error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y_true_flat</span> <span class="o">=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">y_pred_flat</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="n">moment_errors</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">moments</span><span class="p">:</span>
+            <span class="n">true_moment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_true_flat</span><span class="o">**</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">pred_moment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_pred_flat</span><span class="o">**</span><span class="n">k</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">true_moment</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-10</span><span class="p">:</span>
+                <span class="n">relative_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pred_moment</span> <span class="o">-</span> <span class="n">true_moment</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">true_moment</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">relative_error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pred_moment</span> <span class="o">-</span> <span class="n">true_moment</span><span class="p">)</span>
+
+            <span class="n">moment_errors</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">relative_error</span>
+
+        <span class="k">return</span> <span class="n">moment_errors</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_quantile_errors</span><span class="p">(</span>
+        <span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">quantiles</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute errors in distribution quantiles.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y_true: True values</span>
+<span class="sd">            y_pred: Predicted values</span>
+<span class="sd">            quantiles: List of quantiles to analyze</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary mapping quantile to absolute error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y_true_flat</span> <span class="o">=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">y_pred_flat</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="n">quantile_errors</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">quantiles</span><span class="p">:</span>
+            <span class="n">true_quantile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">y_true_flat</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+            <span class="n">pred_quantile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">y_pred_flat</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+            <span class="n">quantile_errors</span><span class="p">[</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pred_quantile</span> <span class="o">-</span> <span class="n">true_quantile</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">quantile_errors</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Convergence Analysis</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConvergenceRate</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for convergence analysis results.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        rates: Convergence rates for different metrics</span>
+<span class="sd">        r_squared: R² values for convergence fits</span>
+<span class="sd">        extrapolated_error: Extrapolated error at infinite resolution</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rates</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">r_squared</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">extrapolated_error</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ConvergenceAnalysis</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tools for analyzing convergence rates and extrapolation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_convergence</span><span class="p">(</span>
+        <span class="n">resolutions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">errors</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+        <span class="n">fit_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;log_linear&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConvergenceRate</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze convergence rates from resolution study.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resolutions: List of resolution values (e.g., number of points)</span>
+<span class="sd">            errors: Dictionary mapping error metric names to error lists</span>
+<span class="sd">            fit_method: Fitting method (&quot;log_linear&quot;, &quot;power_law&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ConvergenceRate object with analysis results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resolutions</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">values</span><span class="p">()))):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Resolutions and error lists must have same length&quot;</span><span class="p">)</span>
+
+        <span class="n">rates</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">r_squared</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">extrapolated_error</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">error_list</span> <span class="ow">in</span> <span class="n">errors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">fit_method</span> <span class="o">==</span> <span class="s2">&quot;log_linear&quot;</span><span class="p">:</span>
+                <span class="c1"># Fit log(error) = a*log(resolution) + b</span>
+                <span class="n">log_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">resolutions</span><span class="p">)</span>
+                <span class="n">log_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">error_list</span><span class="p">)</span>
+
+                <span class="c1"># Remove any infinite or NaN values</span>
+                <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">log_err</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">log_res</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">rates</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="n">r_squared</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="n">extrapolated_error</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="k">continue</span>
+
+                <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">log_res</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">],</span> <span class="n">log_err</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span> <span class="o">=</span> <span class="n">coeffs</span>
+
+                <span class="c1"># Convergence rate is negative of slope</span>
+                <span class="n">rates</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">slope</span>
+
+                <span class="c1"># R² value</span>
+                <span class="n">y_pred</span> <span class="o">=</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">log_res</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span> <span class="o">+</span> <span class="n">intercept</span>
+                <span class="n">ss_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">log_err</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_pred</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">ss_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">log_err</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">log_err</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]))</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="p">)</span>
+                <span class="n">r_squared</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ss_res</span> <span class="o">/</span> <span class="p">(</span><span class="n">ss_tot</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)</span>
+
+                <span class="c1"># Extrapolated error (at infinite resolution is zero for convergent methods)</span>
+                <span class="n">extrapolated_error</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="k">elif</span> <span class="n">fit_method</span> <span class="o">==</span> <span class="s2">&quot;power_law&quot;</span><span class="p">:</span>
+                <span class="c1"># Fit error = a * resolution^(-b)</span>
+                <span class="c1"># This requires non-linear fitting - simplified here</span>
+                <span class="n">rates</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">r_squared</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">extrapolated_error</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">return</span> <span class="n">ConvergenceRate</span><span class="p">(</span><span class="n">rates</span><span class="p">,</span> <span class="n">r_squared</span><span class="p">,</span> <span class="n">extrapolated_error</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">richardson_extrapolation</span><span class="p">(</span>
+        <span class="n">coarse_solution</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">fine_solution</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">refinement_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">order</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply Richardson extrapolation for improved accuracy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            coarse_solution: Solution on coarse grid</span>
+<span class="sd">            fine_solution: Solution on fine grid (same spatial locations as coarse)</span>
+<span class="sd">            refinement_ratio: Ratio of fine to coarse resolution</span>
+<span class="sd">            order: Expected order of convergence</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Extrapolated solution with higher accuracy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">refinement_ratio</span><span class="o">**</span><span class="n">order</span>
+        <span class="n">extrapolated</span> <span class="o">=</span> <span class="n">fine_solution</span> <span class="o">+</span> <span class="p">(</span><span class="n">fine_solution</span> <span class="o">-</span> <span class="n">coarse_solution</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">factor</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">extrapolated</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Benchmark Comparison</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BenchmarkComparison</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tools for comparing PINN results against benchmarks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize benchmark comparison.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">benchmarks</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_benchmark</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">solution</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">coordinates</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a benchmark solution.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Benchmark name</span>
+<span class="sd">            solution: Benchmark solution values</span>
+<span class="sd">            coordinates: Coordinate points</span>
+<span class="sd">            metadata: Optional metadata (method, parameters, etc.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">benchmarks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;solution&quot;</span><span class="p">:</span> <span class="n">solution</span><span class="p">,</span>
+            <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">coordinates</span><span class="p">,</span>
+            <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="p">{},</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare_against_benchmark</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pinn_solution</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">benchmark_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mae&quot;</span><span class="p">,</span> <span class="s2">&quot;rmse&quot;</span><span class="p">,</span> <span class="s2">&quot;max_error&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare PINN solution against a benchmark.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pinn_solution: PINN solution values</span>
+<span class="sd">            benchmark_name: Name of benchmark to compare against</span>
+<span class="sd">            metrics: List of metrics to compute</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary of computed metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">benchmark_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">benchmarks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Benchmark </span><span class="si">{</span><span class="n">benchmark_name</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+
+        <span class="n">benchmark_solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">benchmarks</span><span class="p">[</span><span class="n">benchmark_name</span><span class="p">][</span><span class="s2">&quot;solution&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Ensure compatible shapes</span>
+        <span class="k">if</span> <span class="n">pinn_solution</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">benchmark_solution</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;PINN and benchmark solutions must have same shape&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute requested metrics</span>
+        <span class="n">error_metrics</span> <span class="o">=</span> <span class="n">compute_error_metrics</span><span class="p">(</span><span class="n">benchmark_solution</span><span class="p">,</span> <span class="n">pinn_solution</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">error_metrics</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">error_metrics</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown metric: </span><span class="si">{</span><span class="n">metric</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare_multiple_methods</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">solutions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">reference_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mae&quot;</span><span class="p">,</span> <span class="s2">&quot;rmse&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare multiple methods against a reference solution.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            solutions: Dictionary mapping method names to solution arrays</span>
+<span class="sd">            reference_name: Name of reference solution in solutions dict</span>
+<span class="sd">            metrics: List of metrics to compute</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Nested dictionary: {method_name: {metric: value}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">reference_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">solutions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference solution </span><span class="si">{</span><span class="n">reference_name</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+
+        <span class="n">reference_solution</span> <span class="o">=</span> <span class="n">solutions</span><span class="p">[</span><span class="n">reference_name</span><span class="p">]</span>
+        <span class="n">comparison_results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">solution</span> <span class="ow">in</span> <span class="n">solutions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">method_name</span> <span class="o">==</span> <span class="n">reference_name</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">error_metrics</span> <span class="o">=</span> <span class="n">compute_error_metrics</span><span class="p">(</span><span class="n">reference_solution</span><span class="p">,</span> <span class="n">solution</span><span class="p">)</span>
+
+            <span class="n">method_results</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">error_metrics</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
+                    <span class="n">method_results</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">error_metrics</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+
+            <span class="n">comparison_results</span><span class="p">[</span><span class="n">method_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">method_results</span>
+
+        <span class="k">return</span> <span class="n">comparison_results</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Comprehensive Analysis Functions</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">comprehensive_error_analysis</span><span class="p">(</span>
+    <span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">coordinates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">residuals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform comprehensive error analysis.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_true: True solution values</span>
+<span class="sd">        y_pred: Predicted solution values</span>
+<span class="sd">        coordinates: Coordinate arrays for field analysis</span>
+<span class="sd">        weights: Optional weights for integration</span>
+<span class="sd">        residuals: Optional PDE residuals</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary containing all analysis results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Basic error metrics</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;error_metrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_error_metrics</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+
+    <span class="c1"># Statistical analysis</span>
+    <span class="n">stat_analysis</span> <span class="o">=</span> <span class="n">StatisticalAnalysis</span><span class="p">()</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;distribution_distance&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stat_analysis</span><span class="o">.</span><span class="n">compute_distribution_distance</span><span class="p">(</span>
+        <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span>
+    <span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;moment_errors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stat_analysis</span><span class="o">.</span><span class="n">compute_moment_errors</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;quantile_errors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stat_analysis</span><span class="o">.</span><span class="n">compute_quantile_errors</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+    <span class="c1"># Physics metrics (if residuals provided)</span>
+    <span class="k">if</span> <span class="n">residuals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;physics_metrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_residual_metrics</span><span class="p">(</span><span class="n">residuals</span><span class="p">)</span>
+
+    <span class="c1"># Field metrics (if coordinates provided)</span>
+    <span class="k">if</span> <span class="n">coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">domain_volume</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># Simplified - should compute actual volume</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;energy_norm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FieldMetrics</span><span class="o">.</span><span class="n">compute_energy_norm</span><span class="p">(</span>
+                <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">domain_volume</span><span class="p">,</span> <span class="n">weights</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not compute field metrics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_metrics_report</span><span class="p">(</span>
+    <span class="n">analysis_results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;PINN Analysis Report&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a formatted text report from analysis results.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        analysis_results: Results from comprehensive_error_analysis</span>
+<span class="sd">        title: Report title</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Formatted text report</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title</span><span class="si">:</span><span class="s2">^60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Error metrics</span>
+    <span class="k">if</span> <span class="s2">&quot;error_metrics&quot;</span> <span class="ow">in</span> <span class="n">analysis_results</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">[</span><span class="s2">&quot;error_metrics&quot;</span><span class="p">]))</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Physics metrics</span>
+    <span class="k">if</span> <span class="s2">&quot;physics_metrics&quot;</span> <span class="ow">in</span> <span class="n">analysis_results</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">analysis_results</span><span class="p">[</span><span class="s2">&quot;physics_metrics&quot;</span><span class="p">]))</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Statistical analysis</span>
+    <span class="k">if</span> <span class="s2">&quot;distribution_distance&quot;</span> <span class="ow">in</span> <span class="n">analysis_results</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Distribution Distance: </span><span class="si">{</span><span class="n">analysis_results</span><span class="p">[</span><span class="s1">&#39;distribution_distance&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;moment_errors&quot;</span> <span class="ow">in</span> <span class="n">analysis_results</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Moment Errors:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">analysis_results</span><span class="p">[</span><span class="s2">&quot;moment_errors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Moment </span><span class="si">{</span><span class="n">order</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">error</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Field metrics</span>
+    <span class="k">if</span> <span class="s2">&quot;energy_norm&quot;</span> <span class="ow">in</span> <span class="n">analysis_results</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy Norm Error: </span><span class="si">{</span><span class="n">analysis_results</span><span class="p">[</span><span class="s1">&#39;energy_norm&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.6e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+
+<span class="c1"># ============================================================</span>
+<span class="c1"># Convenience Functions</span>
+<span class="c1"># ============================================================</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">quick_error_summary</span><span class="p">(</span><span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Quick error summary for basic validation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_true: True values</span>
+<span class="sd">        y_pred: Predicted values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Formatted error summary string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">compute_error_metrics</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Quick Error Summary:</span>
+<span class="s2">MAE: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">mae</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> | RMSE: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">rmse</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> | Max: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">max_error</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span>
+<span class="s2">Correlation: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">correlation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> | R²: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">r2_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_pinn_solution</span><span class="p">(</span>
+    <span class="n">y_true</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">y_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">residuals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate PINN solution against tolerance criteria.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_true: True solution</span>
+<span class="sd">        y_pred: PINN prediction</span>
+<span class="sd">        residuals: PDE residuals</span>
+<span class="sd">        tolerance: Dictionary of tolerance values for different metrics</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple of (overall_pass, individual_results, summary_message)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;rmse&quot;</span><span class="p">:</span> <span class="mf">1e-2</span><span class="p">,</span>
+            <span class="s2">&quot;max_error&quot;</span><span class="p">:</span> <span class="mf">1e-1</span><span class="p">,</span>
+            <span class="s2">&quot;mean_residual&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+            <span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Compute metrics</span>
+    <span class="n">error_metrics</span> <span class="o">=</span> <span class="n">compute_error_metrics</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">physics_metrics</span> <span class="o">=</span> <span class="n">compute_residual_metrics</span><span class="p">(</span><span class="n">residuals</span><span class="p">)</span>
+
+    <span class="c1"># Check each tolerance</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rmse&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_metrics</span><span class="o">.</span><span class="n">rmse</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rmse&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;max_error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_metrics</span><span class="o">.</span><span class="n">max_error</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_error&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;mean_residual&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">physics_metrics</span><span class="o">.</span><span class="n">mean_residual</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;mean_residual&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;correlation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_metrics</span><span class="o">.</span><span class="n">correlation</span> <span class="o">&gt;=</span> <span class="n">tolerance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;correlation&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Overall pass/fail</span>
+    <span class="n">overall_pass</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="c1"># Summary message</span>
+    <span class="n">passed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Validation: </span><span class="si">{</span><span class="n">passed</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> criteria passed. Overall: </span><span class="si">{</span><span class="s1">&#39;PASS&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">overall_pass</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;FAIL&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">return</span> <span class="n">overall_pass</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">summary</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">pinnkit</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_api.html">Composable Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/migration_plan.html">Migration Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config_reference.html">Configuration Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance_guide.html">Performance Optimization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deployment/index.html">Deployment Guides</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Diogo Ribeiro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

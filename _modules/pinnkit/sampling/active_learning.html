@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pinnkit.sampling.active_learning &#8212; pinnkit  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pinnkit.sampling.active_learning</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Active learning strategies for adaptive PINN sampling.</span>
+
+<span class="sd">This module provides a lightweight yet expressive toolkit for performing</span>
+<span class="sd">active learning in physics-informed neural networks.  The implementation is</span>
+<span class="sd">designed to integrate with the rest of the repository while remaining fast</span>
+<span class="sd">enough for the unit-test environment.  The key components are:</span>
+
+<span class="sd">* :class:`ActiveLearningStrategy` – generic strategy that ranks candidate</span>
+<span class="sd">  points using an acquisition function and optionally enforces diversity when</span>
+<span class="sd">  selecting batches of points.</span>
+<span class="sd">* Acquisition functions covering common criteria such as uncertainty sampling,</span>
+<span class="sd">  expected improvement, upper confidence bounds, information gain, and</span>
+<span class="sd">  query-by-committee disagreement.</span>
+<span class="sd">* High level helpers (:class:`ActivePINNTrainer` and</span>
+<span class="sd">  :class:`ActiveLearningConfig`) that wire the strategies into the existing</span>
+<span class="sd">  PINN training loops.</span>
+
+<span class="sd">Although the algorithms are simplified, they implement the essential</span>
+<span class="sd">behaviour required for practical active learning workflows: online addition of</span>
+<span class="sd">informative collocation points, compatibility with the uncertainty</span>
+<span class="sd">quantification helpers, and support for different data acquisition modes (pool</span>
+<span class="sd">based, stream based, and multi-objective optimisation).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">replace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">nn</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.uncertainty</span><span class="w"> </span><span class="kn">import</span> <span class="n">deep_ensemble_predict</span><span class="p">,</span> <span class="n">mc_dropout_predict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnkit.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Utility helpers</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_tensor</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert arbitrary input into a floating point tensor.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">points</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flatten_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce multi-dimensional scores to a single dimension.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">scores</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">scores</span>
+    <span class="k">return</span> <span class="n">scores</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normal_cdf</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Standard normal CDF using ``torch.erf`` for numerical stability.&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">erf</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ensure_std</span><span class="p">(</span><span class="n">std</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clamp standard deviations away from zero.&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_predict_mean_std</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">Tensor</span><span class="p">],</span>
+    <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">ensemble</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">custom</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mc_passes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Obtain predictive mean and standard deviation for ``points``.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">custom</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">custom</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">deep_ensemble_predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+    <span class="k">if</span> <span class="n">ensemble</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">deep_ensemble_predict</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;predict_with_uncertainty&quot;</span><span class="p">):</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_with_uncertainty</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+    <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">mc_dropout_predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">passes</span><span class="o">=</span><span class="n">mc_passes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Acquisition functions</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="UncertaintyAcquisition">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.UncertaintyAcquisition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UncertaintyAcquisition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Score candidates by their predictive uncertainty.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;variance&quot;</span><span class="p">,</span>
+        <span class="n">mc_passes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">ensemble</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">custom_predict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span> <span class="o">=</span> <span class="n">mc_passes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">=</span> <span class="n">ensemble</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">custom_predict</span> <span class="o">=</span> <span class="n">custom_predict</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">_predict_mean_std</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">points</span><span class="p">,</span>
+            <span class="n">ensemble</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ensemble</span><span class="p">,</span>
+            <span class="n">custom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">custom_predict</span><span class="p">,</span>
+            <span class="n">mc_passes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">std</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;std&quot;</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">std</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;variance&quot;</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover - defensive</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported uncertainty mode &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="n">score</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ExpectedImprovementAcquisition">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ExpectedImprovementAcquisition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExpectedImprovementAcquisition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Classical expected improvement for Bayesian optimisation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">best_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">xi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">mc_passes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">custom_predict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_value</span> <span class="o">=</span> <span class="n">best_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">xi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="o">=</span> <span class="n">maximize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span> <span class="o">=</span> <span class="n">mc_passes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">custom_predict</span> <span class="o">=</span> <span class="n">custom_predict</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">_predict_mean_std</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">custom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">custom_predict</span><span class="p">,</span> <span class="n">mc_passes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span>
+        <span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">_ensure_std</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span><span class="p">:</span>
+            <span class="n">improvement</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">improvement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_value</span> <span class="o">-</span> <span class="n">mean</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">improvement</span> <span class="o">/</span> <span class="n">std</span>
+        <span class="n">pdf</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">cdf</span> <span class="o">=</span> <span class="n">_normal_cdf</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">ei</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">improvement</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">cdf</span> <span class="o">+</span> <span class="n">std</span> <span class="o">*</span> <span class="n">pdf</span>
+        <span class="k">return</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="n">ei</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UpperConfidenceBoundAcquisition">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.UpperConfidenceBoundAcquisition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UpperConfidenceBoundAcquisition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Upper confidence bound balancing exploration and exploitation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">mc_passes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">custom_predict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="n">Callable</span><span class="p">[[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span> <span class="o">=</span> <span class="n">maximize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span> <span class="o">=</span> <span class="n">mc_passes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">custom_predict</span> <span class="o">=</span> <span class="n">custom_predict</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">_predict_mean_std</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">custom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">custom_predict</span><span class="p">,</span> <span class="n">mc_passes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximize</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">std</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">mean</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">std</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="n">score</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InformationGainAcquisition">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.InformationGainAcquisition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InformationGainAcquisition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Approximate mutual information using predictive variance.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">noise</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">mc_passes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">noise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span> <span class="o">=</span> <span class="n">mc_passes</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">_predict_mean_std</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">mc_passes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mc_passes</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">var</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="n">score</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QueryByCommitteeAcquisition">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.QueryByCommitteeAcquisition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QueryByCommitteeAcquisition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Use an ensemble of models to measure prediction disagreement.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">committee</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">committee</span> <span class="o">=</span> <span class="n">committee</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span> <span class="o">**</span><span class="n">_</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">committee</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">committee</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">model</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">model</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">deep_ensemble_predict</span><span class="p">(</span><span class="n">committee</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="n">std</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Active learning strategies</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="ActiveLearningStrategy">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ActiveLearningStrategy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActiveLearningStrategy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base strategy for selecting informative points.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">acquisition_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">diversity_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acquisition_function</span> <span class="o">=</span> <span class="n">acquisition_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">batch_size</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diversity_strength</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">diversity_strength</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_scores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="ActiveLearningStrategy.score_candidates">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ActiveLearningStrategy.score_candidates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">score_candidates</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">candidate_points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">_as_tensor</span><span class="p">(</span><span class="n">candidate_points</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acquisition_function</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_scores</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_diverse_batch_selection</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">scores</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">n_select</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">n_select</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_select</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">n_select</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">points</span><span class="o">.</span><span class="n">new_empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">remaining_scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+        <span class="n">selected_indices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_select</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">remaining_scores</span><span class="p">)</span>
+            <span class="n">idx_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">remaining_scores</span><span class="p">[</span><span class="n">idx_int</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">selected_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx_int</span><span class="p">)</span>
+            <span class="n">remaining_scores</span><span class="p">[</span><span class="n">idx_int</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">diversity_strength</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">anchor</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">idx_int</span> <span class="p">:</span> <span class="n">idx_int</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">distances</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">points</span> <span class="o">-</span> <span class="n">anchor</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">length_scale</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">distances</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+            <span class="n">penalty</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distances</span> <span class="o">/</span> <span class="n">length_scale</span><span class="p">)</span>
+            <span class="n">remaining_scores</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diversity_strength</span> <span class="o">*</span> <span class="n">penalty</span>
+
+        <span class="k">return</span> <span class="n">points</span><span class="p">[</span><span class="n">selected_indices</span><span class="p">]</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+<div class="viewcode-block" id="ActiveLearningStrategy.select_points">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ActiveLearningStrategy.select_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_points</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">candidate_points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="n">n_select</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">_as_tensor</span><span class="p">(</span><span class="n">candidate_points</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_candidates</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_select</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">topk</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
+            <span class="k">return</span> <span class="n">points</span><span class="p">[</span><span class="n">topk</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diverse_batch_selection</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PoolBasedActiveLearning">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.PoolBasedActiveLearning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PoolBasedActiveLearning</span><span class="p">(</span><span class="n">ActiveLearningStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Strategy that selects from a static candidate pool.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PoolBasedActiveLearning.refresh_pool">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.PoolBasedActiveLearning.refresh_pool">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refresh_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pool</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_pool</span> <span class="o">=</span> <span class="n">_as_tensor</span><span class="p">(</span><span class="n">new_pool</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StreamActiveLearning">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.StreamActiveLearning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamActiveLearning</span><span class="p">(</span><span class="n">ActiveLearningStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream-based active learning for sequential data sources.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">acquisition_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">acquisition_function</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+
+<div class="viewcode-block" id="StreamActiveLearning.select_from_stream">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.StreamActiveLearning.select_from_stream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_from_stream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">n_select</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">selected</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">_as_tensor</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_candidates</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">scores</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span>
+            <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">selected</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">n_select</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">selected</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">concatenated</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">selected</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_points</span><span class="p">(</span><span class="n">concatenated</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">n_select</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MultiObjectiveActiveLearning">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.MultiObjectiveActiveLearning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiObjectiveActiveLearning</span><span class="p">(</span><span class="n">ActiveLearningStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine multiple acquisition functions with cost-aware weighting.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">objectives</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cost_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cost_tradeoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">objectives</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;At least one acquisition objective is required&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span> <span class="o">=</span> <span class="n">cost_fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_tradeoff</span> <span class="o">=</span> <span class="n">cost_tradeoff</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">combined</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">objectives</span><span class="p">):</span>
+                <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">obj</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">total</span> <span class="o">=</span> <span class="n">total</span> <span class="o">-</span> <span class="n">cost_tradeoff</span> <span class="o">*</span> <span class="n">_flatten_scores</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">total</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">combined</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Integration helpers for PINN training</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="ActiveLearningConfig">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ActiveLearningConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActiveLearningConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for :class:`ActivePINNTrainer`.&quot;&quot;&quot;</span>
+
+    <span class="n">max_active_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">points_per_iteration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="n">candidate_pool_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span>
+    <span class="n">update_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span>
+    <span class="n">convergence_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span>
+    <span class="n">patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">max_points</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">candidate_sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="ActivePINNTrainer">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ActivePINNTrainer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActivePINNTrainer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap a PINN solver to run with active learning configuration.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pinn</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="n">active_strategy</span><span class="p">:</span> <span class="n">ActiveLearningStrategy</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pinn</span> <span class="o">=</span> <span class="n">pinn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_strategy</span> <span class="o">=</span> <span class="n">active_strategy</span>
+
+<div class="viewcode-block" id="ActivePINNTrainer.train_with_active_learning">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.ActivePINNTrainer.train_with_active_learning">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">train_with_active_learning</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">train_config</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">ActiveLearningConfig</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Invoke the underlying ``train`` method with active learning enabled.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="s2">&quot;__dataclass_fields__&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;train_config must be a dataclass-based configuration&quot;</span><span class="p">)</span>
+
+        <span class="n">updated</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span>
+            <span class="n">train_config</span><span class="p">,</span>
+            <span class="n">active_strategy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">active_strategy</span><span class="p">,</span>
+            <span class="n">active_points_per_iteration</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">points_per_iteration</span><span class="p">,</span>
+            <span class="n">active_candidate_pool</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">candidate_pool_size</span><span class="p">,</span>
+            <span class="n">active_update_interval</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">update_frequency</span><span class="p">,</span>
+            <span class="n">active_convergence_tol</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">convergence_tol</span><span class="p">,</span>
+            <span class="n">active_patience</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">patience</span><span class="p">,</span>
+            <span class="n">active_max_points</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_points</span><span class="p">,</span>
+            <span class="n">active_max_iterations</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_active_iterations</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">candidate_sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">updated</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span>
+                <span class="n">updated</span><span class="p">,</span> <span class="n">active_candidate_sampler</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">candidate_sampler</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Starting active learning training&quot;</span><span class="p">,</span>
+            <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;iterations&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">max_active_iterations</span><span class="p">,</span>
+                <span class="s2">&quot;points_per_iteration&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">points_per_iteration</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinn</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ActiveLearningStrategy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PoolBasedActiveLearning&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StreamActiveLearning&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MultiObjectiveActiveLearning&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;UncertaintyAcquisition&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ExpectedImprovementAcquisition&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;UpperConfidenceBoundAcquisition&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;InformationGainAcquisition&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;QueryByCommitteeAcquisition&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ActivePINNTrainer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ActiveLearningConfig&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">pinnkit</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_api.html">Composable Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/migration_plan.html">Migration Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config_reference.html">Configuration Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance_guide.html">Performance Optimization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deployment/index.html">Deployment Guides</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Diogo Ribeiro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

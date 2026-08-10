@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pinnkit.distributed.communication &#8212; pinnkit  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pinnkit.distributed.communication</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Communication utilities for distributed PINN training.</span>
+
+<span class="sd">This module contains gradient synchronisation helpers, compression</span>
+<span class="sd">strategies, asynchronous buffers and hierarchical averaging utilities that</span>
+<span class="sd">work both with and without an initialised ``torch.distributed`` process</span>
+<span class="sd">group.  The implementations are intentionally lightweight so that they can</span>
+<span class="sd">be exercised from CPU-only unit tests while still providing the hooks needed</span>
+<span class="sd">for multi-GPU deployments.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;TensorDict&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CompressedGradient&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GradientCompression&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AsyncGradientBuffer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HierarchicalAverager&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;synchronise_gradients&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">TensorDict</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CompressedGradient</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Container holding compressed gradient information.&quot;&quot;&quot;</span>
+
+    <span class="n">indices</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">bits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CompressedGradient&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CompressedGradient</span><span class="p">(</span>
+            <span class="n">indices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">bits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="GradientCompression">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.GradientCompression">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradientCompression</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Top-k sparsification with optional uniform quantisation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">compression_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">quantization_bits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">compression_ratio</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">compression_ratio</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;compression_ratio must be in [0, 1)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">quantization_bits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">quantization_bits</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;quantization_bits must be greater than 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compression_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">compression_ratio</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantization_bits</span> <span class="o">=</span> <span class="n">quantization_bits</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compression_ratio</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantization_bits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GradientCompression.compress">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.GradientCompression.compress">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompressedGradient</span><span class="p">]:</span>
+        <span class="n">compressed</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompressedGradient</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="n">gradients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">flat</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+                <span class="n">compressed</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">CompressedGradient</span><span class="p">(</span>
+                    <span class="kc">None</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">grad</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compression_ratio</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="n">flat</span><span class="o">.</span><span class="n">numel</span><span class="p">():</span>
+                <span class="n">indices</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">topk_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">abs</span><span class="p">(),</span> <span class="n">k</span><span class="p">)</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">flat</span><span class="p">[</span><span class="n">topk_idx</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                <span class="n">indices</span> <span class="o">=</span> <span class="n">topk_idx</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+
+            <span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">bits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantization_bits</span>
+            <span class="k">if</span> <span class="n">bits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">)</span>
+                <span class="n">levels</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">bits</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">values</span> <span class="o">/</span> <span class="n">scale</span> <span class="o">*</span> <span class="p">(</span><span class="n">levels</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+            <span class="n">compressed</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">CompressedGradient</span><span class="p">(</span>
+                <span class="n">indices</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">grad</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">bits</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">compressed</span></div>
+
+
+<div class="viewcode-block" id="GradientCompression.decompress">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.GradientCompression.decompress">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decompress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compressed</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompressedGradient</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">TensorDict</span><span class="p">:</span>
+        <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">compressed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">values</span>
+                <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">bits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">levels</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">comp</span><span class="o">.</span><span class="n">bits</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="k">assert</span> <span class="n">comp</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">*</span> <span class="n">comp</span><span class="o">.</span><span class="n">scale</span> <span class="o">/</span> <span class="p">(</span><span class="n">levels</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">gradients</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span>
+                <span class="k">continue</span>
+
+            <span class="n">total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">prod</span><span class="p">())</span>
+            <span class="n">tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">bits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">comp</span><span class="o">.</span><span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">levels</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">comp</span><span class="o">.</span><span class="n">bits</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">*</span> <span class="n">comp</span><span class="o">.</span><span class="n">scale</span> <span class="o">/</span> <span class="p">(</span><span class="n">levels</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">tensor</span><span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">long</span><span class="p">()]</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">gradients</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gradients</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AsyncGradientBuffer">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.AsyncGradientBuffer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AsyncGradientBuffer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Thread-safe queue for asynchronous gradient updates.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="p">:</span> <span class="s2">&quot;queue.Queue[Dict[str, torch.Tensor]]&quot;</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AsyncGradientBuffer.push">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.AsyncGradientBuffer.push">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cpu_gradients</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">gradients</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">cpu_gradients</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AsyncGradientBuffer.pop_all">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.AsyncGradientBuffer.pop_all">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pop_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorDict</span><span class="p">]:</span>
+        <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorDict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">items</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="HierarchicalAverager">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.HierarchicalAverager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HierarchicalAverager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hierarchical averaging helper supporting ring/tree reductions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">group_size</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HierarchicalAverager.average">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.HierarchicalAverager.average">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span><span class="p">,</span> <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorDict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">world_size</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">gradients</span>
+        <span class="n">reduced</span><span class="p">:</span> <span class="n">TensorDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="n">gradients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">tensor</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">():</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">ReduceOp</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+                <span class="n">tensor</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">world_size</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tensor</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">world_size</span><span class="p">)</span>
+            <span class="n">reduced</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tensor</span>
+        <span class="k">return</span> <span class="n">reduced</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="synchronise_gradients">
+<a class="viewcode-back" href="../../../api/index.html#pinnkit.synchronise_gradients">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">synchronise_gradients</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">compression</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GradientCompression</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">averager</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">HierarchicalAverager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Synchronise gradients across workers with optional compression.&quot;&quot;&quot;</span>
+
+    <span class="n">grads</span><span class="p">:</span> <span class="n">TensorDict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">grads</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">grads</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">compression</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">decompressed</span> <span class="o">=</span> <span class="n">compression</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">compression</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">grads</span><span class="p">))</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="n">decompressed</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">}</span>
+
+    <span class="n">world_size</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">():</span>
+        <span class="n">world_size</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">get_world_size</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">averager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">averager</span> <span class="o">=</span> <span class="n">HierarchicalAverager</span><span class="p">()</span>
+    <span class="n">averaged</span> <span class="o">=</span> <span class="n">averager</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">grads</span><span class="p">,</span> <span class="n">world_size</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">averaged</span><span class="p">:</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">averaged</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">device</span><span class="p">))</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">pinnkit</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_api.html">Composable Core API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/current_architecture.html">Current Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/migration_plan.html">Migration Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../theory/index.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config_reference.html">Configuration Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance_guide.html">Performance Optimization Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deployment/index.html">Deployment Guides</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Diogo Ribeiro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

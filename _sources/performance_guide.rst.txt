@@ -5,7 +5,7 @@ Use the profiling utilities to monitor training throughput and memory usage.
 
 .. code-block:: python
 
-   from pinn.utils.profiling import profile_performance
+   from pinnkit.utils.profiling import profile_performance
 
    @profile_performance
    def step():
@@ -14,14 +14,14 @@ Use the profiling utilities to monitor training throughput and memory usage.
 Benchmark reports
 -----------------
 
-Use :mod:`pinn.benchmarks` for reproducible benchmark artifacts. Reports are
+Use :mod:`pinnkit.benchmarks` for reproducible benchmark artifacts. Reports are
 JSON-serializable, include the current git commit when available and require
 each case to declare whether reference data is ``analytic``, ``numerical`` or
 ``observational``.
 
 .. code-block:: python
 
-   from pinn.benchmarks import BenchmarkReport
+   from pinnkit.benchmarks import BenchmarkReport
 
    report = BenchmarkReport.from_json("benchmark_report.json")
    print(report.cases[0].reference.kind)
@@ -29,7 +29,7 @@ each case to declare whether reference data is ``analytic``, ``numerical`` or
 For composable problems, ``evaluate_independent_residual`` samples fresh
 interior points and evaluates the PDE residual independently from trainer state.
 Classical comparison data can be generated with helpers such as
-``pinn.numerics.solve_heat_explicit``.
+``pinnkit.numerics.solve_heat_explicit``.
 
 RAR benchmark
 -------------
@@ -37,7 +37,7 @@ RAR benchmark
 The ``scripts/benchmark_rar.py`` helper compares uniform collocation,
 residual-adaptive refinement and diversity-aware residual-adaptive refinement
 on composable Burgers, heat and wave problems. It writes the shared
-``pinn.benchmarks.BenchmarkReport`` schema:
+``pinnkit.benchmarks.BenchmarkReport`` schema:
 
 .. code-block:: bash
 
@@ -50,15 +50,15 @@ Memory-aware training
 ---------------------
 
 Large collocation sets can quickly exhaust accelerator memory.  The
-:class:`~pinn.training.memory_efficient.MemoryEfficientPINN` wrapper enables
+:class:`~pinnkit.training.memory_efficient.MemoryEfficientPINN` wrapper enables
 automatic batch-size selection, gradient accumulation and mixed-precision
 training:
 
 .. code-block:: python
 
-   from pinn.training.memory_efficient import MemoryEfficientPINN, MemoryProfiler
-   from pinn.solvers.raissi_improved import BurgersConfig, TrainConfig, burgers_residual
-   from pinn.models.mlp import MLP
+   from pinnkit.training.memory_efficient import MemoryEfficientPINN, MemoryProfiler
+   from pinnkit.solvers.raissi_improved import BurgersConfig, TrainConfig, burgers_residual
+   from pinnkit.models.mlp import MLP
 
    profiler = MemoryProfiler()
    pinn = MemoryEfficientPINN(
@@ -77,11 +77,11 @@ training:
    for message in profiler.recommendations(8192 * 1024**2):
        print("-", message)
 
-The trainer honours the new :class:`~pinn.solvers.raissi_improved.TrainConfig`
+The trainer honours the new :class:`~pinnkit.solvers.raissi_improved.TrainConfig`
 fields ``collocation_batch_size``, ``effective_batch_size`` and
 ``gradient_checkpointing``.  When unset, a short warm-up evaluates the memory
 footprint of the PDE residual to select a safe batch size, and a
-:class:`~pinn.training.memory_efficient.MemoryProfiler` instance records per-step
+:class:`~pinnkit.training.memory_efficient.MemoryProfiler` instance records per-step
 statistics.
 
 Benchmarking memory usage
@@ -107,13 +107,13 @@ points, forward activations and PDE residuals across optimisation steps.  This
 dramatically reduces duplicate work when using hybrid strategies such as
 gradient accumulation or L-BFGS polishing.
 
-Enable caching through :class:`~pinn.solvers.raissi_improved.TrainConfig` by
-supplying a :class:`~pinn.optimization.caching.CacheConfig` instance:
+Enable caching through :class:`~pinnkit.solvers.raissi_improved.TrainConfig` by
+supplying a :class:`~pinnkit.optimization.caching.CacheConfig` instance:
 
 .. code-block:: python
 
    from pathlib import Path
-   from pinn.optimization.caching import CacheConfig
+   from pinnkit.optimization.caching import CacheConfig
 
    cache_cfg = CacheConfig(
        enabled=True,
