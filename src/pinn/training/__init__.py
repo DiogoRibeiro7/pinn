@@ -42,6 +42,14 @@ def __getattr__(name: str):
         from .state import TrainingResult, TrainingState
 
         return {"TrainingResult": TrainingResult, "TrainingState": TrainingState}[name]
+    if name in {"TrainerCallback", "LoggingCallback", "HistoryCollector"}:
+        from .callbacks import HistoryCollector, LoggingCallback, TrainerCallback
+
+        return {
+            "TrainerCallback": TrainerCallback,
+            "LoggingCallback": LoggingCallback,
+            "HistoryCollector": HistoryCollector,
+        }[name]
     if name == "Trainer":
         from .trainer import Trainer
 
@@ -80,4 +88,7 @@ __all__ = [
     "TrainingResult",
     "TrainingState",
     "Trainer",
+    "TrainerCallback",
+    "LoggingCallback",
+    "HistoryCollector",
 ]

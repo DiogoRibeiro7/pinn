@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 import time
-from typing import Dict, Mapping
+from typing import Dict, Mapping, Sequence
 
 import numpy as np
 import torch
@@ -14,6 +14,7 @@ from ..problems import PDEProblem
 from ..residuals import AutogradDerivativeBackend, DerivativeBackend, StrongFormResidual
 from ..scaling import ScaledModel
 from .adaptive_refinement import ResidualAdaptiveRefiner
+from .callbacks import TrainerCallback, _notify
 from .causal_weighting import causal_residual_loss
 from .config import TrainerConfig, resolve_dtype
 from .state import TrainingResult, TrainingState
@@ -123,6 +124,35 @@ class Trainer:
             raise ValueError("no trainable loss components were produced")
         return total
 
+    def _evaluate(
+        self,
+        problem: PDEProblem,
+        loss_model: nn.Module,
+        generator: torch.Generator,
+        device: torch.device,
+        dtype: torch.dtype,
+        refiner: ResidualAdaptiveRefiner | None,
+    ) -> tuple[Tensor, Dict[str, Tensor]]:
+        """Sample, evaluate every loss component and combine them.
+
+        Both optimizers and the no-step fallback need exactly this sequence, so
+        it lives in one place rather than being repeated at each call site.
+        """
+        extra_points = (
+            refiner.current_points(device=device, dtype=dtype)
+            if refiner is not None
+            else None
+        )
+        components = self._loss_components(
+            problem,
+            loss_model,
+            generator,
+            device,
+            dtype,
+            extra_collocation_points=extra_points,
+        )
+        return self._total_loss(components), components
+
     def _record_state(
         self,
         step: int,
@@ -130,6 +160,7 @@ class Trainer:
         total: Tensor,
         components: Mapping[str, Tensor],
         extra_diagnostics: Mapping[str, float] | None = None,
+        phase: str = "adam",
     ) -> TrainingState:
         """Convert tensor losses to an immutable state record."""
         named_losses = {
@@ -152,10 +183,32 @@ class Trainer:
             weights=weights,
             elapsed_time=time.perf_counter() - start_time,
             diagnostics=diagnostics,
+            phase=phase,
         )
 
-    def train(self, problem: PDEProblem, model: nn.Module) -> TrainingResult:
-        """Train ``model`` on ``problem`` and return recorded state history."""
+    def train(
+        self,
+        problem: PDEProblem,
+        model: nn.Module,
+        *,
+        callbacks: Sequence[TrainerCallback] | None = None,
+    ) -> TrainingResult:
+        """Train ``model`` on ``problem`` and return recorded state history.
+
+        Args:
+            problem: The PDE problem supplying geometry, residual and constraints.
+            model: Network mapping coordinates to the solution field.
+            callbacks: Optional observers notified as training progresses. They
+                see each recorded state, each phase transition and the final
+                result. Exceptions raised by a callback propagate.
+
+        Returns:
+            The recorded history and the final state.
+
+        Raises:
+            ValueError: If the problem's input or output dimension is not positive.
+        """
+        callbacks = list(callbacks or ())
         device = torch.device(self.config.device)
         dtype = resolve_dtype(self.config.dtype)
         if problem.input_dim < 1 or problem.output_dim < 1:
@@ -176,6 +229,24 @@ class Trainer:
         history: list[TrainingState] = []
         start_time = time.perf_counter()
 
+        _notify(callbacks, "on_train_begin", problem, model)
+
+        def record(
+            step: int, total: Tensor, components: Mapping[str, Tensor], phase: str
+        ) -> TrainingState:
+            """Append a state to the history and notify callbacks."""
+            state = self._record_state(
+                step,
+                start_time,
+                total,
+                components,
+                refiner.diagnostics() if refiner is not None else None,
+                phase=phase,
+            )
+            history.append(state)
+            _notify(callbacks, "on_state_recorded", state)
+            return state
+
         for step in range(1, self.config.optimizer.adam_steps + 1):
             optimizer.zero_grad(set_to_none=True)
             if refiner is not None and refiner.should_refine(step):
@@ -188,20 +259,9 @@ class Trainer:
                     device=device,
                     dtype=dtype,
                 )
-            extra_points = (
-                refiner.current_points(device=device, dtype=dtype)
-                if refiner is not None
-                else None
+            total, components = self._evaluate(
+                problem, loss_model, generator, device, dtype, refiner
             )
-            components = self._loss_components(
-                problem,
-                loss_model,
-                generator,
-                device,
-                dtype,
-                extra_collocation_points=extra_points,
-            )
-            total = self._total_loss(components)
             total.backward()
             optimizer.step()
             if (
@@ -209,15 +269,10 @@ class Trainer:
                 or step % self.config.log_every == 0
                 or step == self.config.optimizer.adam_steps
             ):
-                history.append(
-                    self._record_state(
-                        step,
-                        start_time,
-                        total,
-                        components,
-                        refiner.diagnostics() if refiner is not None else None,
-                    )
-                )
+                record(step, total, components, "adam")
+
+        if history:
+            _notify(callbacks, "on_phase_end", "adam", history[-1])
 
         if self.config.optimizer.lbfgs_max_iter > 0:
             lbfgs = torch.optim.LBFGS(
@@ -229,74 +284,30 @@ class Trainer:
 
             def closure() -> Tensor:
                 lbfgs.zero_grad(set_to_none=True)
-                extra_points = (
-                    refiner.current_points(device=device, dtype=dtype)
-                    if refiner is not None
-                    else None
+                closure_total, _ = self._evaluate(
+                    problem, loss_model, generator, device, dtype, refiner
                 )
-                closure_components = self._loss_components(
-                    problem,
-                    loss_model,
-                    generator,
-                    device,
-                    dtype,
-                    extra_collocation_points=extra_points,
-                )
-                closure_total = self._total_loss(closure_components)
                 closure_total.backward()
                 return closure_total
 
             lbfgs.step(closure)
-            extra_points = (
-                refiner.current_points(device=device, dtype=dtype)
-                if refiner is not None
-                else None
+            total, components = self._evaluate(
+                problem, loss_model, generator, device, dtype, refiner
             )
-            components = self._loss_components(
-                problem,
-                loss_model,
-                generator,
-                device,
-                dtype,
-                extra_collocation_points=extra_points,
-            )
-            total = self._total_loss(components)
             final_step = (
                 self.config.optimizer.adam_steps + self.config.optimizer.lbfgs_max_iter
             )
-            history.append(
-                self._record_state(
-                    final_step,
-                    start_time,
-                    total,
-                    components,
-                    refiner.diagnostics() if refiner is not None else None,
-                )
-            )
+            lbfgs_state = record(final_step, total, components, "lbfgs")
+            _notify(callbacks, "on_phase_end", "lbfgs", lbfgs_state)
 
         if not history:
-            extra_points = (
-                refiner.current_points(device=device, dtype=dtype)
-                if refiner is not None
-                else None
+            # No optimizer steps were requested; still report where the model
+            # starts so callers always get a usable state.
+            total, components = self._evaluate(
+                problem, loss_model, generator, device, dtype, refiner
             )
-            components = self._loss_components(
-                problem,
-                loss_model,
-                generator,
-                device,
-                dtype,
-                extra_collocation_points=extra_points,
-            )
-            total = self._total_loss(components)
-            history.append(
-                self._record_state(
-                    0,
-                    start_time,
-                    total,
-                    components,
-                    refiner.diagnostics() if refiner is not None else None,
-                )
-            )
+            record(0, total, components, "initial")
 
-        return TrainingResult(history=tuple(history), final_state=history[-1])
+        result = TrainingResult(history=tuple(history), final_state=history[-1])
+        _notify(callbacks, "on_train_end", result)
+        return result

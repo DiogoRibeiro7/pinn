@@ -205,14 +205,25 @@ The generic trainer is the center of the new architecture. It should absorb
 shared behavior from legacy solvers instead of becoming another parallel path.
 
 Concrete work:
-- Add callback hooks for logging, checkpoints and custom diagnostics.
-- Make Adam/L-BFGS state transitions easier to inspect and test.
-- Document the exact responsibilities of `TrainerConfig`, `TrainingState` and
-  `TrainingResult`.
-- Add tests for custom samplers, loss weights, RAR diagnostics, dtype/device
-  behavior and scaling interactions.
-- Identify which `raissi_improved` training features should become generic
+- ✅ Callback hooks for logging, checkpoints and custom diagnostics.
+  `Trainer.train` takes `callbacks=[...]`; `TrainerCallback` provides
+  `on_train_begin`, `on_state_recorded`, `on_phase_end` and `on_train_end`.
+- ✅ Adam/L-BFGS transitions are inspectable. `TrainingState.phase` names the
+  optimizer that produced each record and `TrainingResult.states_for_phase`
+  filters on it, instead of leaving the boundary implicit in step numbering.
+- ✅ Documented the responsibilities of every `TrainingState` and
+  `TrainingResult` field. `TrainerConfig` still needs the same treatment.
+- 🚧 Tests: callbacks, phase reporting, loss weights, causal diagnostics and
+  dtype behaviour are covered. Custom samplers and scaling interactions are
+  still only exercised end to end.
+- 🔭 Identify which `raissi_improved` training features should become generic
   trainer features first.
+
+Also done here, since it blocked the above: the sample-evaluate-combine
+sequence in `Trainer.train` had been duplicated at four call sites (Adam loop,
+L-BFGS closure, post-L-BFGS record, no-step fallback), so any change to
+sampling or refinement had to be repeated four times. It now lives in
+`Trainer._evaluate`.
 
 Done when:
 - Heat, wave and Burgers composable training paths can cover the common

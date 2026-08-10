@@ -8,6 +8,54 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Added
+
+- Callback hooks for the composable trainer. `Trainer.train` accepts
+  `callbacks=[...]`, and `TrainerCallback` exposes `on_train_begin`,
+  `on_state_recorded`, `on_phase_end` and `on_train_end`, so logging,
+  checkpointing and custom diagnostics can observe a run without editing the
+  training loop or post-processing its history. `LoggingCallback` and
+  `HistoryCollector` ship as usable implementations. Callback exceptions
+  propagate deliberately: a checkpoint that silently fails to write is worse
+  than a run that stops.
+- `TrainingState.phase` records which optimizer produced a state (`"adam"`,
+  `"lbfgs"`, or `"initial"` when no optimizer steps were requested), and
+  `TrainingResult.states_for_phase` filters on it, making the Adam to L-BFGS
+  transition inspectable rather than implicit in step numbering.
+- Documented the responsibilities of every `TrainingState` and `TrainingResult`
+  field, including why diagnostics are held apart from named losses.
+- `profile_performance` accepts an explicit `name`, so published benchmark
+  metrics are not named after a nested function's `__qualname__`.
+
+### Changed
+
+- `Trainer.train` evaluates its losses through a single `_evaluate` helper. The
+  sample-evaluate-combine sequence had been repeated at four call sites (the
+  Adam loop, the L-BFGS closure, the post-L-BFGS record and the no-step
+  fallback), so refinement or sampling changes had to be made four times to
+  stay consistent.
+
+### Fixed
+
+- The Performance workflow ran `pytest tests/performance`, which inherited the
+  repository-wide `--cov-fail-under` from `addopts`. Measured over that subset
+  coverage is about 29%, so the job failed a coverage gate rather than on the
+  benchmarks, and never reached them.
+- `scripts/benchmark_distributed.py` passed `ConfigFactory.create_burgers_config()`
+  (a generic `PINNConfig`) to `ContinuousPINN`, which validates for
+  `BurgersConfig`, so it raised before running a step.
+- The Performance workflow emitted benchmark results as a
+  `{"benchmarks": [...]}` object, but `customSmallerIsBetter` requires a bare
+  array and rejected it. With these three fixed the workflow completes and
+  publishes to the benchmark dashboard for the first time.
+- `[tool.mypy] python_version` was `3.10`, which makes mypy abort on a PEP 695
+  `type` statement in numpy's own stubs and check *zero* source files. The
+  type-check step in CI was reporting one stub parse error and nothing about
+  this codebase. With a 3.12 target it checks 89 files and reports 88 errors
+  across 25 modules; `ROADMAP.md` now carries that figure.
+- `benchmark_report.json` and `benchmark.json`, written into the working
+  directory by the benchmark scripts, are gitignored.
+
 ## [0.3.0] - 2026-08-09
 
 ### Added
