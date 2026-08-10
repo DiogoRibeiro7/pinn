@@ -1,12 +1,12 @@
 import torch
 
-from pinnkit.uncertainty import (
+from pinnlab.uncertainty import (
     BayesianPINN,
     deep_ensemble_predict,
     gp_prior_predict,
     mc_dropout_predict,
 )
-from pinnkit.models import MLP
+from pinnlab.models import MLP
 
 
 def test_mc_dropout_predict():

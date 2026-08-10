@@ -6,7 +6,7 @@ This tutorial walks through constructing a simple PINN for the Burgers equation.
 .. doctest::
    :options: +ELLIPSIS
 
-   >>> from pinnkit.models.mlp import MLP
+   >>> from pinnlab.models.mlp import MLP
    >>> model = MLP(in_dim=2, hidden_layers=1, width=10, out_dim=1)
    >>> import torch
    >>> inp = torch.zeros(1,2)

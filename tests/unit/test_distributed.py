@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from pinnkit.distributed import (
+from pinnlab.distributed import (
     AsyncGradientBuffer,
     DistributedPINNTrainer,
     DistributedTrainer,
@@ -9,7 +9,7 @@ from pinnkit.distributed import (
     GradientCompression,
     PipelineParallelEngine,
 )
-from pinnkit.utils.checkpointing import CheckpointManager
+from pinnlab.utils.checkpointing import CheckpointManager
 
 
 def test_cpu_fallback(monkeypatch):

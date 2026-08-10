@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from pinnkit.benchmarks import BenchmarkCase
+from pinnlab.benchmarks import BenchmarkCase
 
 
 @pytest.fixture(scope="module")

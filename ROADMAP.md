@@ -21,7 +21,7 @@ Release state:
 - Validation before release: full test suite passed (`285 passed`), Sphinx HTML
   documentation build succeeded, `python -m build` produced release artifacts,
   and `twine check` passed for both artifacts
-- PyPI: not yet uploaded. The distribution is named `pinnkit`, because
+- PyPI: not yet uploaded. The distribution is named `pinnlab`, because
   `pinn` on PyPI belongs to an unrelated REST-API client that also occupies
   the `import pinn` name. Publishing is wired up through
   `.github/workflows/publish.yml` using trusted publishing and runs on a
@@ -63,10 +63,10 @@ Current limitation:
 ### References And Benchmarks
 
 Available reference and benchmark infrastructure:
-- Cole-Hopf reference solution for viscous Burgers in `pinnkit.solvers.reference`
+- Cole-Hopf reference solution for viscous Burgers in `pinnlab.solvers.reference`
 - Classical explicit finite-difference heat-equation reference solver in
-  `pinnkit.numerics`
-- Benchmark report primitives in `pinnkit.benchmarks`, including JSON
+  `pinnlab.numerics`
+- Benchmark report primitives in `pinnlab.benchmarks`, including JSON
   serialization and explicit reference provenance labels:
   `analytic`, `numerical`, and `observational`
 - Benchmark scripts for precision and residual-adaptive refinement workflows
@@ -82,16 +82,16 @@ Current limitation:
 ### Composable Core API
 
 Implemented composable pieces:
-- `pinnkit.geometry`: `Interval`, `Rectangle`, shape validation, containment
+- `pinnlab.geometry`: `Interval`, `Rectangle`, shape validation, containment
   checks, interior sampling and boundary masks
-- `pinnkit.constraints`: soft initial, Dirichlet, Neumann and periodic constraints
-- `pinnkit.residuals`: strong-form residual evaluation through a derivative
+- `pinnlab.constraints`: soft initial, Dirichlet, Neumann and periodic constraints
+- `pinnlab.residuals`: strong-form residual evaluation through a derivative
   backend
-- `pinnkit.problems`: equation identity, dimensions, geometry, constraints and
+- `pinnlab.problems`: equation identity, dimensions, geometry, constraints and
   residual definitions for migrated problems
-- `pinnkit.training.Trainer`: equation-agnostic training loop with typed config,
+- `pinnlab.training.Trainer`: equation-agnostic training loop with typed config,
   state, result, named losses and diagnostics
-- `pinnkit.scaling`: characteristic scales, nondimensionalization transforms,
+- `pinnlab.scaling`: characteristic scales, nondimensionalization transforms,
   derivative scale factors and scaled model wrappers
 
 Current limitation:
@@ -107,12 +107,12 @@ Implemented adaptive and sampling features:
 - Optional diversity-aware RAR selection
 - RAR diagnostics recorded in training state
 - Configurable trainer-owned interior sampler protocol:
-  `pinnkit.sampling.InteriorSampler`
+  `pinnlab.sampling.InteriorSampler`
 - `UniformInteriorSampler` as the default composable sampler
 - `LatinHypercubeInteriorSampler` for stratified composable geometry sampling
 - Compatibility adapters between the composable `InteriorSampler` protocol and
   legacy `BaseSampler` consumers
-- Shared `pinnkit.sampling.latin_hypercube`, re-exported by legacy solver modules
+- Shared `pinnlab.sampling.latin_hypercube`, re-exported by legacy solver modules
   for backward-compatible LHS imports
 
 Current limitation:
@@ -251,7 +251,7 @@ Concrete work:
 - Keep `raissi_improved` as the compatibility facade until caching,
   checkpoints, active learning and batching have generic equivalents.
 - Continue centralizing duplicated helpers, following the pattern used for
-  `pinnkit.sampling.latin_hypercube`.
+  `pinnlab.sampling.latin_hypercube`.
 
 Done when:
 - Public import compatibility tests cover the retained legacy symbols.
@@ -280,7 +280,7 @@ Done when:
 ### 4. Unify Sampling And Adaptive Strategies
 
 Why it matters:
-Sampling is now split across `pinnkit.sampling`, `pinnkit.utils.sampling` and solver
+Sampling is now split across `pinnlab.sampling`, `pinnlab.utils.sampling` and solver
 modules. `v0.3.0` introduced the bridge; the next step is reducing the need for
 bridges.
 
@@ -289,8 +289,8 @@ Concrete work:
   possible.
 - Add adapter examples showing old `BaseSampler` consumers and new
   `InteriorSampler` policies working together.
-- Decide whether `pinnkit.utils.sampling.Domain` remains as a compatibility type
-  or becomes a wrapper around `pinnkit.geometry`.
+- Decide whether `pinnlab.utils.sampling.Domain` remains as a compatibility type
+  or becomes a wrapper around `pinnlab.geometry`.
 - Extend RAR benchmark comparisons beyond Burgers, heat and wave after new
   composable problem adapters exist.
 
@@ -415,7 +415,7 @@ Use this checklist for the next release.
 Before tagging:
 - Update `CHANGELOG.md`.
 - Bump `pyproject.toml`.
-- Update fallback `__version__` in `src/pinnkit/__init__.py`.
+- Update fallback `__version__` in `src/pinnlab/__init__.py`.
 - Update `CITATION.cff`, `.zenodo.json` and README citation metadata.
 - Search for stale version strings.
 - Run the full test suite.
@@ -444,7 +444,7 @@ PyPI publishing (one-time setup, not yet done):
   relying on the tag path. The build, metadata check, tag/version agreement
   check, clean-environment install and stray-file scan all run first, so a
   dry run is safe even before the publisher exists.
-- The first upload claims the name permanently. Confirm `pinnkit` is still
+- The first upload claims the name permanently. Confirm `pinnlab` is still
   free immediately before publishing.
 - Update this roadmap with the new release status and next active stage.
 

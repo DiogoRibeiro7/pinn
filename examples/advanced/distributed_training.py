@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Example: training with the :mod:`pinnkit.distributed` helpers."""
+"""Example: training with the :mod:`pinnlab.distributed` helpers."""
 
 import argparse
 from pathlib import Path
 
 import torch
 
-from pinnkit.models import MLP
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.models import MLP
+from pinnlab.solvers.raissi_improved import (
     BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,
 )
-from pinnkit.distributed import DistributedTrainer
-from pinnkit.utils.logging import get_logger
+from pinnlab.distributed import DistributedTrainer
+from pinnlab.utils.logging import get_logger
 
 
 def main() -> None:

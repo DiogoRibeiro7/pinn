@@ -7,7 +7,7 @@ docs_root = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(docs_root, ".."))
 sys.path.insert(0, os.path.join(project_root, "src"))
 
-project = "pinnkit"
+project = "pinnlab"
 author = "Diogo Ribeiro"
 current_year = datetime.now().year
 copyright = f"{current_year}, {author}"
@@ -24,4 +24,4 @@ autosummary_generate = True
 html_theme = "alabaster"
 
 # Ensure doctests see package root
-doctest_global_setup = "import numpy as np; import torch; import pinnkit"
+doctest_global_setup = "import numpy as np; import torch; import pinnlab"

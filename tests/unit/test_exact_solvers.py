@@ -17,19 +17,19 @@ import pytest
 import torch
 from torch import Tensor, nn
 
-from pinnkit.models.mlp import MLP
+from pinnlab.models.mlp import MLP
 
-from pinnkit.solvers._base import TrainConfig
-from pinnkit.solvers.heat import HeatConfig, HeatPINN, heat_exact
-from pinnkit.solvers.raissi_generic import latin_hypercube as generic_lhs
-from pinnkit.solvers.raissi_improved import latin_hypercube as improved_lhs
-from pinnkit.solvers.reference import (
+from pinnlab.solvers._base import TrainConfig
+from pinnlab.solvers.heat import HeatConfig, HeatPINN, heat_exact
+from pinnlab.solvers.raissi_generic import latin_hypercube as generic_lhs
+from pinnlab.solvers.raissi_improved import latin_hypercube as improved_lhs
+from pinnlab.solvers.reference import (
     burgers_cole_hopf,
     burgers_reference_grid,
     relative_l2_error,
 )
-from pinnkit.solvers.wave import WaveConfig, WavePINN, wave_exact
-from pinnkit.training.causal_weighting import (
+from pinnlab.solvers.wave import WaveConfig, WavePINN, wave_exact
+from pinnlab.training.causal_weighting import (
     CausalWeightConfig,
     causal_residual_loss,
     causal_weights,

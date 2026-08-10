@@ -7,23 +7,23 @@ import pytest
 import torch
 from torch import Tensor, nn
 
-from pinnkit.constraints import (
+from pinnlab.constraints import (
     DirichletBoundary,
     InitialCondition,
     NeumannBoundary,
     PeriodicBoundary,
 )
-from pinnkit.geometry import Interval, Rectangle
-from pinnkit.models import MLP
-from pinnkit.problems import BurgersProblem, HeatProblem, WaveProblem
-from pinnkit.residuals import AutogradDerivativeBackend, StrongFormResidual
-from pinnkit.sampling import UniformInteriorSampler
-from pinnkit.solvers import HeatPINN, WavePINN
-from pinnkit.solvers._base import TrainConfig as LegacyExactTrainConfig
-from pinnkit.solvers.raissi_improved import BurgersConfig
-from pinnkit.solvers.heat import HeatConfig
-from pinnkit.solvers.wave import WaveConfig
-from pinnkit.training import (
+from pinnlab.geometry import Interval, Rectangle
+from pinnlab.models import MLP
+from pinnlab.problems import BurgersProblem, HeatProblem, WaveProblem
+from pinnlab.residuals import AutogradDerivativeBackend, StrongFormResidual
+from pinnlab.sampling import UniformInteriorSampler
+from pinnlab.solvers import HeatPINN, WavePINN
+from pinnlab.solvers._base import TrainConfig as LegacyExactTrainConfig
+from pinnlab.solvers.raissi_improved import BurgersConfig
+from pinnlab.solvers.heat import HeatConfig
+from pinnlab.solvers.wave import WaveConfig
+from pinnlab.training import (
     OptimizerConfig,
     ResidualAdaptiveConfig,
     Trainer,

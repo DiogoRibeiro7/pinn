@@ -7,14 +7,14 @@ from pathlib import Path
 
 import torch
 
-from pinnkit.optimization.caching import AdaptiveCache, CacheConfig, TrainingCache
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.optimization.caching import AdaptiveCache, CacheConfig, TrainingCache
+from pinnlab.solvers.raissi_improved import (
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,
     burgers_residual,
 )
-from pinnkit.models.mlp import MLP
+from pinnlab.models.mlp import MLP
 
 
 def test_adaptive_cache_eviction_and_persistence(tmp_path: Path) -> None:

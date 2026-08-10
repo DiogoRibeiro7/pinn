@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
-title: "pinnkit: A Modular PyTorch Framework for Physics-Informed Neural Networks"
+title: "pinnlab: A Modular PyTorch Framework for Physics-Informed Neural Networks"
 abstract: >-
-  pinnkit is a modular PyTorch framework for solving forward and inverse partial
+  pinnlab is a modular PyTorch framework for solving forward and inverse partial
   differential equation problems with Physics-Informed Neural Networks, in which
   the governing equations are embedded directly in the training loss via
   automatic differentiation. It provides continuous-time and discrete-time

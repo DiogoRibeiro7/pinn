@@ -5,8 +5,8 @@ from __future__ import annotations
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from pinnkit.models.mlp import MLP
-from pinnkit.transfer import (
+from pinnlab.models.mlp import MLP
+from pinnlab.transfer import (
     DomainAdaptationConfig,
     DomainAdaptationPINN,
     FineTuningConfig,

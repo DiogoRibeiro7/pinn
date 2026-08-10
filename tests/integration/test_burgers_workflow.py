@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.solvers.raissi_improved import (
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,
     burgers_residual,
 )
-from pinnkit.sampling import GradientBasedImportanceSampler
-from pinnkit.utils.sampling import Domain, LatinHypercubeSampler
+from pinnlab.sampling import GradientBasedImportanceSampler
+from pinnlab.utils.sampling import Domain, LatinHypercubeSampler
 from tests.fixtures import simple_mlp
 
 

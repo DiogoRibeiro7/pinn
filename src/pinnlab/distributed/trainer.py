@@ -11,7 +11,7 @@ The trainer exposes a :py:meth:`prepare_model` method used by the solvers to
 initialise the underlying ``nn.Module`` for distributed training and a
 :py:meth:`fit` helper that delegates to the solver's ``train`` method.  It also
 provides gradient synchronisation helpers and performance accounting that are
-reused by higher level orchestration utilities in :mod:`pinnkit.distributed`.
+reused by higher level orchestration utilities in :mod:`pinnlab.distributed`.
 """
 
 from __future__ import annotations

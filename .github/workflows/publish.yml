@@ -80,15 +80,15 @@ jobs:
           /tmp/probe/bin/python - <<'PY'
           import importlib.metadata as md
 
-          import pinnkit
+          import pinnlab
 
-          print("version:", pinnkit.__version__)
-          print("distribution:", md.version("pinnkit"))
+          print("version:", pinnlab.__version__)
+          print("distribution:", md.version("pinnlab"))
           for name in ("solvers", "training", "problems", "geometry", "models"):
-              __import__(f"pinnkit.{name}")
+              __import__(f"pinnlab.{name}")
           print("subpackages import cleanly")
           PY
-          /tmp/probe/bin/pinnkit --help > /dev/null && echo "console script runs"
+          /tmp/probe/bin/pinnlab --help > /dev/null && echo "console script runs"
 
       - name: Reject stray files in the artifacts
         run: |

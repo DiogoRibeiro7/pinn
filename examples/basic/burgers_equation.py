@@ -7,19 +7,19 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinnkit.models import MLP
-from pinnkit.solvers.reference import burgers_cole_hopf, relative_l2_error
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.models import MLP
+from pinnlab.solvers.reference import burgers_cole_hopf, relative_l2_error
+from pinnlab.solvers.raissi_improved import (
     BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,
 )
-from pinnkit.utils.checkpointing import CheckpointManager
-from pinnkit.utils.logging import get_logger
-from pinnkit.utils.metrics import compute_error_metrics
-from pinnkit.visualization import PINNVisualizer, TrainingDashboard
-from pinnkit.distributed import DistributedTrainer
+from pinnlab.utils.checkpointing import CheckpointManager
+from pinnlab.utils.logging import get_logger
+from pinnlab.utils.metrics import compute_error_metrics
+from pinnlab.visualization import PINNVisualizer, TrainingDashboard
+from pinnlab.distributed import DistributedTrainer
 
 
 def analytical_solution(t: np.ndarray, x: np.ndarray, nu: float) -> np.ndarray:

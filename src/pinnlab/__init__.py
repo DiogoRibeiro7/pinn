@@ -176,7 +176,7 @@ from .transfer import (
 )
 
 try:
-    __version__ = version("pinnkit")
+    __version__ = version("pinnlab")
 except PackageNotFoundError:  # pragma: no cover - during local development
     __version__ = "0.3.0"
 

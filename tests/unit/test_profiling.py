@@ -1,4 +1,4 @@
-from pinnkit.utils.profiling import (
+from pinnlab.utils.profiling import (
     profile_performance,
     MemoryTracker,
     PerformanceReport,

@@ -2,7 +2,7 @@
 """Simple benchmark comparing single vs multi GPU training.
 
 The benchmark runs a small number of optimisation steps with and without the
-:class:`pinnkit.distributed.DistributedTrainer`.  It reports the elapsed time and
+:class:`pinnlab.distributed.DistributedTrainer`.  It reports the elapsed time and
 can be used in CI to ensure that the distributed utilities do not regress.
 """
 
@@ -10,14 +10,14 @@ import time
 
 import torch
 
-from pinnkit.models import MLP
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.models import MLP
+from pinnlab.solvers.raissi_improved import (
     BurgersConfig,
     TrainConfig,
     ContinuousPINN,
     burgers_residual,
 )
-from pinnkit.distributed import DistributedPINNTrainer, DistributedTrainer
+from pinnlab.distributed import DistributedPINNTrainer, DistributedTrainer
 
 
 def run_single() -> tuple[float, DistributedTrainer]:

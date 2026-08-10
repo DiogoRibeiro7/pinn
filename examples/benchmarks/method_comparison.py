@@ -10,14 +10,14 @@ two otherwise-identical models and reports their final losses.
 import argparse
 from pathlib import Path
 
-from pinnkit.models import MLP
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.models import MLP
+from pinnlab.solvers.raissi_improved import (
     BurgersConfig,
     ContinuousPINN,
     TrainConfig,
     burgers_residual,
 )
-from pinnkit.utils.logging import get_logger
+from pinnlab.utils.logging import get_logger
 
 
 def build_pinn(cfg: BurgersConfig) -> ContinuousPINN:

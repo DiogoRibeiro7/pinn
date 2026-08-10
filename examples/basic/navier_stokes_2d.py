@@ -7,18 +7,18 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from pinnkit.models import MLP
-from pinnkit.solvers.navier_stokes import (
+from pinnlab.models import MLP
+from pinnlab.solvers.navier_stokes import (
     NSConfig,
     NavierStokesPINN,
     TrainConfig,
     tgv_u,
     tgv_v,
 )
-from pinnkit.utils.checkpointing import CheckpointManager
-from pinnkit.utils.logging import get_logger
-from pinnkit.utils.metrics import compute_error_metrics
-from pinnkit.utils.visualization import PINNVisualizer
+from pinnlab.utils.checkpointing import CheckpointManager
+from pinnlab.utils.logging import get_logger
+from pinnlab.utils.metrics import compute_error_metrics
+from pinnlab.utils.visualization import PINNVisualizer
 
 
 def main() -> None:

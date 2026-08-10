@@ -213,10 +213,10 @@ class TrainConfig:
     lr, adam_steps, lbfgs_max_iter:
         Optimiser configuration for the two-stage training routine.
     importance_sampler:
-        Optional :class:`~pinnkit.sampling.GradientBasedImportanceSampler` instance
+        Optional :class:`~pinnlab.sampling.GradientBasedImportanceSampler` instance
         used to refresh collocation points.
     active_strategy:
-        Optional :class:`~pinnkit.sampling.ActiveLearningStrategy` enabling
+        Optional :class:`~pinnlab.sampling.ActiveLearningStrategy` enabling
         adaptive addition of collocation points during optimisation.
     active_*:
         Parameters controlling the behaviour of the active learning loop such
@@ -245,10 +245,10 @@ class TrainConfig:
     memory_alert_fraction:
         Fraction of the memory budget at which warnings are emitted.
     memory_profiler:
-        Optional :class:`~pinnkit.training.memory_efficient.MemoryProfiler`
+        Optional :class:`~pinnlab.training.memory_efficient.MemoryProfiler`
         instance for collecting per-step statistics.
     cache_config:
-        Optional :class:`~pinnkit.optimization.caching.CacheConfig` describing
+        Optional :class:`~pinnlab.optimization.caching.CacheConfig` describing
         caching and precomputation preferences for the training run.
     """
 

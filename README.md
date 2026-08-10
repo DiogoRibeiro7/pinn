@@ -108,7 +108,7 @@ sphinx-build -b html docs docs/_build/html
 Export a trained model to TorchScript and serve it with FastAPI:
 
 ```bash
-PINN_MODEL_PATH=path/to/model.pt uvicorn pinnkit.deployment.server:app
+PINN_MODEL_PATH=path/to/model.pt uvicorn pinnlab.deployment.server:app
 ```
 
 Docker and helper scripts for AWS, GCP, and Azure are available under the
@@ -128,13 +128,13 @@ comprehensive_demo_with_visualization()
 #### 📐 Burgers Equation (1D)
 
 ```python
-from pinnkit.solvers.raissi_improved import ContinuousPINN, demo
+from pinnlab.solvers.raissi_improved import ContinuousPINN, demo
 
 # Quick demo
 demo()
 
 # Or customize training
-from pinnkit.solvers.raissi_improved import MLP, BurgersConfig, TrainConfig
+from pinnlab.solvers.raissi_improved import MLP, BurgersConfig, TrainConfig
 
 model = MLP(in_dim=2, hidden_layers=8, width=64, out_dim=1)
 cfg = BurgersConfig(nu=0.01/np.pi)
@@ -147,13 +147,13 @@ loss_history = pinn.train(tcfg, weights=(1.0, 1.0, 1.0))
 #### 🌊 Navier-Stokes Equations (2D)
 
 ```python
-from pinnkit.solvers.navier_stokes import demo_tgv
+from pinnlab.solvers.navier_stokes import demo_tgv
 
 # Taylor-Green vortex simulation
 demo_tgv()
 
 # Custom visualization
-from pinnkit.utils.visualization import PINNVisualizer
+from pinnlab.utils.visualization import PINNVisualizer
 viz = PINNVisualizer()
 fig = viz.plot_vector_field_2d(X, Y, U, V, title="Velocity Field")
 ```
@@ -161,14 +161,14 @@ fig = viz.plot_vector_field_2d(X, Y, U, V, title="Velocity Field")
 #### 🧪 Generic PDE Framework
 
 ```python
-from pinnkit.solvers.raissi_generic import ContinuousPINNGeneric
+from pinnlab.solvers.raissi_generic import ContinuousPINNGeneric
 
 # Allen-Cahn equation
-from pinnkit.solvers.raissi_generic import demo_allen_cahn
+from pinnlab.solvers.raissi_generic import demo_allen_cahn
 demo_allen_cahn()
 
 # Nonlinear Schrödinger equation
-from pinnkit.solvers.raissi_generic import demo_schrodinger
+from pinnlab.solvers.raissi_generic import demo_schrodinger
 demo_schrodinger()
 ```
 
@@ -180,7 +180,7 @@ pinn/
 ├── 🗺️  ROADMAP.md                 # Project status & planned work
 ├── 📦 pyproject.toml             # Packaging & dependencies
 │
-├── 🧠 src/pinnkit/                  # The library
+├── 🧠 src/pinnlab/                  # The library
 │   ├── models/                   # MLP, SIREN, Fourier-feature, multi-scale, …
 │   ├── solvers/                  # Burgers (continuous + RK), Navier–Stokes, generic
 │   ├── benchmarks/               # Report schema and independent evaluators
@@ -252,7 +252,7 @@ i·∂u/∂t + ½·∂²u/∂x² + |u|²u = 0
 ### Loss Tracking with Component Breakdown
 
 ```python
-from pinnkit.utils.visualization import quick_plot_loss
+from pinnlab.utils.visualization import quick_plot_loss
 
 loss_history = {
     "total": [...],    # Total weighted loss
@@ -267,7 +267,7 @@ fig = quick_plot_loss(loss_history, "Training Progress")
 ### Spacetime Evolution Analysis
 
 ```python
-from pinnkit.utils.visualization import PINNVisualizer
+from pinnlab.utils.visualization import PINNVisualizer
 
 viz = PINNVisualizer()
 
@@ -294,7 +294,7 @@ fig = viz.plot_vector_field_2d(X, Y, U, V,
 ### Latin Hypercube Sampling
 
 ```python
-from pinnkit.sampling import create_lhs_sampler
+from pinnlab.sampling import create_lhs_sampler
 
 # Efficient space-filling sampling
 sampler = create_lhs_sampler(bounds=[(-1,1), (0,1)], seed=123)
@@ -304,7 +304,7 @@ points = sampler.sample(10000)
 ### Adaptive Refinement
 
 ```python
-from pinnkit.sampling import AdaptiveSampler
+from pinnlab.sampling import AdaptiveSampler
 
 # Residual-based adaptive sampling
 adaptive_sampler = AdaptiveSampler(domain, residual_fn, base_sampler)
@@ -314,7 +314,7 @@ refined_points = adaptive_sampler.sample(5000)
 ### Boundary Condition Sampling
 
 ```python
-from pinnkit.sampling import create_boundary_points
+from pinnlab.sampling import create_boundary_points
 
 # Specialized boundary sampling
 boundaries = create_boundary_points(
@@ -328,7 +328,7 @@ boundaries = create_boundary_points(
 ### Quick Validation
 
 ```python
-from pinnkit.utils.metrics import quick_error_summary, validate_pinn_solution
+from pinnlab.utils.metrics import quick_error_summary, validate_pinn_solution
 
 # Fast error overview
 print(quick_error_summary(y_true, y_pred))
@@ -343,7 +343,7 @@ pass_fail, results, summary = validate_pinn_solution(
 ### Detailed Analysis
 
 ```python
-from pinnkit.utils.metrics import comprehensive_error_analysis, generate_metrics_report
+from pinnlab.utils.metrics import comprehensive_error_analysis, generate_metrics_report
 
 # Full error analysis
 results = comprehensive_error_analysis(
@@ -360,7 +360,7 @@ print(report)
 ### Convergence Analysis
 
 ```python
-from pinnkit.utils.metrics import ConvergenceAnalysis
+from pinnlab.utils.metrics import ConvergenceAnalysis
 
 # Analyze convergence rates
 analyzer = ConvergenceAnalysis()
@@ -404,8 +404,8 @@ def my_pde_residual(model, t, x):
 ### 2\. Use Generic Framework
 
 ```python
-from pinnkit.solvers.raissi_generic import ContinuousPINNGeneric
-from pinnkit.sampling import Domain
+from pinnlab.solvers.raissi_generic import ContinuousPINNGeneric
+from pinnlab.sampling import Domain
 
 # Setup domain and model
 domain = Domain(bounds=[(0, 1), (-1, 1)], names=['t', 'x'])

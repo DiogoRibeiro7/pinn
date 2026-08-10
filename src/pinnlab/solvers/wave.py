@@ -17,7 +17,7 @@ nothing decays, so an error made early persists instead of being damped away;
 and the solution is periodic in time, which is exactly where a PINN trained
 without regard to temporal ordering tends to lock onto the wrong phase. It is
 therefore the natural demonstration for the causal weighting in
-:mod:`pinnkit.training.causal_weighting`.
+:mod:`pinnlab.training.causal_weighting`.
 """
 
 from __future__ import annotations

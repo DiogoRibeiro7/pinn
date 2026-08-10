@@ -10,8 +10,8 @@ from typing import Callable
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from pinnkit.models.mlp import MLP
-from pinnkit.transfer import (
+from pinnlab.models.mlp import MLP
+from pinnlab.transfer import (
     FineTuningConfig,
     PretrainingConfig,
     PretrainingManager,

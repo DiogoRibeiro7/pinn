@@ -12,9 +12,9 @@ import pytest
 import torch
 from torch import nn
 
-from pinnkit.models import MLP
-from pinnkit.problems import HeatProblem
-from pinnkit.training import (
+from pinnlab.models import MLP
+from pinnlab.problems import HeatProblem
+from pinnlab.training import (
     HistoryCollector,
     LoggingCallback,
     OptimizerConfig,
@@ -22,7 +22,7 @@ from pinnkit.training import (
     TrainerCallback,
     TrainerConfig,
 )
-from pinnkit.training.state import TrainingState
+from pinnlab.training.state import TrainingState
 
 
 @pytest.fixture
@@ -224,7 +224,7 @@ class TestRecordedStateContent:
         assert all(w == 1.0 for n, w in state.weights.items() if n != "pde")
 
     def test_diagnostics_stay_out_of_named_losses(self, problem, model):
-        from pinnkit.training import CausalWeightConfig
+        from pinnlab.training import CausalWeightConfig
 
         config = TrainerConfig(
             collocation_count=64,

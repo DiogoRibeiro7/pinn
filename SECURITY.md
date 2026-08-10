@@ -45,14 +45,14 @@ loader cannot read, and will not load on this release. That is intentional.
 
 ### The cache deserialises its own data only
 
-`pinnkit.optimization.caching` uses `pickle` to persist cache entries. It is designed
+`pinnlab.optimization.caching` uses `pickle` to persist cache entries. It is designed
 to read back only what it wrote. Pointing its cache directory at data from another
 source, or at a directory another user can write to, breaks that assumption and
 allows arbitrary code execution. Keep cache directories private to the running user.
 
 ### The serving layer is unauthenticated
 
-`pinnkit.deployment.server` and `pinnkit.deployment.grpc_server` provide **no
+`pinnlab.deployment.server` and `pinnlab.deployment.grpc_server` provide **no
 authentication, authorisation, or rate limiting**. They bind `0.0.0.0` by default
 because a container must, configurable through the `PINN_HOST` environment
 variable. Do not expose them directly to a untrusted network. Put them behind a

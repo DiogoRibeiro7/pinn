@@ -6,7 +6,7 @@ import math
 
 import torch
 
-from pinnkit.sampling import (
+from pinnlab.sampling import (
     ActiveLearningConfig,
     ActiveLearningStrategy,
     ActivePINNTrainer,
@@ -15,7 +15,7 @@ from pinnkit.sampling import (
     QueryByCommitteeAcquisition,
     UncertaintyAcquisition,
 )
-from pinnkit.solvers.raissi_improved import TrainConfig
+from pinnlab.solvers.raissi_improved import TrainConfig
 
 
 class StubUncertainModel(torch.nn.Module):

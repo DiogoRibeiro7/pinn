@@ -2,19 +2,19 @@
 """Benchmark training speed for the Burgers PINN solver.
 
 This script executes a short training run and records performance metrics using
-:mod:`pinnkit.utils.profiling`. It can be used in CI to detect gross performance
+:mod:`pinnlab.utils.profiling`. It can be used in CI to detect gross performance
 regressions."""
 
 from pathlib import Path
 
-from pinnkit.models.mlp import MLP
-from pinnkit.solvers.raissi_improved import (
+from pinnlab.models.mlp import MLP
+from pinnlab.solvers.raissi_improved import (
     ContinuousPINN,
     BurgersConfig,
     TrainConfig,
     burgers_residual,
 )
-from pinnkit.utils.profiling import PerformanceReport, profile_performance
+from pinnlab.utils.profiling import PerformanceReport, profile_performance
 
 
 def main() -> None:

@@ -1,6 +1,6 @@
 """Tests for the visualisation toolkit.
 
-These exercise the real implementations in ``pinnkit.utils.visualization``. An
+These exercise the real implementations in ``pinnlab.utils.visualization``. An
 earlier version of this file defined local stand-ins for ``PINNVisualizer``,
 ``VisualizationConfig`` and friends and asserted against those, so it passed
 regardless of what the library did.
@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 from matplotlib.figure import Figure
 
-from pinnkit.utils.visualization import (
+from pinnlab.utils.visualization import (
     PINNVisualizer,
     VisualizationConfig,
     VisualizationError,

@@ -5,7 +5,7 @@ include CITATION.cff
 include ROADMAP.md
 recursive-include docs *.rst *.md
 recursive-include examples *
-recursive-include src/pinnkit/config/templates *
+recursive-include src/pinnlab/config/templates *
 recursive-include scripts *.py
 include Dockerfile
 recursive-include deployment *

@@ -10,12 +10,12 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ### Changed
 
-- **The distribution and import package are now `pinnkit`.** `pinn` on PyPI is
+- **The distribution and import package are now `pinnlab`.** `pinn` on PyPI is
   taken by an unrelated REST-API client, and that package occupies the
   `import pinn` name too, so publishing under a different distribution name
   while keeping `import pinn` would have broken any environment holding both.
-  Install with `pip install pinnkit` and use `import pinnkit`; the console
-  script is `pinnkit`. The repository, its URLs and the Zenodo DOI are
+  Install with `pip install pinnlab` and use `import pinnlab`; the console
+  script is `pinnlab`. The repository, its URLs and the Zenodo DOI are
   unchanged. There is deliberately no `pinn` compatibility shim, since
   providing one would re-occupy the name this rename exists to avoid.
 
@@ -96,7 +96,7 @@ tag, publish the GitHub release, and — if desired — build and upload with
 ### Changed
 
 - Legacy solver `latin_hypercube` names now re-export the shared
-  `pinnkit.sampling.latin_hypercube` helper, keeping old import paths working while
+  `pinnlab.sampling.latin_hypercube` helper, keeping old import paths working while
   avoiding solver-local implementation drift.
 - Development and runtime dependency floors were refreshed by Dependabot.
 - Architecture, core API, performance and roadmap documentation now describe
@@ -113,11 +113,11 @@ tag, publish the GitHub release, and — if desired — build and upload with
   equation, both through `relative_l2_error`. With the budgets used in the
   examples they reach 1.7e-3 and 4.0e-2 respectively; a two-mode heat initial
   condition, which is stiffer, reaches 2.3e-3.
-- `pinnkit.solvers.reference.burgers_cole_hopf`: the exact solution of the viscous
+- `pinnlab.solvers.reference.burgers_cole_hopf`: the exact solution of the viscous
   Burgers equation via the Cole-Hopf transform, so the existing Burgers solvers
   can be scored. Cross-checked against an independent explicit finite-difference
   solve, agreeing to 1.9e-5 relative L2 at `nu = 0.05`.
-- `pinnkit.training.causal_weighting`: temporal causality weighting from Wang,
+- `pinnlab.training.causal_weighting`: temporal causality weighting from Wang,
   Sankaran and Perdikaris (2022). The weighting formula is unit-tested, but no
   accuracy benefit has been demonstrated on the problems in this package -- see
   the module docstring for the measurements and `ROADMAP.md` for the follow-up.
@@ -207,7 +207,7 @@ Python version, and citable.
 
 - `ci.yml` was an invalid workflow file: a job-level `if: runner.os == 'Linux'`
   referenced a context that does not exist there, so no CI job had ever run.
-- A bare `except:` in `pinnkit.utils.metrics` also caught `KeyboardInterrupt` and
+- A bare `except:` in `pinnlab.utils.metrics` also caught `KeyboardInterrupt` and
   `SystemExit`.
 - The Navier-Stokes example computed the true v-velocity field but never scored
   it; the v-velocity error is now reported alongside u.
