@@ -260,8 +260,15 @@ Concrete work:
   `pinnlab.sampling.latin_hypercube`.
 
 Done when:
-- Public import compatibility tests cover the retained legacy symbols.
-- Legacy wrappers are thin enough that shared behavior is tested in one place.
+- ✅ Public import compatibility tests cover the retained legacy symbols.
+  `tests/unit/test_public_api.py` pins 346 exported names across 20 modules
+  against `public_api_snapshot.json`, and separately checks the legacy solver
+  classes, legacy module paths and top-level aliases named above. The snapshot
+  is a floor: adding exports needs no change, removing one fails and has to be
+  recorded deliberately, which is the moment to decide whether a deprecation
+  shim is owed.
+- 🔭 Legacy wrappers are thin enough that shared behavior is tested in one
+  place.
 
 ### 3. Expand Problem Coverage Carefully
 
