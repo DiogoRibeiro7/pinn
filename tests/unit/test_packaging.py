@@ -17,10 +17,17 @@ import ast
 import builtins
 import importlib
 import sys
-import tomllib
 from pathlib import Path
 
 import pytest
+
+try:  # tomllib is stdlib from 3.11; this package supports 3.10
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - exercised only on 3.10
+    tomllib = pytest.importorskip(
+        "tomli",
+        reason="reading pyproject.toml needs tomllib (3.11+) or tomli",
+    )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_ROOT = REPO_ROOT / "src" / "pinnlab"
