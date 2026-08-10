@@ -28,7 +28,11 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: pip install .[dev,viz]
-      - run: pytest tests/performance -q
+      # --no-cov because addopts in pyproject.toml carries a repository-wide
+      # --cov-fail-under. Applied to this subset it measures the coverage that
+      # the performance tests alone happen to reach (~29%) and fails the job,
+      # which says nothing about whether the benchmarks passed.
+      - run: pytest tests/performance -q --no-cov
       - run: python scripts/benchmark_training.py
       - run: python scripts/benchmark_distributed.py
       - run: |

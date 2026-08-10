@@ -80,7 +80,13 @@ extend-exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.10"
+# Must be 3.12 or newer even though the package supports 3.10. numpy ships
+# PEP 695 `type` statements in its own stubs, which mypy only parses when the
+# target is >= 3.12; with an older target it aborts on
+# `numpy/__init__.pyi: Type statement is only supported in Python 3.12 and
+# greater`, reports "errors prevented further checking", and checks zero source
+# files. This setting is what makes the type check actually run.
+python_version = "3.12"
 ignore_missing_imports = true
 
 # flake8 configuration lives in .flake8 — flake8 cannot read pyproject.toml.

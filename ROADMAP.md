@@ -330,7 +330,12 @@ allowing drift.
 Concrete work:
 - Fix Sphinx warning debt so documentation can eventually build with warnings
   as errors.
-- Reduce the mypy backlog measured on 2026-08-08: 93 errors across 27 modules.
+- Reduce the mypy backlog: 88 errors across 25 modules, measured 2026-08-10 with
+  `[tool.mypy] python_version = "3.12"`. Earlier counts recorded here were not
+  meaningful: with the previous `3.10` target mypy aborted on a PEP 695 `type`
+  statement in numpy's own stubs and checked *zero* source files, so the
+  `continue-on-error` type-check step in CI was reporting a single stub parse
+  error rather than anything about this codebase.
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
 - Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
