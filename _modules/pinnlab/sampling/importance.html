@@ -66,7 +66,7 @@
 
 
 <div class="viewcode-block" id="GradientBasedImportanceSampler">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientBasedImportanceSampler">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.GradientBasedImportanceSampler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GradientBasedImportanceSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adaptive sampler that biases points based on loss gradients.</span>
 
@@ -150,7 +150,7 @@
         <span class="k">return</span> <span class="n">weights</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
 <div class="viewcode-block" id="GradientBasedImportanceSampler.update_importance_weights">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientBasedImportanceSampler.update_importance_weights">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.GradientBasedImportanceSampler.update_importance_weights">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_importance_weights</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -170,7 +170,7 @@
     <span class="c1"># Sampling interface</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="GradientBasedImportanceSampler.sample">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientBasedImportanceSampler.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.GradientBasedImportanceSampler.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">n_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -206,7 +206,7 @@
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">points</span>
 
 <div class="viewcode-block" id="GradientBasedImportanceSampler.importance_map">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientBasedImportanceSampler.importance_map">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.GradientBasedImportanceSampler.importance_map">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">importance_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the last points and their associated weights.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -215,7 +215,7 @@
 
 
 <div class="viewcode-block" id="GradientBasedImportanceSampler.to">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientBasedImportanceSampler.to">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.GradientBasedImportanceSampler.to">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;GradientBasedImportanceSampler&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Move internal tensors to ``device``.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>

@@ -56,7 +56,7 @@
 
 
 <div class="viewcode-block" id="AllenCahnConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnConfig">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AllenCahnConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Physical parameters and domain for the Allen-Cahn benchmark.</span>
@@ -85,7 +85,7 @@
     <span class="n">xmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
 
 <div class="viewcode-block" id="AllenCahnConfig.validate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnConfig.validate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnConfig.validate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Raise ``ValueError`` when the configuration is unphysical.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
@@ -100,13 +100,16 @@
 
 
 
+<div class="viewcode-block" id="benchmark_initial_profile">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.benchmark_initial_profile">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">benchmark_initial_profile</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the benchmark initial condition ``u(0, x) = x^2 cos(pi x)``.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="AllenCahnProblem">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnProblem">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnProblem">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AllenCahnProblem</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Allen-Cahn reaction-diffusion equation on a periodic space-time strip.</span>
@@ -195,7 +198,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="AllenCahnProblem.initial_condition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnProblem.initial_condition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnProblem.initial_condition">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">initial_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate ``u(0, x)`` on tensor coordinates of shape ``(N, 2)``.</span>
 
@@ -212,7 +215,7 @@
 
 
 <div class="viewcode-block" id="AllenCahnProblem.strong_residual">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnProblem.strong_residual">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnProblem.strong_residual">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">strong_residual</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -235,7 +238,7 @@
 
 
 <div class="viewcode-block" id="AllenCahnProblem.constraints">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnProblem.constraints">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnProblem.constraints">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the initial condition and the periodic boundary constraints.&quot;&quot;&quot;</span>
         <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
@@ -265,7 +268,7 @@
 
 
 <div class="viewcode-block" id="AllenCahnProblem.reference_grid">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AllenCahnProblem.reference_grid">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.AllenCahnProblem.reference_grid">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reference_grid</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>

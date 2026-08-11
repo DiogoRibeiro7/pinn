@@ -76,6 +76,8 @@
         <span class="p">)</span>
 
 
+<div class="viewcode-block" id="SoftPointConstraint">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.SoftPointConstraint">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SoftPointConstraint</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for soft constraints evaluated on sampled coordinates.&quot;&quot;&quot;</span>
@@ -92,6 +94,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate common constraint fields.&quot;&quot;&quot;</span>
         <span class="n">validate_sample_count</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_sample_count</span><span class="p">)</span>
 
+<div class="viewcode-block" id="SoftPointConstraint.sample_coordinates">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.SoftPointConstraint.sample_coordinates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_coordinates</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">geometry</span><span class="p">:</span> <span class="n">Geometry</span><span class="p">,</span>
@@ -121,8 +125,11 @@
             <span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">,</span>
             <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="SoftPointConstraint.prediction">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.SoftPointConstraint.prediction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">prediction</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -134,8 +141,11 @@
         <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">outputs</span>
-        <span class="k">return</span> <span class="n">outputs</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">output_index</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">outputs</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">output_index</span><span class="p">]]</span></div>
 
+
+<div class="viewcode-block" id="SoftPointConstraint.loss">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.SoftPointConstraint.loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -160,11 +170,13 @@
         <span class="n">prediction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">derivative_backend</span><span class="p">)</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">_as_target</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)(</span><span class="n">coordinates</span><span class="p">)</span>
         <span class="n">_validate_target</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ConstraintLoss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">prediction</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ConstraintLoss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">prediction</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div>
+</div>
+
 
 
 <div class="viewcode-block" id="InitialCondition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.InitialCondition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.InitialCondition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InitialCondition</span><span class="p">(</span><span class="n">SoftPointConstraint</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft initial-condition constraint on a fixed time coordinate.&quot;&quot;&quot;</span>
 
@@ -192,7 +204,7 @@
 
 
 <div class="viewcode-block" id="DirichletBoundary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DirichletBoundary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.DirichletBoundary">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DirichletBoundary</span><span class="p">(</span><span class="n">SoftPointConstraint</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft Dirichlet boundary condition on a fixed coordinate face.&quot;&quot;&quot;</span>
 
@@ -220,7 +232,7 @@
 
 
 <div class="viewcode-block" id="NeumannBoundary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.NeumannBoundary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.NeumannBoundary">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NeumannBoundary</span><span class="p">(</span><span class="n">SoftPointConstraint</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft Neumann condition for a selected coordinate derivative.&quot;&quot;&quot;</span>
 
@@ -250,7 +262,7 @@
         <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;derivative_dim&quot;</span><span class="p">,</span> <span class="n">derivative_dim</span><span class="p">)</span>
 
 <div class="viewcode-block" id="NeumannBoundary.prediction">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.NeumannBoundary.prediction">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.NeumannBoundary.prediction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">prediction</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -272,7 +284,7 @@
 
 
 <div class="viewcode-block" id="PeriodicBoundary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PeriodicBoundary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.PeriodicBoundary">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">PeriodicBoundary</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft periodic constraint matching opposite faces of one coordinate.</span>
@@ -324,7 +336,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="PeriodicBoundary.loss">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PeriodicBoundary.loss">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.PeriodicBoundary.loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>

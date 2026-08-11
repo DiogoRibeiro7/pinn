@@ -45,7 +45,7 @@
 </div>
 <section id="benchmark-reports">
 <h2>Benchmark reports<a class="headerlink" href="#benchmark-reports" title="Link to this heading">¶</a></h2>
-<p>Use <code class="xref py py-mod docutils literal notranslate"><span class="pre">pinnlab.benchmarks</span></code> for reproducible benchmark artifacts. Reports are
+<p>Use <a class="reference internal" href="api/index.html#module-pinnlab.benchmarks" title="pinnlab.benchmarks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pinnlab.benchmarks</span></code></a> for reproducible benchmark artifacts. Reports are
 JSON-serializable, include the current git commit when available and require
 each case to declare whether reference data is <code class="docutils literal notranslate"><span class="pre">analytic</span></code>, <code class="docutils literal notranslate"><span class="pre">numerical</span></code> or
 <code class="docutils literal notranslate"><span class="pre">observational</span></code>.</p>
@@ -100,7 +100,7 @@ training:</p>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The trainer honours the new <a class="reference internal" href="api/index.html#pinnlab.TrainConfig" title="pinnlab.solvers.raissi_improved.TrainConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code></a>
+<p>The trainer honours the new <code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code>
 fields <code class="docutils literal notranslate"><span class="pre">collocation_batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">effective_batch_size</span></code> and
 <code class="docutils literal notranslate"><span class="pre">gradient_checkpointing</span></code>.  When unset, a short warm-up evaluates the memory
 footprint of the PDE residual to select a safe batch size, and a
@@ -125,8 +125,8 @@ under control.</p>
 points, forward activations and PDE residuals across optimisation steps.  This
 dramatically reduces duplicate work when using hybrid strategies such as
 gradient accumulation or L-BFGS polishing.</p>
-<p>Enable caching through <a class="reference internal" href="api/index.html#pinnlab.TrainConfig" title="pinnlab.solvers.raissi_improved.TrainConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code></a> by
-supplying a <a class="reference internal" href="api/index.html#pinnlab.CacheConfig" title="pinnlab.optimization.caching.CacheConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheConfig</span></code></a> instance:</p>
+<p>Enable caching through <code class="xref py py-class docutils literal notranslate"><span class="pre">TrainConfig</span></code> by
+supplying a <a class="reference internal" href="api/index.html#pinnlab.optimization.CacheConfig" title="pinnlab.optimization.caching.CacheConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheConfig</span></code></a> instance:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.optimization.caching</span><span class="w"> </span><span class="kn">import</span> <span class="n">CacheConfig</span>
 

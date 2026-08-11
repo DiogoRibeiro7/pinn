@@ -69,7 +69,7 @@
 
 
 <div class="viewcode-block" id="DistributedEnvironment">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedEnvironment">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedEnvironment">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DistributedEnvironment</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Utility class to manage torch.distributed initialisation.&quot;&quot;&quot;</span>
 
@@ -87,7 +87,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">world_size</span> <span class="o">=</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="DistributedEnvironment.setup">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedEnvironment.setup">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedEnvironment.setup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
             <span class="k">return</span>
@@ -115,14 +115,14 @@
 
 
 <div class="viewcode-block" id="DistributedEnvironment.barrier">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedEnvironment.barrier">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedEnvironment.barrier">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">barrier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialised</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="DistributedEnvironment.cleanup">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedEnvironment.cleanup">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedEnvironment.cleanup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">initialised</span>
@@ -138,7 +138,7 @@
 
 
 <div class="viewcode-block" id="DistributedPINNTrainer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DistributedPINNTrainer</span><span class="p">(</span><span class="n">DistributedTrainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Advanced trainer supporting multi-node and hybrid parallelism.&quot;&quot;&quot;</span>
 
@@ -182,13 +182,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">world_size</span>
 
 <div class="viewcode-block" id="DistributedPINNTrainer.plan_batches">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.plan_batches">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.plan_batches">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plan_batches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_batches</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_balancer</span><span class="o">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">total_batches</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DistributedPINNTrainer.record_batch">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.record_batch">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.record_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_balancer</span><span class="o">.</span><span class="n">record_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">worker_id</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
 
@@ -199,7 +199,7 @@
 
     <span class="c1"># ----------------------------------------------------------------- training</span>
 <div class="viewcode-block" id="DistributedPINNTrainer.train_distributed">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.train_distributed">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.train_distributed">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_distributed</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataloader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
@@ -232,7 +232,7 @@
 
     <span class="c1"># ------------------------------------------------------------- async utils</span>
 <div class="viewcode-block" id="DistributedPINNTrainer.queue_gradients">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.queue_gradients">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.queue_gradients">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">queue_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">model</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_model</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -247,7 +247,7 @@
 
 
 <div class="viewcode-block" id="DistributedPINNTrainer.flush_async_gradients">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.flush_async_gradients">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.flush_async_gradients">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flush_async_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">model</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_model</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -265,7 +265,7 @@
 
     <span class="c1"># ----------------------------------------------------------- fault tolerance</span>
 <div class="viewcode-block" id="DistributedPINNTrainer.recover_from_failure">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.recover_from_failure">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.recover_from_failure">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">recover_from_failure</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">worker</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -289,20 +289,20 @@
 
 
 <div class="viewcode-block" id="DistributedPINNTrainer.scale_workers">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.scale_workers">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.scale_workers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scale_workers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_workers</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_balancer</span><span class="o">.</span><span class="n">scale_workers</span><span class="p">(</span><span class="n">new_workers</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DistributedPINNTrainer.synchronise_checkpoints">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.synchronise_checkpoints">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.synchronise_checkpoints">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">synchronise_checkpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span></div>
 
 
     <span class="c1"># --------------------------------------------------------------- statistics</span>
 <div class="viewcode-block" id="DistributedPINNTrainer.scaling_summary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedPINNTrainer.scaling_summary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedPINNTrainer.scaling_summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scaling_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">serial_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="n">avg_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_step_time</span><span class="p">()</span>
         <span class="n">speedup</span> <span class="o">=</span> <span class="n">serial_time</span> <span class="o">/</span> <span class="n">avg_time</span> <span class="k">if</span> <span class="n">avg_time</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>

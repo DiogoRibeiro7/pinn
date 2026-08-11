@@ -42,7 +42,7 @@
 
 
 <div class="viewcode-block" id="Geometry">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Geometry">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Geometry">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Geometry</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol for domains that can sample and validate coordinates.&quot;&quot;&quot;</span>
 
@@ -63,7 +63,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return coordinate names.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Geometry.sample_interior">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Geometry.sample_interior">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Geometry.sample_interior">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_interior</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -76,7 +76,7 @@
 
 
 <div class="viewcode-block" id="Geometry.sample_boundary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Geometry.sample_boundary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Geometry.sample_boundary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_boundary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -91,13 +91,13 @@
 
 
 <div class="viewcode-block" id="Geometry.contains">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Geometry.contains">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Geometry.contains">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-7</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a boolean mask identifying points inside the domain.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="Geometry.boundary_mask">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Geometry.boundary_mask">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Geometry.boundary_mask">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">boundary_mask</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>

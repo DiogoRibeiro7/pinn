@@ -76,7 +76,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveWeightingConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveWeightingConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveWeightingConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveWeightingConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration options for adaptive loss weighting.</span>
@@ -156,7 +156,7 @@
     <span class="n">log_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="AdaptiveWeightingConfig.validate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveWeightingConfig.validate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveWeightingConfig.validate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_losses</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration values.</span>
 
@@ -202,7 +202,7 @@
 
 
 <div class="viewcode-block" id="compute_component_gradients">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.compute_component_gradients">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.compute_component_gradients">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_component_gradients</span><span class="p">(</span>
     <span class="n">losses</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
     <span class="n">parameters</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span>
@@ -237,7 +237,7 @@
 
 
 <div class="viewcode-block" id="compute_gradient_norms">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.compute_gradient_norms">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.compute_gradient_norms">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_gradient_norms</span><span class="p">(</span>
     <span class="n">losses</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
     <span class="n">parameters</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span>
@@ -265,7 +265,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveLossWeighting">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveLossWeighting">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveLossWeighting">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveLossWeighting</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adaptive weighting engine for balancing PINN loss components.&quot;&quot;&quot;</span>
 
@@ -339,7 +339,7 @@
     <span class="c1"># ------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="AdaptiveLossWeighting.state_dict">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveLossWeighting.state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveLossWeighting.state_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return serialisable state for checkpointing.</span>
 
@@ -361,7 +361,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveLossWeighting.load_state_dict">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveLossWeighting.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveLossWeighting.load_state_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Restore state saved via :meth:`state_dict`.&quot;&quot;&quot;</span>
 
@@ -381,13 +381,13 @@
 
 
 <div class="viewcode-block" id="AdaptiveLossWeighting.should_update">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveLossWeighting.should_update">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveLossWeighting.should_update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">should_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_update_step</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">adaptation_frequency</span></div>
 
 
 <div class="viewcode-block" id="AdaptiveLossWeighting.update_weights">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveLossWeighting.update_weights">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptiveLossWeighting.update_weights">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_weights</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">losses</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
@@ -669,7 +669,7 @@
 
 
 <div class="viewcode-block" id="MultiObjectiveOptimizer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiObjectiveOptimizer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.MultiObjectiveOptimizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiObjectiveOptimizer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simplified helper for Pareto-based multi-objective weighting.&quot;&quot;&quot;</span>
 
@@ -678,7 +678,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
 
 <div class="viewcode-block" id="MultiObjectiveOptimizer.compute_weights">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiObjectiveOptimizer.compute_weights">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.MultiObjectiveOptimizer.compute_weights">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">losses</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">gradient_norms</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">losses</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;losses tensor cannot be empty&quot;</span><span class="p">)</span>
@@ -714,7 +714,7 @@
 
 
 <div class="viewcode-block" id="WeightEvolutionVisualizer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.WeightEvolutionVisualizer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.WeightEvolutionVisualizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WeightEvolutionVisualizer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create visual summaries of adaptive weight evolution.&quot;&quot;&quot;</span>
 
@@ -722,7 +722,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">loss_names</span><span class="p">)</span>
 
 <div class="viewcode-block" id="WeightEvolutionVisualizer.create_payload">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.WeightEvolutionVisualizer.create_payload">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.WeightEvolutionVisualizer.create_payload">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_payload</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">weight_history</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
@@ -742,7 +742,7 @@
 
 
 <div class="viewcode-block" id="WeightEvolutionVisualizer.create_plot">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.WeightEvolutionVisualizer.create_plot">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.WeightEvolutionVisualizer.create_plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">create_plot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">weight_history</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
@@ -790,7 +790,7 @@
 
 
 <div class="viewcode-block" id="LossBalancingAnalyzer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.LossBalancingAnalyzer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.LossBalancingAnalyzer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LossBalancingAnalyzer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute statistics describing adaptive loss balancing.&quot;&quot;&quot;</span>
 
@@ -798,7 +798,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span>
 
 <div class="viewcode-block" id="LossBalancingAnalyzer.summary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.LossBalancingAnalyzer.summary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.LossBalancingAnalyzer.summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">weight_history</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;updates&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
@@ -827,7 +827,7 @@
 
 
 <div class="viewcode-block" id="AdaptivePINNTrainer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptivePINNTrainer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptivePINNTrainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptivePINNTrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Minimal trainer showcasing adaptive weighting with generic models.&quot;&quot;&quot;</span>
 
@@ -843,7 +843,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="AdaptivePINNTrainer.train_step">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptivePINNTrainer.train_step">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.AdaptivePINNTrainer.train_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">losses</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>

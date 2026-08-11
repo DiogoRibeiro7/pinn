@@ -43,7 +43,7 @@
 
 
 <div class="viewcode-block" id="ModelInputTransform">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ModelInputTransform">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.ModelInputTransform">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModelInputTransform</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform dimensional model coordinates into dimensionless inputs.&quot;&quot;&quot;</span>
@@ -57,7 +57,7 @@
 
 
 <div class="viewcode-block" id="ModelOutputTransform">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ModelOutputTransform">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.ModelOutputTransform">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModelOutputTransform</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform dimensionless model outputs into dimensional values.&quot;&quot;&quot;</span>
@@ -71,7 +71,7 @@
 
 
 <div class="viewcode-block" id="ScaledModel">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ScaledModel">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.ScaledModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ScaledModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap a model that operates in dimensionless coordinates and outputs.</span>
 
@@ -90,7 +90,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">output_transform</span> <span class="o">=</span> <span class="n">ModelOutputTransform</span><span class="p">(</span><span class="n">nondimensionalizer</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ScaledModel.forward">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ScaledModel.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.ScaledModel.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the wrapped model with dimensional coordinates.&quot;&quot;&quot;</span>
         <span class="n">values_star</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_transform</span><span class="p">(</span><span class="n">coordinates</span><span class="p">))</span>

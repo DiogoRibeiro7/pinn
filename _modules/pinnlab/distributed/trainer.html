@@ -94,7 +94,7 @@
 
 
 <div class="viewcode-block" id="DistributedTrainer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DistributedTrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple distributed training orchestrator.</span>
 
@@ -178,7 +178,7 @@
 
     <span class="c1"># ------------------------------------------------------------------ utils</span>
 <div class="viewcode-block" id="DistributedTrainer.prepare_model">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.prepare_model">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.prepare_model">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">prepare_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Wrap ``model`` for the requested distributed strategy.&quot;&quot;&quot;</span>
 
@@ -205,7 +205,7 @@
 
     <span class="c1"># ---------------------------------------------------------------- fit</span>
 <div class="viewcode-block" id="DistributedTrainer.fit">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.fit">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.fit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Delegate training to the underlying solver&#39;s ``train`` method.</span>
 
@@ -236,7 +236,7 @@
 
     <span class="c1"># --------------------------------------------------------------- utilities</span>
 <div class="viewcode-block" id="DistributedTrainer.barrier">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.barrier">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.barrier">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">barrier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronise all processes if ``torch.distributed`` is initialised.&quot;&quot;&quot;</span>
 
@@ -246,7 +246,7 @@
 
     <span class="c1"># ------------------------------------------------------------ synchronise</span>
 <div class="viewcode-block" id="DistributedTrainer.synchronize_gradients">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.synchronize_gradients">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.synchronize_gradients">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">synchronize_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">model</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_model</span>
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_ref</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">):</span>
@@ -260,14 +260,14 @@
 
     <span class="c1"># ---------------------------------------------------------- performance</span>
 <div class="viewcode-block" id="DistributedTrainer.record_step_duration">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.record_step_duration">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.record_step_duration">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_step_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">duration</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_step_durations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DistributedTrainer.average_step_time">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.average_step_time">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.average_step_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">average_step_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_durations</span><span class="p">:</span>
             <span class="k">return</span> <span class="mf">0.0</span>
@@ -275,7 +275,7 @@
 
 
 <div class="viewcode-block" id="DistributedTrainer.world_size">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.world_size">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.world_size">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">world_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">get_world_size</span><span class="p">()</span>
@@ -286,7 +286,7 @@
 
 
 <div class="viewcode-block" id="DistributedTrainer.scaling_efficiency">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.scaling_efficiency">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.scaling_efficiency">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scaling_efficiency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">serial_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="n">avg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_step_time</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">avg</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">serial_time</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -296,7 +296,7 @@
 
     <span class="c1"># --------------------------------------------------------------- helpers</span>
 <div class="viewcode-block" id="DistributedTrainer.current_model">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DistributedTrainer.current_model">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DistributedTrainer.current_model">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">current_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_model</span>

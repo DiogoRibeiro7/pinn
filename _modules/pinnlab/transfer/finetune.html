@@ -55,7 +55,7 @@
 
 
 <div class="viewcode-block" id="FineTuningConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.FineTuningConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.FineTuningConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">FineTuningConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration describing a fine-tuning experiment.&quot;&quot;&quot;</span>
@@ -73,7 +73,7 @@
 
 
 <div class="viewcode-block" id="ContinualLearningBuffer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ContinualLearningBuffer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.ContinualLearningBuffer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ContinualLearningBuffer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple replay buffer used for continual learning scenarios.&quot;&quot;&quot;</span>
 
@@ -82,7 +82,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_storage</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BatchType</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="ContinualLearningBuffer.add_batch">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ContinualLearningBuffer.add_batch">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.ContinualLearningBuffer.add_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">BatchType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">clone</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
@@ -95,7 +95,7 @@
 
 
 <div class="viewcode-block" id="ContinualLearningBuffer.sample">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ContinualLearningBuffer.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.ContinualLearningBuffer.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BatchType</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_storage</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -107,7 +107,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TransferLearningPINN</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;High-level utility orchestrating transfer-learning workflows for PINNs.&quot;&quot;&quot;</span>
 
@@ -131,7 +131,7 @@
     <span class="c1"># Pre-training and registration helpers</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="TransferLearningPINN.pretrain">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.pretrain">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.pretrain">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">pretrain</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tasks</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">PretrainingTask</span><span class="p">],</span>
@@ -146,7 +146,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN.register_source_model">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.register_source_model">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.register_source_model">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">register_source_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">source_models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span></div>
 
@@ -155,7 +155,7 @@
     <span class="c1"># Knowledge transfer primitives</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="TransferLearningPINN.transfer_parameters">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.transfer_parameters">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.transfer_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">transfer_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Copy matching parameters from ``source`` to the base model.&quot;&quot;&quot;</span>
 
@@ -172,7 +172,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN.transfer_features">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.transfer_features">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.transfer_features">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">transfer_features</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">freeze</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -199,7 +199,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN.progressive_transfer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.progressive_transfer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.progressive_transfer">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">progressive_transfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply progressive layer-wise transfer from multiple sources.&quot;&quot;&quot;</span>
 
@@ -216,7 +216,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN.distill_from">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.distill_from">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.distill_from">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">distill_from</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">teacher</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -241,7 +241,7 @@
     <span class="c1"># Fine-tuning</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="TransferLearningPINN.fine_tune">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.fine_tune">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.fine_tune">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fine_tune</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">]</span> <span class="o">|</span> <span class="n">DataLoader</span><span class="p">,</span>
@@ -316,7 +316,7 @@
     <span class="c1"># Continual, multi-task and few-shot learning utilities</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="TransferLearningPINN.continual_update">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.continual_update">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.continual_update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">continual_update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>
@@ -372,7 +372,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN.train_multi_task">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.train_multi_task">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.train_multi_task">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_multi_task</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">task_loaders</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">]],</span>
@@ -399,7 +399,7 @@
 
 
 <div class="viewcode-block" id="TransferLearningPINN.few_shot_adapt">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TransferLearningPINN.few_shot_adapt">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.TransferLearningPINN.few_shot_adapt">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">few_shot_adapt</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">support_batch</span><span class="p">:</span> <span class="n">BatchType</span><span class="p">,</span>

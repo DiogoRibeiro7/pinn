@@ -45,7 +45,7 @@
 
 
 <div class="viewcode-block" id="Rectangle">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Rectangle">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Rectangle">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Rectangle</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Axis-aligned hyperrectangle with tensor-native sampling.</span>
@@ -103,7 +103,7 @@
         <span class="k">return</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span>
 
 <div class="viewcode-block" id="Rectangle.sample_interior">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Rectangle.sample_interior">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Rectangle.sample_interior">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_interior</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -125,7 +125,7 @@
 
 
 <div class="viewcode-block" id="Rectangle.sample_boundary">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Rectangle.sample_boundary">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Rectangle.sample_boundary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample_boundary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -148,7 +148,7 @@
 
 
 <div class="viewcode-block" id="Rectangle.contains">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Rectangle.contains">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Rectangle.contains">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-7</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a mask for points inside or on the rectangle.&quot;&quot;&quot;</span>
         <span class="n">validate_points</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
@@ -158,7 +158,7 @@
 
 
 <div class="viewcode-block" id="Rectangle.boundary_mask">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Rectangle.boundary_mask">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.geometry.Rectangle.boundary_mask">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">boundary_mask</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>

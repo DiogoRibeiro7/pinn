@@ -88,7 +88,7 @@
 
 
 <div class="viewcode-block" id="PerformanceReport">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PerformanceReport">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.PerformanceReport">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">PerformanceReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Collect and export profiling records.&quot;&quot;&quot;</span>
@@ -96,7 +96,7 @@
     <span class="n">records</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PerformanceRecord</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PerformanceReport.add">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PerformanceReport.add">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.PerformanceReport.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">PerformanceRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
 
@@ -105,7 +105,7 @@
     <span class="c1"># Export helpers</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="PerformanceReport.to_json">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PerformanceReport.to_json">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.PerformanceReport.to_json">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="vm">__dict__</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">]</span>
@@ -113,7 +113,7 @@
 
 
 <div class="viewcode-block" id="PerformanceReport.to_csv">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PerformanceReport.to_csv">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.PerformanceReport.to_csv">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -127,7 +127,7 @@
 
     <span class="c1"># Convenience summary ------------------------------------------------</span>
 <div class="viewcode-block" id="PerformanceReport.slowest">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PerformanceReport.slowest">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.PerformanceReport.slowest">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">slowest</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PerformanceRecord</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -137,7 +137,7 @@
 
 
 <div class="viewcode-block" id="MemoryTracker">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MemoryTracker">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.MemoryTracker">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MemoryTracker</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager for tracking CPU and GPU memory usage.&quot;&quot;&quot;</span>
 
@@ -176,7 +176,7 @@
 
 
 <div class="viewcode-block" id="profile_performance">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.profile_performance">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.profile_performance">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">profile_performance</span><span class="p">(</span>
     <span class="n">func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>

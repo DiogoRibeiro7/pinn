@@ -41,7 +41,7 @@
 
 
 <div class="viewcode-block" id="adaptive_loss_weights">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.adaptive_loss_weights">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.adaptive_loss_weights">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">adaptive_loss_weights</span><span class="p">(</span>
     <span class="n">losses</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
@@ -54,7 +54,7 @@
 
 
 <div class="viewcode-block" id="second_order_step">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.second_order_step">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.second_order_step">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">second_order_step</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -74,7 +74,7 @@
 
 
 <div class="viewcode-block" id="gradient_hyperparam_search">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.gradient_hyperparam_search">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.gradient_hyperparam_search">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">gradient_hyperparam_search</span><span class="p">(</span>
     <span class="n">param</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
     <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
@@ -96,7 +96,7 @@
 
 
 <div class="viewcode-block" id="architecture_search">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.architecture_search">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.training.architecture_search">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">architecture_search</span><span class="p">(</span>
     <span class="n">architectures</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]],</span>
     <span class="n">eval_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>

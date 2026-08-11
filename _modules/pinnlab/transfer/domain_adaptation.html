@@ -48,7 +48,7 @@
 
 
 <div class="viewcode-block" id="DomainAdaptationConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DomainAdaptationConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.DomainAdaptationConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DomainAdaptationConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for :class:`DomainAdaptationPINN`.&quot;&quot;&quot;</span>
@@ -64,7 +64,7 @@
 
 
 <div class="viewcode-block" id="DomainAdaptationPINN">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DomainAdaptationPINN">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.DomainAdaptationPINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DomainAdaptationPINN</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapt a source PINN to a target domain using different strategies.&quot;&quot;&quot;</span>
 
@@ -87,7 +87,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">domain_discriminator</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="DomainAdaptationPINN.adapt">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DomainAdaptationPINN.adapt">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.transfer.DomainAdaptationPINN.adapt">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">adapt</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">source_loader</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">BatchType</span><span class="p">],</span>

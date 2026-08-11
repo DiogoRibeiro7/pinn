@@ -112,7 +112,7 @@
 
 
 <div class="viewcode-block" id="PINNVisualizer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PINNVisualizer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.PINNVisualizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PINNVisualizer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Comprehensive visualization toolkit for PINN results with improved error handling.</span>
@@ -162,7 +162,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">dpi</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">dpi</span>
 
 <div class="viewcode-block" id="PINNVisualizer.plot_1d_solution">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PINNVisualizer.plot_1d_solution">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.PINNVisualizer.plot_1d_solution">[docs]</a>
     <span class="nd">@profile_performance</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_1d_solution</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -271,7 +271,7 @@
 
 
 <div class="viewcode-block" id="PINNVisualizer.plot_2d_field">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PINNVisualizer.plot_2d_field">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.PINNVisualizer.plot_2d_field">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_2d_field</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -373,7 +373,7 @@
 
 
 <div class="viewcode-block" id="PINNVisualizer.plot_vector_field_2d">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PINNVisualizer.plot_vector_field_2d">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.PINNVisualizer.plot_vector_field_2d">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_vector_field_2d</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -500,7 +500,7 @@
 
 
 <div class="viewcode-block" id="PINNVisualizer.plot_loss_curves">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PINNVisualizer.plot_loss_curves">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.PINNVisualizer.plot_loss_curves">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_loss_curves</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">loss_history</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
@@ -632,7 +632,7 @@
 
 
 <div class="viewcode-block" id="PINNVisualizer.plot_error_analysis">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PINNVisualizer.plot_error_analysis">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.PINNVisualizer.plot_error_analysis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_error_analysis</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -903,7 +903,7 @@
 
 <span class="c1"># Convenience functions with improved error handling</span>
 <div class="viewcode-block" id="quick_plot_1d">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.quick_plot_1d">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.quick_plot_1d">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">quick_plot_1d</span><span class="p">(</span>
     <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">u_pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -970,7 +970,7 @@
 
 
 <div class="viewcode-block" id="quick_plot_loss">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.quick_plot_loss">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.visualization.quick_plot_loss">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">quick_plot_loss</span><span class="p">(</span>
     <span class="n">loss_history</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
     <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Loss History&quot;</span><span class="p">,</span>

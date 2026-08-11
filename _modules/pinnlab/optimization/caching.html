@@ -62,7 +62,7 @@
 
 
 <div class="viewcode-block" id="CacheEntry">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CacheEntry">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CacheEntry">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CacheEntry</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for cached values.</span>
@@ -101,7 +101,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveCache</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Memory-aware cache with LRU eviction and optional compression.</span>
 
@@ -218,7 +218,7 @@
     <span class="c1"># ------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="AdaptiveCache.get">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.get">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.get">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">value_meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_with_metadata</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value_meta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -228,7 +228,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.get_with_metadata">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.get_with_metadata">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.get_with_metadata">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_with_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
             <span class="n">entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entries</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
@@ -241,7 +241,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.put">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.put">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.put">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">put</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -267,7 +267,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.invalidate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.invalidate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.invalidate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entries</span><span class="p">:</span>
@@ -276,7 +276,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.clear">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.clear">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.clear">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_entries</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -284,7 +284,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.get_or_compute">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.get_or_compute">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.get_or_compute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_or_compute</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -304,7 +304,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.stats">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.stats">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.stats">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span>
@@ -317,7 +317,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.save">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.save">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_persistent_path</span>
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -333,7 +333,7 @@
 
 
 <div class="viewcode-block" id="AdaptiveCache.load">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AdaptiveCache.load">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.AdaptiveCache.load">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">source</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_persistent_path</span>
         <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -354,7 +354,7 @@
 
 
 <div class="viewcode-block" id="CacheConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CacheConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CacheConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CacheConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration options for :class:`TrainingCache`.</span>
@@ -412,7 +412,7 @@
     <span class="n">lazy_evaluation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 
 <div class="viewcode-block" id="CacheConfig.make_directory">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CacheConfig.make_directory">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CacheConfig.make_directory">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">make_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistent_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -424,7 +424,7 @@
 
 
 <div class="viewcode-block" id="CacheConfig.validate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CacheConfig.validate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CacheConfig.validate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_memory_mb</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_memory_mb must be positive&quot;</span><span class="p">)</span>
@@ -444,7 +444,7 @@
 
 
 <div class="viewcode-block" id="PrecomputationManager">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PrecomputationManager">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.PrecomputationManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PrecomputationManager</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple thread-pool wrapper for asynchronous precomputation.&quot;&quot;&quot;</span>
 
@@ -456,7 +456,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 
 <div class="viewcode-block" id="PrecomputationManager.submit">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PrecomputationManager.submit">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.PrecomputationManager.submit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">submit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -468,7 +468,7 @@
 
 
 <div class="viewcode-block" id="PrecomputationManager.result">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PrecomputationManager.result">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.PrecomputationManager.result">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
             <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_futures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
@@ -480,7 +480,7 @@
 
 
 <div class="viewcode-block" id="PrecomputationManager.pop_ready">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PrecomputationManager.pop_ready">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.PrecomputationManager.pop_ready">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">pop_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">ready</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
@@ -494,7 +494,7 @@
 
 
 <div class="viewcode-block" id="PrecomputationManager.shutdown">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PrecomputationManager.shutdown">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.PrecomputationManager.shutdown">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 </div>
@@ -507,7 +507,7 @@
 
 
 <div class="viewcode-block" id="TrainingCache">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TrainingCache</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage multiple caches for a training run.&quot;&quot;&quot;</span>
 
@@ -577,7 +577,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_samples.pt&quot;</span>
 
 <div class="viewcode-block" id="TrainingCache.prepare_training_points">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.prepare_training_points">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.prepare_training_points">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">prepare_training_points</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tcfg</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -639,7 +639,7 @@
         <span class="k">return</span> <span class="n">digest</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TrainingCache.get_activation">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.get_activation">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.get_activation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_activation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activation_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -654,7 +654,7 @@
 
 
 <div class="viewcode-block" id="TrainingCache.store_activation">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.store_activation">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.store_activation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">store_activation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activation_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
@@ -669,7 +669,7 @@
     <span class="c1"># ------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="TrainingCache.coordinates_key">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.coordinates_key">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.coordinates_key">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">coordinates_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">tensors</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">digest</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">blake2b</span><span class="p">(</span><span class="n">digest_size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">:</span>
@@ -679,7 +679,7 @@
 
 
 <div class="viewcode-block" id="TrainingCache.get_gradient">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.get_gradient">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.get_gradient">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -693,7 +693,7 @@
 
 
 <div class="viewcode-block" id="TrainingCache.store_gradient">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.store_gradient">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.store_gradient">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">store_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gradient_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
@@ -708,7 +708,7 @@
     <span class="c1"># ------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="TrainingCache.record_loss">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.record_loss">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.record_loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">losses</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
@@ -718,7 +718,7 @@
 
 
 <div class="viewcode-block" id="TrainingCache.loss_history">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.loss_history">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.loss_history">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">loss_history</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{}</span>
@@ -739,7 +739,7 @@
     <span class="c1"># ------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="TrainingCache.register_collocation_set">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.register_collocation_set">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.register_collocation_set">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">register_collocation_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
@@ -763,7 +763,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">_compute</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">token</span><span class="p">),</span> <span class="n">total</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TrainingCache.next_permutation">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.next_permutation">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.next_permutation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">next_permutation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">randperm</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
@@ -788,7 +788,7 @@
     <span class="c1"># ------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="TrainingCache.advance_model_version">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.advance_model_version">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.advance_model_version">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">advance_model_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_version</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activation_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -798,7 +798,7 @@
 
 
 <div class="viewcode-block" id="TrainingCache.close">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.TrainingCache.close">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.TrainingCache.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span></div>
@@ -812,7 +812,7 @@
 
 
 <div class="viewcode-block" id="CachedSampler">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CachedSampler">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CachedSampler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CachedSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap a sampler to reuse generated points across invocations.&quot;&quot;&quot;</span>
 
@@ -839,7 +839,7 @@
         <span class="k">return</span> <span class="n">digest</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
 <div class="viewcode-block" id="CachedSampler.sample">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CachedSampler.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CachedSampler.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
@@ -853,7 +853,7 @@
 
 
 <div class="viewcode-block" id="CachedSampler.stats">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CachedSampler.stats">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CachedSampler.stats">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hit_count</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">miss_count</span>
         <span class="n">hit_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hit_count</span> <span class="o">/</span> <span class="n">total</span> <span class="k">if</span> <span class="n">total</span> <span class="k">else</span> <span class="mf">0.0</span>
@@ -873,7 +873,7 @@
 
 
 <div class="viewcode-block" id="CachedComputation">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CachedComputation">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.CachedComputation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CachedComputation</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Callable decorator that memoises results inside an :class:`AdaptiveCache`.&quot;&quot;&quot;</span>
 
@@ -897,7 +897,7 @@
 
 
 <div class="viewcode-block" id="cached_computation">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.cached_computation">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.optimization.cached_computation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cached_computation</span><span class="p">(</span><span class="n">cache</span><span class="p">:</span> <span class="n">AdaptiveCache</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CachedComputation</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenience wrapper returning :class:`CachedComputation`.&quot;&quot;&quot;</span>
 

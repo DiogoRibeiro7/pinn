@@ -56,7 +56,7 @@
 
 
 <div class="viewcode-block" id="CheckpointManager">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CheckpointManager">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.CheckpointManager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CheckpointManager</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage saving and loading of model/optimizer checkpoints.</span>
 
@@ -116,7 +116,7 @@
     <span class="c1"># Saving</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="CheckpointManager.save">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CheckpointManager.save">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.CheckpointManager.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -154,7 +154,7 @@
 
 
 <div class="viewcode-block" id="CheckpointManager.maybe_save">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CheckpointManager.maybe_save">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.CheckpointManager.maybe_save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">maybe_save</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -171,7 +171,7 @@
     <span class="c1"># Loading</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="CheckpointManager.load_latest">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CheckpointManager.load_latest">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.CheckpointManager.load_latest">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_latest</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -201,7 +201,7 @@
 
 
 <div class="viewcode-block" id="CheckpointManager.restore_best">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CheckpointManager.restore_best">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.CheckpointManager.restore_best">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">restore_best</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -249,7 +249,7 @@
     <span class="c1"># Early stopping</span>
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="CheckpointManager.should_stop">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.CheckpointManager.should_stop">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.utils.CheckpointManager.should_stop">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">should_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">patience</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_no_improve</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">patience</span></div>
 </div>

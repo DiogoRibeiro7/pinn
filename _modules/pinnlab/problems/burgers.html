@@ -50,7 +50,7 @@
 
 
 <div class="viewcode-block" id="BurgersProblem">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.BurgersProblem">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.BurgersProblem">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BurgersProblem</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;One-dimensional viscous Burgers equation on a space-time rectangle.</span>
@@ -93,7 +93,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="BurgersProblem.initial_condition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.BurgersProblem.initial_condition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.BurgersProblem.initial_condition">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">initial_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate ``u(0, x) = -sin(pi x)`` on tensor coordinates.&quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
@@ -101,7 +101,7 @@
 
 
 <div class="viewcode-block" id="BurgersProblem.strong_residual">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.BurgersProblem.strong_residual">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.BurgersProblem.strong_residual">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">strong_residual</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -126,7 +126,7 @@
 
 
 <div class="viewcode-block" id="BurgersProblem.constraints">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.BurgersProblem.constraints">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.BurgersProblem.constraints">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return initial and homogeneous Dirichlet boundary constraints.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span>
@@ -155,7 +155,7 @@
 
 
 <div class="viewcode-block" id="BurgersProblem.exact">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.BurgersProblem.exact">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.BurgersProblem.exact">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">exact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the Cole-Hopf reference solution.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">burgers_cole_hopf</span><span class="p">(</span>

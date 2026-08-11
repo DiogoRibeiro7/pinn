@@ -152,7 +152,7 @@
 
 
 <div class="viewcode-block" id="UncertaintyAcquisition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.UncertaintyAcquisition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.UncertaintyAcquisition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">UncertaintyAcquisition</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Score candidates by their predictive uncertainty.&quot;&quot;&quot;</span>
 
@@ -191,7 +191,7 @@
 
 
 <div class="viewcode-block" id="ExpectedImprovementAcquisition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ExpectedImprovementAcquisition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ExpectedImprovementAcquisition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExpectedImprovementAcquisition</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Classical expected improvement for Bayesian optimisation.&quot;&quot;&quot;</span>
 
@@ -230,7 +230,7 @@
 
 
 <div class="viewcode-block" id="UpperConfidenceBoundAcquisition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.UpperConfidenceBoundAcquisition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.UpperConfidenceBoundAcquisition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">UpperConfidenceBoundAcquisition</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Upper confidence bound balancing exploration and exploitation.&quot;&quot;&quot;</span>
 
@@ -262,7 +262,7 @@
 
 
 <div class="viewcode-block" id="InformationGainAcquisition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.InformationGainAcquisition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.InformationGainAcquisition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InformationGainAcquisition</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Approximate mutual information using predictive variance.&quot;&quot;&quot;</span>
 
@@ -279,7 +279,7 @@
 
 
 <div class="viewcode-block" id="QueryByCommitteeAcquisition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.QueryByCommitteeAcquisition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.QueryByCommitteeAcquisition">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">QueryByCommitteeAcquisition</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Use an ensemble of models to measure prediction disagreement.&quot;&quot;&quot;</span>
 
@@ -303,7 +303,7 @@
 
 
 <div class="viewcode-block" id="ActiveLearningStrategy">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ActiveLearningStrategy">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ActiveLearningStrategy">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ActiveLearningStrategy</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base strategy for selecting informative points.&quot;&quot;&quot;</span>
 
@@ -321,7 +321,7 @@
 
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="ActiveLearningStrategy.score_candidates">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ActiveLearningStrategy.score_candidates">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ActiveLearningStrategy.score_candidates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">score_candidates</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">candidate_points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
@@ -364,7 +364,7 @@
 
     <span class="c1"># ------------------------------------------------------------------</span>
 <div class="viewcode-block" id="ActiveLearningStrategy.select_points">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ActiveLearningStrategy.select_points">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ActiveLearningStrategy.select_points">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">select_points</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">candidate_points</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
@@ -384,12 +384,12 @@
 
 
 <div class="viewcode-block" id="PoolBasedActiveLearning">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PoolBasedActiveLearning">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.PoolBasedActiveLearning">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PoolBasedActiveLearning</span><span class="p">(</span><span class="n">ActiveLearningStrategy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Strategy that selects from a static candidate pool.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PoolBasedActiveLearning.refresh_pool">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PoolBasedActiveLearning.refresh_pool">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.PoolBasedActiveLearning.refresh_pool">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">refresh_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pool</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_pool</span> <span class="o">=</span> <span class="n">_as_tensor</span><span class="p">(</span><span class="n">new_pool</span><span class="p">)</span></div>
 </div>
@@ -397,7 +397,7 @@
 
 
 <div class="viewcode-block" id="StreamActiveLearning">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.StreamActiveLearning">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.StreamActiveLearning">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StreamActiveLearning</span><span class="p">(</span><span class="n">ActiveLearningStrategy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream-based active learning for sequential data sources.&quot;&quot;&quot;</span>
 
@@ -412,7 +412,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
 
 <div class="viewcode-block" id="StreamActiveLearning.select_from_stream">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.StreamActiveLearning.select_from_stream">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.StreamActiveLearning.select_from_stream">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">select_from_stream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">n_select</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
@@ -434,7 +434,7 @@
 
 
 <div class="viewcode-block" id="MultiObjectiveActiveLearning">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiObjectiveActiveLearning">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.MultiObjectiveActiveLearning">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiObjectiveActiveLearning</span><span class="p">(</span><span class="n">ActiveLearningStrategy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine multiple acquisition functions with cost-aware weighting.&quot;&quot;&quot;</span>
 
@@ -481,7 +481,7 @@
 
 
 <div class="viewcode-block" id="ActiveLearningConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ActiveLearningConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ActiveLearningConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ActiveLearningConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for :class:`ActivePINNTrainer`.&quot;&quot;&quot;</span>
@@ -498,7 +498,7 @@
 
 
 <div class="viewcode-block" id="ActivePINNTrainer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ActivePINNTrainer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ActivePINNTrainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ActivePINNTrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap a PINN solver to run with active learning configuration.&quot;&quot;&quot;</span>
 
@@ -511,7 +511,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">active_strategy</span> <span class="o">=</span> <span class="n">active_strategy</span>
 
 <div class="viewcode-block" id="ActivePINNTrainer.train_with_active_learning">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ActivePINNTrainer.train_with_active_learning">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.ActivePINNTrainer.train_with_active_learning">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_with_active_learning</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train_config</span><span class="p">,</span>

@@ -47,7 +47,7 @@
 
 
 <div class="viewcode-block" id="ConstraintKind">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.ConstraintKind">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.ConstraintKind">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConstraintKind</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Supported semantic kinds of constraints.&quot;&quot;&quot;</span>
 
@@ -58,16 +58,19 @@
 
 
 
+<div class="viewcode-block" id="ConstraintLoss">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.ConstraintLoss">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConstraintLoss</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Named loss value returned by a constraint.&quot;&quot;&quot;</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">value</span><span class="p">:</span> <span class="n">Tensor</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Tensor</span></div>
+
 
 
 <div class="viewcode-block" id="Constraint">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Constraint">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.Constraint">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Constraint</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol for constraints that can evaluate their own training loss.&quot;&quot;&quot;</span>
 
@@ -84,7 +87,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the sample count used when the trainer has no override.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Constraint.loss">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Constraint.loss">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.constraints.Constraint.loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>

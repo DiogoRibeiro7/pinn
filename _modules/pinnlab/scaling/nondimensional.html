@@ -44,7 +44,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Nondimensionalizer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert coordinates and fields between dimensional and dimensionless forms.&quot;&quot;&quot;</span>
@@ -64,7 +64,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="o">.</span><span class="n">output_offset_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">like</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">like</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Nondimensionalizer.validate_input">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.validate_input">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.validate_input">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate coordinate tensor shape.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="o">.</span><span class="n">input_dim</span><span class="p">:</span>
@@ -75,7 +75,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.validate_output">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.validate_output">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.validate_output">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate output tensor shape.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="o">.</span><span class="n">output_dim</span><span class="p">:</span>
@@ -86,7 +86,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.to_dimensionless_inputs">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.to_dimensionless_inputs">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.to_dimensionless_inputs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dimensionless_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map dimensional coordinates ``x`` to ``x*``.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_input</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
@@ -96,7 +96,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.to_dimensional_inputs">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.to_dimensional_inputs">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.to_dimensional_inputs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dimensional_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates_star</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map dimensionless coordinates ``x*`` to dimensional ``x``.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_input</span><span class="p">(</span><span class="n">coordinates_star</span><span class="p">)</span>
@@ -106,7 +106,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.to_dimensionless_outputs">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.to_dimensionless_outputs">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.to_dimensionless_outputs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dimensionless_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map dimensional outputs ``u`` to ``u*``.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_output</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
@@ -114,7 +114,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.to_dimensional_outputs">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.to_dimensional_outputs">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.to_dimensional_outputs">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dimensional_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values_star</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map dimensionless outputs ``u*`` to dimensional ``u``.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_output</span><span class="p">(</span><span class="n">values_star</span><span class="p">)</span>
@@ -124,7 +124,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.to_dimensionless">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.to_dimensionless">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.to_dimensionless">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dimensionless</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;input&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map dimensional ``input`` or ``output`` tensors to dimensionless form.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;input&quot;</span><span class="p">:</span>
@@ -135,7 +135,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.to_dimensional">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.to_dimensional">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.to_dimensional">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dimensional</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;input&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map dimensionless ``input`` or ``output`` tensors to dimensional form.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;input&quot;</span><span class="p">:</span>
@@ -146,7 +146,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.derivative_scale_factor">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.derivative_scale_factor">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.derivative_scale_factor">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">derivative_scale_factor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -176,7 +176,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.parameter_to_dimensionless">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.parameter_to_dimensionless">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.parameter_to_dimensionless">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">parameter_to_dimensionless</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Tensor</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Scale a named dimensional parameter by its characteristic value.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="o">.</span><span class="n">parameter_scales</span><span class="p">:</span>
@@ -191,7 +191,7 @@
 
 
 <div class="viewcode-block" id="Nondimensionalizer.parameter_to_dimensional">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.Nondimensionalizer.parameter_to_dimensional">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.scaling.Nondimensionalizer.parameter_to_dimensional">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">parameter_to_dimensional</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value_star</span><span class="p">:</span> <span class="n">Tensor</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map a dimensionless named parameter back to dimensional units.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="o">.</span><span class="n">parameter_scales</span><span class="p">:</span>

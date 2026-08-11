@@ -83,7 +83,7 @@
 
 
 <div class="viewcode-block" id="DynamicLoadBalancer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DynamicLoadBalancer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribute work proportionally to worker throughput.&quot;&quot;&quot;</span>
 
@@ -96,7 +96,7 @@
         <span class="p">}</span>
 
 <div class="viewcode-block" id="DynamicLoadBalancer.record_batch">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer.record_batch">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer.record_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">worker</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">[</span><span class="n">worker</span><span class="p">]</span> <span class="o">=</span> <span class="n">WorkerState</span><span class="p">(</span><span class="n">worker</span><span class="p">)</span>
@@ -104,21 +104,21 @@
 
 
 <div class="viewcode-block" id="DynamicLoadBalancer.deactivate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer.deactivate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer.deactivate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deactivate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">worker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">[</span><span class="n">worker</span><span class="p">]</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="DynamicLoadBalancer.activate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer.activate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer.activate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">activate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">worker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">[</span><span class="n">worker</span><span class="p">]</span><span class="o">.</span><span class="n">revive</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="DynamicLoadBalancer.allocate">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer.allocate">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer.allocate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_batches</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">total_batches</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span><span class="n">w</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">}</span>
@@ -141,7 +141,7 @@
 
 
 <div class="viewcode-block" id="DynamicLoadBalancer.scale_workers">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer.scale_workers">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer.scale_workers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scale_workers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_workers</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">worker</span> <span class="ow">in</span> <span class="n">new_workers</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">worker</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">:</span>
@@ -149,13 +149,15 @@
 
 
 <div class="viewcode-block" id="DynamicLoadBalancer.active_workers">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DynamicLoadBalancer.active_workers">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.DynamicLoadBalancer.active_workers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">active_workers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">w</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">active</span><span class="p">]</span></div>
 </div>
 
 
 
+<div class="viewcode-block" id="FailureTracker">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.FailureTracker">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FailureTracker</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Track failures and trigger recovery hooks.&quot;&quot;&quot;</span>
 
@@ -163,13 +165,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
+<div class="viewcode-block" id="FailureTracker.record_failure">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.FailureTracker.record_failure">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">record_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">[</span><span class="n">worker</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
-        <span class="k">return</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span>
+        <span class="k">return</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span></div>
 
+
+<div class="viewcode-block" id="FailureTracker.reset">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.FailureTracker.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
           </div>

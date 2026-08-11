@@ -75,6 +75,8 @@
 <span class="c1"># ============================================================</span>
 
 
+<div class="viewcode-block" id="Domain">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.Domain">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Domain</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -106,7 +108,8 @@
         <span class="n">vol</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">:</span>
             <span class="n">vol</span> <span class="o">*=</span> <span class="n">high</span> <span class="o">-</span> <span class="n">low</span>
-        <span class="k">return</span> <span class="n">vol</span>
+        <span class="k">return</span> <span class="n">vol</span></div>
+
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseSampler</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -163,6 +166,8 @@
 <span class="c1"># ============================================================</span>
 
 
+<div class="viewcode-block" id="LatinHypercubeSampler">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.LatinHypercubeSampler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LatinHypercubeSampler</span><span class="p">(</span><span class="n">BaseSampler</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Latin Hypercube Sampling for efficient space-filling sampling.</span>
@@ -191,6 +196,8 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span> <span class="o">=</span> <span class="s2">&quot;random&quot;</span>
 
+<div class="viewcode-block" id="LatinHypercubeSampler.sample">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.LatinHypercubeSampler.sample">[docs]</a>
     <span class="nd">@profile_performance</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -234,7 +241,8 @@
         <span class="n">log_memory_usage</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">log_gpu_usage</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">check_array</span><span class="p">(</span><span class="s2">&quot;samples&quot;</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">samples</span>
+        <span class="k">return</span> <span class="n">samples</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_manual_lhs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Manual implementation of basic LHS.&quot;&quot;&quot;</span>
@@ -255,7 +263,8 @@
             <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">n_points</span><span class="p">)</span>
             <span class="n">H</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">rdpoints</span><span class="p">[</span><span class="n">order</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">H</span>
+        <span class="k">return</span> <span class="n">H</span></div>
+
 
 
 <span class="c1"># ============================================================</span>
@@ -315,6 +324,8 @@
 <span class="c1"># ============================================================</span>
 
 
+<div class="viewcode-block" id="AdaptiveSampler">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.AdaptiveSampler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Adaptive sampling based on PDE residual magnitudes.</span>
@@ -347,6 +358,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">refinement_factor</span> <span class="o">=</span> <span class="n">refinement_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span> <span class="o">=</span> <span class="n">max_iterations</span>
 
+<div class="viewcode-block" id="AdaptiveSampler.sample">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.AdaptiveSampler.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate adaptively refined samples.</span>
@@ -389,7 +402,8 @@
             <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">points</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">points</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_refine_around_points</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">center_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_new</span><span class="p">:</span> <span class="nb">int</span>
@@ -412,7 +426,8 @@
 
             <span class="n">new_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_points</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">new_points</span><span class="p">)</span> <span class="k">if</span> <span class="n">new_points</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">new_points</span><span class="p">)</span> <span class="k">if</span> <span class="n">new_points</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span></div>
+
 
 
 <span class="c1"># ============================================================</span>
@@ -675,7 +690,7 @@
 
 
 <div class="viewcode-block" id="create_lhs_sampler">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.create_lhs_sampler">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.create_lhs_sampler">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_lhs_sampler</span><span class="p">(</span>
     <span class="n">bounds</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LatinHypercubeSampler</span><span class="p">:</span>
@@ -694,6 +709,8 @@
 
 
 
+<div class="viewcode-block" id="create_boundary_points">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.sampling.create_boundary_points">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_boundary_points</span><span class="p">(</span>
     <span class="n">bounds</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
     <span class="n">n_points_per_face</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -713,7 +730,8 @@
     <span class="n">check_range</span><span class="p">(</span><span class="s2">&quot;n_points_per_face&quot;</span><span class="p">,</span> <span class="n">n_points_per_face</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">domain</span> <span class="o">=</span> <span class="n">Domain</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
     <span class="n">sampler</span> <span class="o">=</span> <span class="n">BoundarySampler</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample_all_boundaries</span><span class="p">(</span><span class="n">n_points_per_face</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample_all_boundaries</span><span class="p">(</span><span class="n">n_points_per_face</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">create_spacetime_points</span><span class="p">(</span>

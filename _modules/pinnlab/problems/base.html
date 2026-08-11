@@ -45,7 +45,7 @@
 
 
 <div class="viewcode-block" id="PDEProblem">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PDEProblem">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.PDEProblem">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PDEProblem</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol for a PDE problem solved by a generic trainer.&quot;&quot;&quot;</span>
 
@@ -62,7 +62,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the problem geometry.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PDEProblem.strong_residual">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PDEProblem.strong_residual">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.PDEProblem.strong_residual">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">strong_residual</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -73,7 +73,7 @@
 
 
 <div class="viewcode-block" id="PDEProblem.constraints">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.PDEProblem.constraints">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.PDEProblem.constraints">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the constraints used by generic training.&quot;&quot;&quot;</span></div>
 </div>

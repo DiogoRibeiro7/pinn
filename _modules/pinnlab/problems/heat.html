@@ -49,7 +49,7 @@
 
 
 <div class="viewcode-block" id="HeatProblem">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HeatProblem">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.HeatProblem">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HeatProblem</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;One-dimensional heat equation ``u_t - alpha u_xx = 0``.</span>
@@ -89,7 +89,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="HeatProblem.initial_condition">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HeatProblem.initial_condition">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.HeatProblem.initial_condition">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">initial_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate ``u(0, x)`` on tensor coordinates.&quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
@@ -101,7 +101,7 @@
 
 
 <div class="viewcode-block" id="HeatProblem.strong_residual">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HeatProblem.strong_residual">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.HeatProblem.strong_residual">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">strong_residual</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -123,7 +123,7 @@
 
 
 <div class="viewcode-block" id="HeatProblem.constraints">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HeatProblem.constraints">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.HeatProblem.constraints">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return initial and homogeneous Dirichlet boundary constraints.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span>
@@ -152,7 +152,7 @@
 
 
 <div class="viewcode-block" id="HeatProblem.exact">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HeatProblem.exact">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.problems.HeatProblem.exact">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">exact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the analytic solution.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">heat_exact</span><span class="p">(</span>

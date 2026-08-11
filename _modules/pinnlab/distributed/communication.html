@@ -82,7 +82,7 @@
 
 
 <div class="viewcode-block" id="GradientCompression">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientCompression">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.GradientCompression">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GradientCompression</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Top-k sparsification with optional uniform quantisation.&quot;&quot;&quot;</span>
 
@@ -101,7 +101,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compression_ratio</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantization_bits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="GradientCompression.compress">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientCompression.compress">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.GradientCompression.compress">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompressedGradient</span><span class="p">]:</span>
         <span class="n">compressed</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompressedGradient</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="n">gradients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -134,7 +134,7 @@
 
 
 <div class="viewcode-block" id="GradientCompression.decompress">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.GradientCompression.decompress">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.GradientCompression.decompress">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decompress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compressed</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CompressedGradient</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">TensorDict</span><span class="p">:</span>
         <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">compressed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -163,7 +163,7 @@
 
 
 <div class="viewcode-block" id="AsyncGradientBuffer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AsyncGradientBuffer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.AsyncGradientBuffer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AsyncGradientBuffer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Thread-safe queue for asynchronous gradient updates.&quot;&quot;&quot;</span>
 
@@ -171,14 +171,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="p">:</span> <span class="s2">&quot;queue.Queue[Dict[str, torch.Tensor]]&quot;</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
 
 <div class="viewcode-block" id="AsyncGradientBuffer.push">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AsyncGradientBuffer.push">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.AsyncGradientBuffer.push">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">cpu_gradients</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">gradients</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">cpu_gradients</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AsyncGradientBuffer.pop_all">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AsyncGradientBuffer.pop_all">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.AsyncGradientBuffer.pop_all">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">pop_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorDict</span><span class="p">]:</span>
         <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorDict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
@@ -189,7 +189,7 @@
 
 
 <div class="viewcode-block" id="HierarchicalAverager">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HierarchicalAverager">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.HierarchicalAverager">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HierarchicalAverager</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Hierarchical averaging helper supporting ring/tree reductions.&quot;&quot;&quot;</span>
 
@@ -197,7 +197,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">group_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">group_size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HierarchicalAverager.average">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HierarchicalAverager.average">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.HierarchicalAverager.average">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradients</span><span class="p">:</span> <span class="n">TensorDict</span><span class="p">,</span> <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorDict</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">world_size</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">gradients</span>
@@ -216,7 +216,7 @@
 
 
 <div class="viewcode-block" id="synchronise_gradients">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.synchronise_gradients">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.distributed.synchronise_gradients">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">synchronise_gradients</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">compression</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GradientCompression</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

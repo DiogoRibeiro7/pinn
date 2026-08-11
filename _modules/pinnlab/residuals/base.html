@@ -42,12 +42,12 @@
 
 
 <div class="viewcode-block" id="DerivativeBackend">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DerivativeBackend">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.residuals.DerivativeBackend">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DerivativeBackend</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol for coordinate derivatives used by PDE residuals.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DerivativeBackend.partial_derivative">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.DerivativeBackend.partial_derivative">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.residuals.DerivativeBackend.partial_derivative">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">partial_derivative</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
@@ -62,9 +62,13 @@
 
 
 
+<div class="viewcode-block" id="ResidualForm">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.residuals.ResidualForm">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ResidualForm</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol for evaluating a PDE residual form.&quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="ResidualForm.evaluate">
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.residuals.ResidualForm.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">problem</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
@@ -72,16 +76,18 @@
         <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
         <span class="n">derivative_backend</span><span class="p">:</span> <span class="n">DerivativeBackend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate residual values at coordinates.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate residual values at coordinates.&quot;&quot;&quot;</span></div>
+</div>
+
 
 
 <div class="viewcode-block" id="AutogradDerivativeBackend">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AutogradDerivativeBackend">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.residuals.AutogradDerivativeBackend">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AutogradDerivativeBackend</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Derivative backend implemented with ``torch.autograd.grad``.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="AutogradDerivativeBackend.partial_derivative">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.AutogradDerivativeBackend.partial_derivative">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.residuals.AutogradDerivativeBackend.partial_derivative">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">partial_derivative</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>

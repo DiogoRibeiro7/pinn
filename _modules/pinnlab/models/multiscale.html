@@ -117,7 +117,7 @@
 
 
 <div class="viewcode-block" id="MultiScalePINN">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiScalePINN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Physics-informed network that processes inputs at multiple scales.&quot;&quot;&quot;</span>
 
@@ -204,13 +204,13 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="MultiScalePINN.extra_repr">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.extra_repr">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.extra_repr">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># pragma: no cover - representation helper</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;scales=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_scales</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">, combination=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_combination_method</span><span class="si">}</span><span class="s2">&#39;&quot;</span></div>
 
 
 <div class="viewcode-block" id="MultiScalePINN.get_scales">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.get_scales">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.get_scales">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_scales</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_scales</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">learnable_scales</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales_tensor</span>
@@ -218,14 +218,14 @@
 
 
 <div class="viewcode-block" id="MultiScalePINN.forward">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="n">combined</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_with_details</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">combined</span></div>
 
 
 <div class="viewcode-block" id="MultiScalePINN.forward_with_details">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.forward_with_details">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.forward_with_details">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward_with_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return combined prediction, per-scale outputs and weights.&quot;&quot;&quot;</span>
 
@@ -268,7 +268,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="MultiScalePINN.predict_with_uncertainty">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.predict_with_uncertainty">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.predict_with_uncertainty">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict_with_uncertainty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
         <span class="n">combined</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_with_details</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -277,7 +277,7 @@
 
 
 <div class="viewcode-block" id="MultiScalePINN.scale_statistics">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.scale_statistics">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.scale_statistics">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scale_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
         <span class="n">scales</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_scales</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -287,7 +287,7 @@
 
 
 <div class="viewcode-block" id="MultiScalePINN.adapt_scales">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN.adapt_scales">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScalePINN.adapt_scales">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">adapt_scales</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factors</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">momentum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update learnable scales with simple exponential smoothing.&quot;&quot;&quot;</span>
 
@@ -303,7 +303,7 @@
 
 
 <div class="viewcode-block" id="HierarchicalPINN">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HierarchicalPINN">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.HierarchicalPINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HierarchicalPINN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Coarse-to-fine hierarchy where each level refines the previous output.&quot;&quot;&quot;</span>
 
@@ -333,7 +333,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="HierarchicalPINN.forward">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.HierarchicalPINN.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.HierarchicalPINN.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">return_all</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span> <span class="o">|</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">Tensor</span><span class="p">]:</span>
@@ -350,7 +350,7 @@
 
 
 <div class="viewcode-block" id="WaveletPINN">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.WaveletPINN">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.WaveletPINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WaveletPINN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-resolution network that augments inputs with wavelet responses.&quot;&quot;&quot;</span>
 
@@ -386,7 +386,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="WaveletPINN.forward">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.WaveletPINN.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.WaveletPINN.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wavelet_levels</span><span class="p">):</span>
@@ -407,7 +407,7 @@
 
 
 <div class="viewcode-block" id="FourierMultiScalePINN">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.FourierMultiScalePINN">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.FourierMultiScalePINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FourierMultiScalePINN</span><span class="p">(</span><span class="n">MultiScalePINN</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Specialised multi-scale model using Fourier feature encodings.&quot;&quot;&quot;</span>
 
@@ -448,7 +448,7 @@
 
 
 <div class="viewcode-block" id="MultiScaleTrainingConfig">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScaleTrainingConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScaleTrainingConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiScaleTrainingConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for :class:`MultiScaleTrainer`.&quot;&quot;&quot;</span>
@@ -463,7 +463,7 @@
 
 
 <div class="viewcode-block" id="MultiScaleTrainingState">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScaleTrainingState">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScaleTrainingState">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiScaleTrainingState</span><span class="p">:</span>
     <span class="n">losses</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
@@ -472,7 +472,7 @@
 
 
 <div class="viewcode-block" id="MultiScaleTrainer">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScaleTrainer">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScaleTrainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiScaleTrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Utility class implementing progressive training across scales.&quot;&quot;&quot;</span>
 
@@ -492,7 +492,7 @@
         <span class="k">return</span> <span class="n">variance</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MultiScaleTrainer.train_progressive">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScaleTrainer.train_progressive">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.MultiScaleTrainer.train_progressive">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_progressive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">MultiScaleTrainingState</span><span class="p">:</span>
         <span class="n">coordinates</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">targets</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -522,7 +522,7 @@
 
 
 <div class="viewcode-block" id="multiscale_loss">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.multiscale_loss">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.multiscale_loss">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">multiscale_loss</span><span class="p">(</span>
     <span class="n">prediction</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
     <span class="n">target</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
@@ -547,7 +547,7 @@
 
 
 <div class="viewcode-block" id="scale_adaptive_sampling">
-<a class="viewcode-back" href="../../../api/index.html#pinnlab.scale_adaptive_sampling">[docs]</a>
+<a class="viewcode-back" href="../../../api/index.html#pinnlab.models.scale_adaptive_sampling">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">scale_adaptive_sampling</span><span class="p">(</span>
     <span class="n">sampler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Tensor</span><span class="p">],</span>
     <span class="n">importance</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
