@@ -305,8 +305,14 @@ Done when:
   is a floor: adding exports needs no change, removing one fails and has to be
   recorded deliberately, which is the moment to decide whether a deprecation
   shim is owed.
-- 🔭 Legacy wrappers are thin enough that shared behavior is tested in one
-  place.
+- ✅ Legacy wrappers are thin enough that shared behavior is tested in one
+  place. `HeatPINN` and `WavePINN` drive `Trainer` rather than carrying their
+  own loop, and `_base.py` lost its sampling and loss machinery. Their
+  `residual` methods now delegate to the problem's `strong_residual` and adapt
+  the calling convention only, so each equation is written down once. That also
+  moved the definition training optimises under the residual-vanishing tests,
+  which previously exercised only the wrapper's copy while training used the
+  problem's -- the two could have drifted with just one of them covered.
 
 ### 3. Expand Problem Coverage Carefully
 

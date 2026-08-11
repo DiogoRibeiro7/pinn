@@ -26,6 +26,13 @@ tag, publish the GitHub release, and — if desired — build and upload with
   about 2.5x. The conclusion is unchanged -- no benefit has been demonstrated
   -- but it is now stated as absence of evidence rather than as a measurement.
 
+- `HeatPINN.residual` and `WavePINN.residual` delegate to their composable
+  problem instead of carrying a second implementation of the same equation, so
+  each PDE is written down once. This also puts the definition training
+  optimises under the residual-vanishing tests, which previously exercised only
+  the wrapper's copy. Gradients flow to the coordinates the problem
+  differentiates rather than to the `t` and `x` passed in, so use the returned
+  values rather than backpropagating into the arguments.
 - `HeatPINN` and `WavePINN` train through the composable `Trainer` and their
   `pinnlab.problems` equivalent instead of carrying their own optimisation
   loop. Their public API is unchanged: the same `TrainConfig` goes in and the
