@@ -6,14 +6,59 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
-## [Unreleased]
+## [0.5.0] - 2026-08-11
 
 ### Changed
 
-- The CI type check is blocking. Modules that still carry type errors are
-  listed explicitly in `pyproject.toml`, so every other module is checked for
-  real and new code cannot add errors. The list started at 27 modules and 93
-  errors and only shrinks; 22 remain.
+- **`setup.py` is removed.** It duplicated the packaging metadata and had
+  drifted badly from it: `torch>=1.9.0` against pyproject's `>=2.13.0`,
+  `numpy>=1.20.0` against `>=2.2.6`, and seaborn still listed as required. With
+  `build-backend = "setuptools.build_meta"` and full `[project]` metadata,
+  setuptools reads pyproject and ignores it, so it built nothing and existed
+  only to mislead anyone reading it for the dependency floors. Confirmed by
+  inspecting the built wheel's `METADATA`, which carries the pyproject values.
+  Nothing in the repository referenced it.
+
+- **`seaborn` moved from the required dependencies to the `viz` extra.**
+  `pinnlab.utils.visualization` called `sns.set_palette` at module scope and
+  `pinnlab.utils` imports that module eagerly, so `import pinnlab` imported
+  seaborn and through it ipywidgets and IPython. Measured with
+  `python -X importtime`, that was 2.3s of a 9.0s import for a single palette
+  call. The palette is applied on first plot instead, and without seaborn
+  installed the colours differ and nothing else does.
+
+  Measured end to end with a warm cache: an example at a token budget averages
+  8.17s before against 6.14s after, about 2.0s per process. Raw `import
+  pinnlab` timings on the same machine swing between 5.6s and 15.3s from disk
+  caching alone, so the structural claim is the reliable one -- those three
+  modules are no longer in the import graph, which a subprocess test pins.
+
+  `matplotlib` remains required: it is still imported at module scope by a
+  module `pinnlab.utils` imports eagerly.
+
+- The documentation builds with `sphinx-build -W`, at zero warnings, down from
+  64. All 64 had one cause, and it was not the one the count suggested: any
+  class with a numpydoc `Attributes` section had each attribute described twice
+  under the same name, once by napoleon and once by autodoc's
+  `:undoc-members:`. `napoleon_use_ivar = True` renders them as `:ivar:` fields
+  instead. The API reference was restructured in the same pass and now
+  documents all twenty subpackages, each once at its own path, rather than the
+  top-level package plus five modules.
+
+- The coverage gate rose from 58% to 64%, after the Allen-Cahn and discrete-RK
+  suites added 63 tests. Measured before moving it: 65.93% in CI, 66.50%
+  locally, with CI reporting an identical figure on all six matrix cells.
+
+
+- The CI type check is blocking, with no exemptions. It started as a list of
+  27 modules and 93 errors written out explicitly in `pyproject.toml` so a
+  wildcard could not silently exempt new files; that list is now empty and the
+  block is deleted. Verified by injecting a type error into a
+  previously-exempt module and confirming CI fails.
+
+  The exercise was worth more for what it found than for the clean run. Two
+  latent crashes, both listed under Fixed below: `DiscreteRKPINN.train_one_step`
+  had never worked, and `PINNConfig.validate()` raised on the default config.
 
 - Accuracy figures are reported as a median over seeds rather than a single
   run. Measured over five seeds at the notebook's budget, the single-mode heat
@@ -25,11 +70,21 @@ tag, publish the GitHub release, and — if desired — build and upload with
   `notebooks/basic/05_heat_equation.ipynb` now states the median and range
   before printing its own figure, and its outputs were regenerated against the
   delegated training path.
-- The causal weighting module no longer presents its single-run comparison as
-  evidence. It cited 4.3e-2 with weighting against 4.0e-2 without, a 7%
-  difference between two single runs on a problem whose run-to-run spread is
-  about 2.5x. The conclusion is unchanged -- no benefit has been demonstrated
-  -- but it is now stated as absence of evidence rather than as a measurement.
+- Causal weighting is now demonstrated on a problem where it measurably helps,
+  which had been an open question in its own docstring. The wave-equation
+  comparison it used to cite -- 4.3e-2 with weighting against 4.0e-2 without --
+  was two single runs differing by 7% on a problem whose run-to-run spread is
+  about 2.5x, so it carried no information either way. Heat and wave were the
+  wrong problems: the causality violation does not bite there.
+
+  Allen-Cahn does bite, because `u = 0` satisfies its PDE and both periodic
+  constraints exactly and plain Adam falls into it. At `nu = 1e-2`, three seeds
+  each, identical budgets: median relative L2 of 0.917 unweighted (range
+  0.913-0.922) against 0.615 weighted (range 0.600-0.688). The ranges are
+  disjoint, which the wave comparison never managed. Mean `|u|` over the domain
+  rose from 0.07 to 0.32-0.44 against a reference of 0.578, so the mechanism is
+  visible directly and not only in the score. This is not "Allen-Cahn is
+  solved": 0.6 relative error is still far from accurate at that budget.
 
 - `HeatPINN.residual` and `WavePINN.residual` delegate to their composable
   problem instead of carrying a second implementation of the same equation, so
@@ -57,6 +112,51 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ### Fixed
 
+- **`DiscreteRKPINN.train_one_step` had never worked.** `_compute_derivatives`
+  detached its coordinate tensor *after* the stage prediction was computed from
+  it, so autograd was asked for a gradient with respect to a tensor its graph
+  had never seen and every call raised `RuntimeError`, for every tableau. The
+  class is part of the public API and its only test checked that it imported,
+  which is how a solver that could not take a single step went unnoticed.
+  Fixing it exposed a second crash in the same function: the smoothness term
+  was initialised to `0.0` and only became a tensor inside a loop that a
+  one-stage tableau -- forward Euler is a legitimate one -- skips entirely, so
+  `.item()` met a bare float. Both are covered by
+  `tests/unit/test_discrete_rk_solver.py`.
+
+- **`PINNConfig.validate()` raised `AttributeError` on the default config.**
+  `OptimizerConfig`, `SamplingConfig` and `LossConfig` never inherited
+  `BaseConfig`, the only three config classes in the module that did not, so
+  the public `validate()` wrapper did not exist on them. Each already defined
+  `_validate_implementation`, meaning all three had complete validation logic
+  that nothing could reach. Negative learning rates, out-of-range betas,
+  negative collocation counts and negative loss weights are now rejected with
+  `ConfigError` instead of accepted in silence.
+
+- `MultiObjectiveActiveLearning` never checked `weights` against `objectives`.
+  `zip` truncates, so a short weights list silently dropped objectives, and an
+  empty one made the weighted total a bare `int` for a function declared to
+  return a `Tensor`. Both are now rejected with a message naming both lengths.
+
+- A plain callable passed to the active-learning uncertainty helper without
+  `custom` or `ensemble` fell through to Monte Carlo dropout, which calls
+  `model.train()`. That failed as an `AttributeError` inside the uncertainty
+  helper; it now says what is actually missing.
+
+- 18 of 19 notebooks raised `NameError` in their setup cell. The `pinn` ->
+  `pinnlab` rename updated the import and left the uses behind, so
+  `pinn.__version__` was undefined; `logging.getLogger("pinn")` failed more
+  quietly, simply ceasing to suppress library logs. Their stored outputs still
+  read version 0.1.0, which is the tell -- they were last executed before the
+  rename. Notebooks are not in `MANIFEST.in`, so no distribution ever shipped
+  them broken.
+
+  All 19 have since been executed end to end and all 19 pass, so the rename was
+  the only thing wrong with them. Their *stored* outputs are still the stale
+  0.1.0 ones: the source now prints `pinnlab` and the saved output below it
+  still says `pinn version : 0.1.0`. Regenerating them is a separate job and is
+  recorded in ROADMAP.md.
+
 - Adversarial training no longer crashes when no gradient reaches its input.
   `adversarial_training_step` dereferenced `x_adv.grad.sign()` where `.grad` is
   `Optional`, so an input the loss did not depend on raised `AttributeError`
@@ -78,6 +178,45 @@ tag, publish the GitHub release, and — if desired — build and upload with
   step, which is intended; only the line search needs a fixed objective.
 
 ### Added
+
+- **`AllenCahnProblem`**, the first composable problem that is both nonlinear
+  and periodic. Heat and wave are linear with separable exact solutions and
+  Burgers is nonlinear but Dirichlet, so nothing before it forced the
+  composable core to handle this combination. It runs through the existing
+  `Trainer` with no trainer changes, and inherits causal weighting,
+  residual-adaptive refinement and Latin hypercube sampling untouched.
+
+  Allen-Cahn has a trap worth knowing before using it: `u = 0` satisfies the
+  PDE *and* both periodic constraints exactly, so only the initial condition
+  objects to it, and only on the `t = 0` face. Plain Adam falls into that basin
+  and scores a relative L2 near 1.0 while three of its four loss components
+  look healthy. This is documented on the class and asserted by a test.
+
+- `PeriodicBoundary` gained `derivative_order`. Matching values alone is not
+  periodicity: it admits a field with a kink at the seam, which the residual
+  never sees because no collocation point straddles the far face. The test that
+  pins this down uses `u = x^2`, which matches by value at `x = +-1` while its
+  slope there is `-2` and `+2`. Defaults to `0`, the previous behaviour.
+
+- `allen_cahn_spectral` and `allen_cahn_reference_grid` in
+  `pinnlab.solvers.reference`. Allen-Cahn has no closed form, so unlike the
+  Cole-Hopf Burgers solution this reference is *numerical*: Fourier spectral in
+  space, integrating-factor RK4 in time, 2/3-rule dealiasing. It is exposed as
+  `reference_grid`, deliberately not `exact`, and problems now report
+  `reference_kind` -- `"analytic"` or `"numerical"`.
+
+  Verified against the two limits where the answer is known: with `gamma = 0`
+  it reproduces the heat equation to 1.8e-15, with `nu = 0` the logistic ODE to
+  5e-11, and halving the step divides the error by 16.2 as fourth order
+  requires. Its resolution requirement is set by the interface width
+  `sqrt(nu / gamma)`, about 0.0045 at the benchmark parameters, so below
+  `n_x = 512` the phases are unresolved and the solution overshoots `|u| = 1`.
+
+- `scripts/smoke_examples.py` runs all sixteen examples end to end, and CI runs
+  it on every push. Every example now takes an `--adam-steps` or `--steps` flag
+  defaulting to its previously hardcoded value, which took a full pass from
+  about ten minutes to under three. Passing means an example runs, not that it
+  converges.
 
 - `FixedInteriorSampler` draws interior collocation points once and reuses
   them, which is what the solvers in `pinnlab.solvers` do and what the original

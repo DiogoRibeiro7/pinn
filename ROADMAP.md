@@ -578,6 +578,23 @@ Done when:
 
 ---
 
+### Notebook Outputs Are Stale
+
+All 19 notebooks execute and pass, verified on 2026-08-11, and their source was
+fixed for the `pinn` -> `pinnlab` rename. Their *stored* outputs were not
+regenerated: they date from 0.1.0, so a reader sees a setup cell that prints
+`pinnlab` above saved output reading `pinn version : 0.1.0`.
+
+Regenerating all of them takes about 30 minutes of compute -- `navier_stokes_2d`
+alone is 554s -- and produces a very large diff, since every figure and timing
+is replaced. Worth doing, but as its own change rather than folded into a
+release.
+
+The same run is the basis for a notebooks CI job, the other half of the line
+item the examples job closed. At 30 minutes it is too slow to run on every
+push; a subset, or notebooks parameterised the way the examples now are, would
+make it affordable.
+
 ### Import Cost
 
 `import pinnlab` used to import seaborn, and through it ipywidgets and IPython,
