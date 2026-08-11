@@ -11,30 +11,50 @@ or actively being migrated, planned = not started or intentionally deferred.
 
 ## Current Snapshot
 
-The current released version is `v0.3.0`, published on 2026-08-09.
+The current released version is `v0.5.0`, published on 2026-08-11.
 
 Release state:
-- Tag: `v0.3.0`
-- GitHub Release: published
-- Release artifacts: source distribution and wheel attached to the GitHub
-  Release
-- Validation before release: full test suite passed (`285 passed`), Sphinx HTML
-  documentation build succeeded, `python -m build` produced release artifacts,
-  and `twine check` passed for both artifacts
-- PyPI: not yet uploaded. The distribution is named `pinnlab`, because
-  `pinn` on PyPI belongs to an unrelated REST-API client that also occupies
-  the `import pinn` name. Publishing is wired up through
-  `.github/workflows/publish.yml` using trusted publishing and runs on a
-  version tag once the publisher is registered on pypi.org
+- Tag: `v0.5.0`
+- GitHub Release: published, with the wheel and source distribution attached
+- PyPI: published as [`pinnlab`](https://pypi.org/project/pinnlab/), uploaded by
+  `.github/workflows/publish.yml` through trusted publishing on the version tag.
+  `0.4.0` and `0.5.0` are both live. The name is `pinnlab` because `pinn` on
+  PyPI belongs to an unrelated REST-API client that also occupies the
+  `import pinn` name
+- Validation before release, all run rather than assumed: 480 tests pass at
+  66.52% coverage; black, flake8, bandit and mypy clean, with mypy carrying no
+  exemptions; `sphinx -W` builds at zero warnings; all 16 examples execute; all
+  19 notebooks execute; `CITATION.cff` validates against CFF 1.2.0;
+  `twine check --strict` passes with no stray files among the 194 sdist
+  entries; and the wheel installs into a clean environment and imports without
+  pulling seaborn
 
-What `v0.3.0` means architecturally:
-- The project is no longer only a solver-centric collection of PINN examples.
-- A composable path now exists for problem definitions, geometry, constraints,
-  residual evaluation, scaling, sampling and trainer-owned optimization.
-- Legacy solver imports remain public and must keep working while behavior
-  moves behind them onto the composable architecture.
-- The next stage is not another broad feature burst. It is hardening,
-  migration, and making the new architecture the reliable default.
+What `v0.5.0` means:
+- The composable architecture is no longer only demonstrated on problems chosen
+  to suit it. `AllenCahnProblem` is nonlinear *and* periodic and needed no
+  trainer changes, which is the first real evidence that the split between
+  problem, trainer and constraints generalises.
+- Reference data is labelled by provenance. `reference_kind` distinguishes
+  analytic solutions from numerical ones, and the Allen-Cahn reference is
+  deliberately named `reference_grid` rather than `exact`.
+- The quality gates enforce rather than advise. Every gate below blocks on
+  every push: black, flake8, bandit, mypy with zero exemptions, a six-cell test
+  matrix, a coverage floor, citation metadata, documentation at zero warnings
+  under `-W`, and execution of all sixteen examples.
+- That last point earned its keep during this cycle rather than in theory. The
+  type check found a public solver that had never worked and a config validator
+  that crashed on its own defaults; attempting the examples job found 18
+  notebooks broken by an incomplete rename. In each case the code had simply
+  never been run.
+
+Measurement discipline, which several entries below depend on:
+- Run-to-run spread on these problems is 2.2x to 2.6x. A single-run comparison
+  cannot resolve a 2x difference, so accuracy claims are quoted as a median
+  over seeds with the range attached, and comparisons are only called real when
+  the ranges are disjoint.
+- The local environment is not a proxy for CI in either direction. mypy passed
+  locally and failed in CI on numpy scalar types; coverage measures slightly
+  *lower* in CI than locally. Both are recorded where they bite.
 
 ---
 
@@ -51,14 +71,18 @@ Available solver families:
 - Generic residual framework for Allen-Cahn and nonlinear Schrodinger examples
 - Exact-solution-validated 1-D heat and wave solvers, scored with
   `relative_l2_error` against closed-form solutions
-- Composable Burgers, heat and wave problem adapters for the new generic
-  trainer path
+- Composable Burgers, heat, wave and Allen-Cahn problems for the generic
+  trainer path. `DiscreteRKPINN` works again as of `v0.5.0`; before that it
+  raised on every call, for every tableau
 
 Current limitation:
 - Solver behavior is still split between legacy training loops and the
-  composable trainer. Heat, wave and Burgers have composable problem coverage;
-  richer legacy features such as caching, AMP, active learning and some batching
-  behavior still live mostly in `raissi_improved`.
+  composable trainer. Heat, wave, Burgers and Allen-Cahn have composable
+  problem coverage; richer legacy features such as caching, AMP, active
+  learning and some batching behavior still live mostly in `raissi_improved`.
+- Every composable problem so far is scalar. Navier-Stokes and nonlinear
+  Schrodinger both need multi-output residuals, which the current
+  `StrongFormResidual` contract does not express.
 
 ### References And Benchmarks
 
@@ -181,27 +205,81 @@ Current limitation:
 
 ---
 
-## Active Stage: Post-0.3 Hardening
+## Active Stage: Post-0.5
 
-The next work cycle should focus on hardening the composable architecture and
-reducing migration risk. The goal is to make the new path boring, documented
-and hard to regress before adding another large feature family.
+The hardening cycle that ran from `v0.3.0` to `v0.5.0` is finished. Its goals
+were to make the composable path boring, documented and hard to regress before
+adding another large feature family, and to pay down the debt that stopped CI
+from being strict. Both are done: the gates now block rather than advise, and
+the type-check backlog is empty rather than shrinking.
 
-Primary goals:
-- Keep every legacy public import stable.
-- Move behavior behind legacy facades onto composable problem, geometry,
-  constraint, residual, scaling, sampling and trainer components.
-- Reduce duplicated training-loop logic across solvers.
-- Make validation stricter without breaking users abruptly.
-- Pay down type, lint and documentation debt where it prevents CI from becoming
-  stricter.
+What that cycle actually established, beyond the checklist:
+- Running the code finds things that reading it does not. Every serious defect
+  this cycle -- a solver that could never take a step, a config validator that
+  crashed on its own defaults, 18 notebooks broken by an incomplete rename --
+  was in code that no test or job had ever executed. Coverage of *execution*
+  mattered more than coverage of assertions.
+- A gate that has never been observed to fail is not known to work. Each new
+  gate here was checked by deliberately breaking something and confirming it
+  caught it. Two suppressions found during that exercise had never applied to
+  the error they were written for.
+
+Primary goals for the next cycle:
+- Keep every legacy public import stable. Unchanged, and still the constraint
+  that shapes the migration.
+- Extend composable coverage to a second hard problem. Allen-Cahn showed the
+  architecture generalises to nonlinear and periodic; multi-output residuals
+  are the remaining structural gap, and the honest blocker for Navier-Stokes.
+- Make the notebooks trustworthy. They execute, but their stored outputs are
+  two versions stale and nothing runs them in CI.
+- Prefer measurement over assertion in documentation. Several claims corrected
+  this cycle were plausible, undisputed and wrong.
 
 Non-goals for the immediate next cycle:
 - Do not add empty target packages just to match the long-term architecture.
 - Do not introduce hard-constraint, operator-learning or domain-decomposition
-  APIs until the existing composable path is exercised by more tests and
-  examples.
+  APIs until multi-output residuals exist.
 - Do not remove legacy solver imports during the migration.
+- Do not quote an accuracy figure from a single run.
+
+---
+
+## What To Do Next
+
+Concrete open work, in the order I would take it. Each has been scoped against
+the code rather than guessed at, and the cost figures are measured.
+
+1. **Regenerate the notebook outputs.** All 19 execute and their source is
+   correct, but the stored outputs date from `0.1.0`, so a reader sees a setup
+   cell printing `pinnlab` above saved output reading `pinn version : 0.1.0`.
+   About 30 minutes of compute -- `basic/04_navier_stokes_2d.ipynb` alone is
+   554s -- and a very large diff, since every figure and timing is replaced.
+   Cheap to do, awkward to review, so it wants its own commit.
+
+2. **A notebooks CI job.** The other half of the line item the examples job
+   closed. At 30 minutes the full set is too slow for every push. Either run a
+   subset, or give the notebooks the budget parameters the examples now have,
+   which took the examples suite from ten minutes to under three.
+
+3. **Multi-output residuals.** The remaining structural gap in the composable
+   core, and the honest blocker for migrating Navier-Stokes. Periodic
+   constraints are now exercised properly by Allen-Cahn, which was the other
+   precondition.
+
+4. **A composable nonlinear Schrodinger problem, or a written decision not to.**
+   It needs complex-valued residuals, which the current `StrongFormResidual`
+   contract does not express. Documenting why is a valid outcome.
+
+5. **`nitpicky = True` for the docs.** Measured at 670 warnings, almost all
+   unresolvable references to `torch` and `numpy` types. Closing it needs an
+   `intersphinx_mapping` for both plus a `nitpick_ignore` list, not docstring
+   edits. Until then broken `:class:` cross-references fail silently, since
+   `-W` does not catch them.
+
+6. **Return `matplotlib` to the `viz` extra.** seaborn made it out this cycle.
+   matplotlib is still imported at module scope by `pinnlab.utils.visualization`,
+   which `pinnlab.utils` imports eagerly, so this needs that eager import
+   guarded first.
 
 ---
 
@@ -707,7 +785,10 @@ PyPI publishing:
 - Before any upload the workflow runs `twine check --strict`, asserts the tag
   matches the version in `pyproject.toml`, installs the wheel into an isolated
   environment and imports it, and fails on stray files in the artifacts.
-- The first upload claims the name permanently.
+- The name is already claimed: `0.4.0` and `0.5.0` are both live on PyPI, so
+  further uploads are ordinary version releases rather than name claims. A
+  version cannot be re-uploaded or edited once published; a mistake needs a new
+  version number.
 
 ---
 
