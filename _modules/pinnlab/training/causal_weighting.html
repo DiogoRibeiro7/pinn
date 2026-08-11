@@ -71,18 +71,44 @@
 <span class="sd">than mis-ordered in time, and that comparison says nothing about the weighting</span>
 <span class="sd">either.</span>
 
-<span class="sd">So the position is that no benefit has been demonstrated here, not that the</span>
-<span class="sd">method was shown not to work. Demonstrating it properly needs a problem where</span>
-<span class="sd">the causality violation actually bites, and enough seeds to separate the effect</span>
-<span class="sd">from the noise.</span>
+<span class="sd">Heat and wave were the wrong problems to look for the effect on. Demonstrating</span>
+<span class="sd">it needs one where the causality violation actually bites.</span>
 
-<span class="sd">That is not evidence against the method. The published gains are reported on</span>
-<span class="sd">harder problems -- Allen-Cahn, Kuramoto-Sivashinsky -- with larger budgets and</span>
-<span class="sd">tuned architectures, where the failure this fixes actually bites. It does mean</span>
-<span class="sd">you should treat ``eps`` and ``n_chunks`` as parameters to tune and measure on</span>
-<span class="sd">your own problem, not as a setting that improves things by being switched on.</span>
-<span class="sd">See ``examples/advanced/causal_weighting.py``, which reports both errors rather</span>
-<span class="sd">than assuming the weighted one wins.</span>
+<span class="sd">Allen-Cahn is that problem, and the effect is now measured</span>
+<span class="sd">------------------------------------------------------------</span>
+<span class="sd">:class:`~pinnlab.problems.AllenCahnProblem` has a trivial solution: ``u = 0``</span>
+<span class="sd">satisfies the PDE and both periodic constraints exactly, so only the initial</span>
+<span class="sd">condition objects to it. Plain Adam falls into it -- it fits the initial</span>
+<span class="sd">condition and decays to zero for ``t &gt; 0``. That is precisely a causality</span>
+<span class="sd">failure, since the network is free to ignore what the early times imply about</span>
+<span class="sd">the late ones.</span>
+
+<span class="sd">At ``nu = 1e-2``, three seeds each, identical budgets (1500 Adam steps plus 200</span>
+<span class="sd">L-BFGS, 2000 collocation points, 4x64 MLP), scored as relative L2 against the</span>
+<span class="sd">spectral reference:</span>
+
+<span class="sd">===========  ======================  ===============</span>
+<span class="sd">Setting      Median relative L2      Range</span>
+<span class="sd">===========  ======================  ===============</span>
+<span class="sd">unweighted   0.917                   0.913 - 0.922</span>
+<span class="sd">``eps=1``,   0.615                   0.600 - 0.688</span>
+<span class="sd">16 chunks</span>
+<span class="sd">===========  ======================  ===============</span>
+
+<span class="sd">The ranges are disjoint across seeds, which is the bar the wave-equation</span>
+<span class="sd">comparison above failed to clear. The mechanism is visible in the solution</span>
+<span class="sd">magnitude rather than only in the score: mean ``|u|`` over the domain was</span>
+<span class="sd">``0.07`` unweighted against ``0.32`` to ``0.44`` weighted, where the reference</span>
+<span class="sd">is ``0.578``. The weighting is escaping the trivial solution, which is what it</span>
+<span class="sd">is supposed to do.</span>
+
+<span class="sd">Read that as &quot;the method works and this is where it bites&quot;, not as &quot;Allen-Cahn</span>
+<span class="sd">is solved&quot;. At 0.6 relative error the weighted runs are still far from</span>
+<span class="sd">accurate; the budget is small and the architecture untuned. Treat ``eps`` and</span>
+<span class="sd">``n_chunks`` as parameters to measure on your own problem rather than a setting</span>
+<span class="sd">that improves things by being switched on. See</span>
+<span class="sd">``examples/advanced/causal_weighting.py``, which reports both errors rather than</span>
+<span class="sd">assuming the weighted one wins.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
