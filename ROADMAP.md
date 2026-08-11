@@ -357,14 +357,23 @@ only at two corner points, which random sampling does not hit. This is a
 property of the standard benchmark, not of the formulation, and it is documented
 on the class rather than quietly worked around.
 
-Follow-up recorded while doing this:
-- `notebooks/basic/02_allen_cahn.ipynb` predates the composable path. It
-  hand-rolls the residual with raw `torch.autograd.grad` calls and uses
-  `D = 5e-3` rather than the benchmark parameters, so it now duplicates
-  `AllenCahnProblem` in a form that cannot be tested. Migrating it would make
-  the notebook a demonstration of the composable path instead of a competitor
-  to it, and would let it score against `reference_grid` rather than plotting
-  and stopping there.
+Follow-up recorded while doing this, and then corrected:
+- `notebooks/basic/02_allen_cahn.ipynb` hand-rolls the residual with raw
+  `torch.autograd.grad` calls and uses `D = 5e-3` rather than the benchmark
+  parameters. This was first recorded as duplicating `AllenCahnProblem` and
+  wanting migration. That reading was wrong: the notebook's stated purpose is
+  teaching how to write a custom residual -- it opens by contrasting itself
+  with the Burgers notebook, where "the residual came ready-made", and its
+  takeaways are about `torch.autograd.grad`. Replacing the hand-rolled residual
+  would delete the lesson.
+
+  What it could still gain is a closing section showing the same problem
+  through `AllenCahnProblem` once the manual version has been taught, scored
+  against `reference_grid` instead of stopping at a plot. Note the two use
+  different nondimensionalisations: the notebook's `u_t - eps u_xx +
+  (u^3 - u)/eps` maps onto `AllenCahnConfig(nu=eps, gamma=1/eps)`, so
+  `eps = 5e-3` means `gamma = 200`, which is considerably stiffer than the
+  benchmark's 5.
 
 Done when:
 - ✅ At least one additional PDE family runs through the generic trainer
