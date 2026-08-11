@@ -27,16 +27,39 @@ import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-import seaborn as sns
 
 from .logging import get_logger
 from .profiling import profile_performance
 
 logger = get_logger(__name__)
 
-# Set up plotting style
-plt.style.use("seaborn-v0_8")
-sns.set_palette("husl")
+_STYLE_APPLIED = False
+
+
+def _apply_default_style() -> None:
+    """Apply the default plotting style, once, on first actual use.
+
+    This used to run at module import, which made ``import pinnlab`` import
+    seaborn -- and through it ipywidgets and IPython. Measured with
+    ``python -X importtime``, that cost 2.3s of a 9.0s import, to make a single
+    ``set_palette`` call that matters only once something plots. The style is
+    global matplotlib state either way; the only change is when it is applied.
+
+    ``seaborn-v0_8`` is a style bundled with matplotlib, so it needs no import.
+    seaborn itself is optional -- it lives in the ``viz`` extra and supplies
+    only the colour palette, so its absence changes colours and nothing else.
+    """
+    global _STYLE_APPLIED
+    if _STYLE_APPLIED:
+        return
+    _STYLE_APPLIED = True
+    plt.style.use("seaborn-v0_8")
+    try:
+        import seaborn as sns
+    except ImportError:  # pragma: no cover - exercised without the viz extra
+        logger.debug("seaborn not installed; using the matplotlib palette")
+        return
+    sns.set_palette("husl")
 
 
 @dataclass(frozen=True)
@@ -104,6 +127,8 @@ class PINNVisualizer:
             ValueError: If figsize contains non-positive values
             ValueError: If dpi is non-positive
         """
+        _apply_default_style()
+
         if config is None:
             config = VisualizationConfig()
 

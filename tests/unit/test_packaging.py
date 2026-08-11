@@ -16,6 +16,7 @@ from __future__ import annotations
 import ast
 import builtins
 import importlib
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,7 +35,16 @@ PACKAGE_ROOT = REPO_ROOT / "src" / "pinnlab"
 
 # Third-party roots the package may touch. Anything here must either be a
 # declared runtime dependency or be imported defensively.
-OPTIONAL_ROOTS = {"psutil", "scipy", "plotly", "fastapi", "uvicorn", "grpc", "sklearn"}
+OPTIONAL_ROOTS = {
+    "psutil",
+    "scipy",
+    "plotly",
+    "seaborn",
+    "fastapi",
+    "uvicorn",
+    "grpc",
+    "sklearn",
+}
 
 
 def _declared_runtime_requirements() -> set[str]:
@@ -130,14 +140,22 @@ class TestImportWithDeclaredDependenciesOnly:
 
 
 class TestDeclaredDependenciesAreHonest:
-    def test_matplotlib_and_seaborn_are_required(self):
-        """They are imported at module scope by pinnlab.utils.visualization, so
-        declaring them optional would ship a package that cannot be imported.
-        If those imports are ever guarded, move them back to the `viz` extra
-        and delete this test."""
+    def test_matplotlib_is_required(self):
+        """matplotlib is imported at module scope by pinnlab.utils.visualization,
+        which pinnlab.utils imports eagerly, so declaring it optional would ship
+        a package that cannot be imported. If that import is ever guarded, move
+        it to the `viz` extra and delete this test."""
         declared = _declared_runtime_requirements()
         assert "matplotlib" in declared
-        assert "seaborn" in declared
+
+    def test_seaborn_is_not_required(self):
+        """seaborn moved to the `viz` extra once its import became lazy.
+
+        Its only use is a single set_palette call applied on first plot, so
+        without it the palette differs and nothing else does. Requiring it cost
+        every user the ipywidgets and IPython import chain it drags in.
+        """
+        assert "seaborn" not in _declared_runtime_requirements()
 
     def test_viz_extra_holds_only_genuinely_optional_packages(self):
         data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
@@ -147,3 +165,49 @@ class TestDeclaredDependenciesAreHonest:
             f"{roots - OPTIONAL_ROOTS} are in the viz extra but are not treated "
             "as optional by the code"
         )
+
+
+class TestImportCostStaysDown:
+    """Importing the package must not drag in the plotting stack.
+
+    ``pinnlab.utils.visualization`` used to run ``import seaborn`` and
+    ``sns.set_palette`` at module scope, and ``pinnlab.utils`` imports that
+    module eagerly, so ``import pinnlab`` imported seaborn -- and through it
+    ipywidgets and IPython. Measured with ``python -X importtime``, that was
+    2.3s of a 9.0s import, spent on one palette call. The palette is now
+    applied on first plot instead.
+
+    This has to run in a subprocess: by the time the test session reaches here,
+    the parent process has almost certainly imported those modules already.
+    """
+
+    HEAVY = ("seaborn", "ipywidgets", "IPython")
+
+    def test_importing_pinnlab_does_not_import_the_plotting_stack(self):
+        code = (
+            "import sys; import pinnlab; "
+            f"print(','.join(m for m in {self.HEAVY!r} if m in sys.modules))"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True, timeout=300
+        )
+        assert result.returncode == 0, result.stderr
+        leaked = [m for m in result.stdout.strip().split(",") if m]
+        assert not leaked, f"import pinnlab pulled in: {leaked}"
+
+    def test_the_palette_is_still_applied_when_something_plots(self):
+        """The saving is only legitimate if the style still ends up applied."""
+        code = (
+            "import matplotlib; matplotlib.use('Agg'); import sys; "
+            "import pinnlab.utils.visualization as v; "
+            "before = v._STYLE_APPLIED; v.PINNVisualizer(); "
+            "print(before, v._STYLE_APPLIED, 'seaborn' in sys.modules)"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True, timeout=300
+        )
+        assert result.returncode == 0, result.stderr
+        before, after, seaborn_loaded = result.stdout.strip().split()
+        assert before == "False", "style was applied at import, not on first use"
+        assert after == "True", "constructing a visualizer did not apply the style"
+        assert seaborn_loaded == "True", "seaborn should load when plotting starts"

@@ -549,6 +549,27 @@ Done when:
 
 ---
 
+### Import Cost
+
+`import pinnlab` used to import seaborn, and through it ipywidgets and IPython,
+because `pinnlab.utils.visualization` called `sns.set_palette` at module scope
+and `pinnlab.utils` imports that module eagerly. Measured with
+`python -X importtime`, that was 2.3s of a 9.0s import for a single palette
+call. The palette is now applied on first plot instead.
+
+Measured over five runs each way on the same machine, whose disk caching makes
+absolute numbers noisy: median 13.4s before against 6.6-8.9s after, across two
+independent batches, with ranges that barely overlap. The reliable part is
+structural rather than the timing -- seaborn, ipywidgets and IPython are no
+longer in the import graph at all, which
+`tests/unit/test_packaging.py::TestImportCostStaysDown` pins in a subprocess.
+
+seaborn moved from the required dependencies to the `viz` extra as a result. It
+degrades to the matplotlib palette when absent. matplotlib stays required,
+because `pinnlab.utils.visualization` still imports it at module scope and
+`pinnlab.utils` still imports that module eagerly; making it optional needs
+that eager import guarded too.
+
 ## Future Work
 
 These are not immediate post-0.3 priorities, but they remain part of the
