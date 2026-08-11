@@ -34,12 +34,15 @@ from pinnlab.problems import (
     benchmark_initial_profile,
 )
 from pinnlab.residuals import AutogradDerivativeBackend
+from pinnlab.sampling import LatinHypercubeInteriorSampler
 from pinnlab.solvers.reference import (
     allen_cahn_reference_grid,
     allen_cahn_spectral,
     relative_l2_error,
 )
 from pinnlab.training import OptimizerConfig, Trainer, TrainerConfig
+from pinnlab.training.adaptive_refinement import ResidualAdaptiveConfig
+from pinnlab.training.causal_weighting import CausalWeightConfig
 
 
 class _AnalyticModel(nn.Module):
@@ -472,6 +475,82 @@ class TestTrainsThroughTheGenericTrainer:
             "bc_periodic",
             "bc_periodic_flux",
         }
+
+    @pytest.mark.parametrize(
+        "name, overrides",
+        [
+            ("causal", {"causal": CausalWeightConfig(enabled=True, n_chunks=8)}),
+            (
+                "rar",
+                {
+                    "adaptive_refinement": ResidualAdaptiveConfig(
+                        candidate_count=200,
+                        points_per_refinement=10,
+                        refresh_every=5,
+                    )
+                },
+            ),
+            ("lhs", {"sampler": LatinHypercubeInteriorSampler()}),
+        ],
+    )
+    def test_optional_trainer_strategies_compose_with_it(self, name, overrides):
+        """Causal weighting, RAR and Latin hypercube sampling need no changes.
+
+        These are trainer-owned strategies, so a new problem should inherit
+        them for free. That only holds if the trainer really is equation
+        agnostic, which is the claim this problem exists to test.
+        """
+        del name
+        problem = AllenCahnProblem(n_constraint_samples=32)
+        model = MLP(in_dim=2, out_dim=1, hidden_layers=2, width=16).double()
+        trainer = Trainer(
+            TrainerConfig(
+                seed=0,
+                dtype=torch.float64,
+                collocation_count=256,
+                optimizer=OptimizerConfig(lr=1e-3, adam_steps=30),
+                log_every=10,
+                **overrides,
+            )
+        )
+        result = trainer.train(problem, model)
+        assert result.final_state.total_loss < result.history[0].total_loss
+
+    def test_causal_weighting_reports_its_diagnostic(self):
+        """A strategy that silently did nothing would still pass the test above."""
+        problem = AllenCahnProblem(n_constraint_samples=32)
+        model = MLP(in_dim=2, out_dim=1, hidden_layers=2, width=16).double()
+        trainer = Trainer(
+            TrainerConfig(
+                seed=0,
+                dtype=torch.float64,
+                collocation_count=256,
+                optimizer=OptimizerConfig(adam_steps=10),
+                log_every=5,
+                causal=CausalWeightConfig(enabled=True, n_chunks=8),
+            )
+        )
+        result = trainer.train(problem, model)
+        assert "min_causal_weight" in result.final_state.diagnostics
+
+    def test_adaptive_refinement_actually_adds_points(self):
+        """Same reasoning: check RAR did work, not merely that it ran."""
+        problem = AllenCahnProblem(n_constraint_samples=32)
+        model = MLP(in_dim=2, out_dim=1, hidden_layers=2, width=16).double()
+        trainer = Trainer(
+            TrainerConfig(
+                seed=0,
+                dtype=torch.float64,
+                collocation_count=256,
+                optimizer=OptimizerConfig(adam_steps=30),
+                log_every=10,
+                adaptive_refinement=ResidualAdaptiveConfig(
+                    candidate_count=200, points_per_refinement=10, refresh_every=5
+                ),
+            )
+        )
+        result = trainer.train(problem, model)
+        assert result.final_state.diagnostics["rar_points"] > 0
 
     def test_predictions_can_be_scored_on_the_reference_grid(self):
         """The full loop: train briefly, then score against numerical data."""
