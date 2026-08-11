@@ -60,16 +60,39 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.figure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Figure</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.profiling</span><span class="w"> </span><span class="kn">import</span> <span class="n">profile_performance</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="c1"># Set up plotting style</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-v0_8&quot;</span><span class="p">)</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">set_palette</span><span class="p">(</span><span class="s2">&quot;husl&quot;</span><span class="p">)</span>
+<span class="n">_STYLE_APPLIED</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_default_style</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply the default plotting style, once, on first actual use.</span>
+
+<span class="sd">    This used to run at module import, which made ``import pinnlab`` import</span>
+<span class="sd">    seaborn -- and through it ipywidgets and IPython. Measured with</span>
+<span class="sd">    ``python -X importtime``, that cost 2.3s of a 9.0s import, to make a single</span>
+<span class="sd">    ``set_palette`` call that matters only once something plots. The style is</span>
+<span class="sd">    global matplotlib state either way; the only change is when it is applied.</span>
+
+<span class="sd">    ``seaborn-v0_8`` is a style bundled with matplotlib, so it needs no import.</span>
+<span class="sd">    seaborn itself is optional -- it lives in the ``viz`` extra and supplies</span>
+<span class="sd">    only the colour palette, so its absence changes colours and nothing else.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_STYLE_APPLIED</span>
+    <span class="k">if</span> <span class="n">_STYLE_APPLIED</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">_STYLE_APPLIED</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-v0_8&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover - exercised without the viz extra</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;seaborn not installed; using the matplotlib palette&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_palette</span><span class="p">(</span><span class="s2">&quot;husl&quot;</span><span class="p">)</span>
 
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -139,6 +162,8 @@
 <span class="sd">            ValueError: If figsize contains non-positive values</span>
 <span class="sd">            ValueError: If dpi is non-positive</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_apply_default_style</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">VisualizationConfig</span><span class="p">()</span>
 
