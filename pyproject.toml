@@ -126,7 +126,6 @@ module = [
     "pinnlab.solvers.navier_stokes",
     "pinnlab.solvers.raissi",
     "pinnlab.solvers.raissi_generic",
-    "pinnlab.solvers.raissi_improved",
     "pinnlab.training.adaptive_weighting",
     "pinnlab.training.memory_efficient",
     "pinnlab.training.optimization",

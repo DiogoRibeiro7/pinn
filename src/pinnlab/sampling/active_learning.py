@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, replace
-from typing import Callable, Iterable, Optional, Sequence
+from typing import Any, Callable, Iterable, Optional, Sequence
 
 import torch
 from torch import Tensor, nn
@@ -258,7 +258,7 @@ class ActiveLearningStrategy:
 
     # ------------------------------------------------------------------
     def score_candidates(
-        self, candidate_points: Tensor, *, model: nn.Module, **kwargs: dict
+        self, candidate_points: Tensor, *, model: nn.Module, **kwargs: Any
     ) -> Tensor:
         points = _as_tensor(candidate_points)
         with torch.no_grad():
@@ -302,7 +302,7 @@ class ActiveLearningStrategy:
         candidate_points: Tensor,
         model: nn.Module,
         n_select: int,
-        **kwargs: dict,
+        **kwargs: Any,
     ) -> Tensor:
         points = _as_tensor(candidate_points)
         scores = self.score_candidates(points, model=model, **kwargs)
@@ -370,7 +370,7 @@ class MultiObjectiveActiveLearning(ActiveLearningStrategy):
         self.cost_fn = cost_fn
         self.cost_tradeoff = cost_tradeoff
 
-        def combined(points: Tensor, *, model: nn.Module, **kwargs: dict) -> Tensor:
+        def combined(points: Tensor, *, model: nn.Module, **kwargs: Any) -> Tensor:
             scores = []
             for w, obj in zip(self.weights, self.objectives):
                 scores.append(w * obj(points, model=model, **kwargs))

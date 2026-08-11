@@ -80,6 +80,14 @@ if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
 
 logger = get_logger(__name__)
 
+# What a residual function actually needs from its first argument: something it
+# can call on a coordinate tensor. It was annotated ``nn.Module``, but the
+# batched and memory-aware training paths pass a closure that wraps the model
+# rather than the model itself, so the narrower annotation described only one
+# of the two ways these functions are really called. An ``nn.Module``
+# satisfies this alias.
+ModelForward = Callable[[Tensor], Tensor]
+
 
 # ============================================================
 # Utility Functions
@@ -362,7 +370,7 @@ class ContinuousPINN:
         self,
         model: nn.Module,
         device: Union[str, torch.device],
-        pde_residual_fn: Callable[[nn.Module, Tensor, Tensor, float], Tensor],
+        pde_residual_fn: Callable[[ModelForward, Tensor, Tensor, float], Tensor],
         cfg_burgers: BurgersConfig,
     ) -> None:
         """
@@ -638,7 +646,7 @@ class ContinuousPINN:
         memory_profiler = tcfg.memory_profiler
 
         def make_amp_context() -> contextlib.AbstractContextManager:
-            if not use_amp:
+            if not use_amp or amp_dtype is None:
                 return contextlib.nullcontext()
             return torch.cuda.amp.autocast(dtype=amp_dtype)
 
@@ -722,7 +730,7 @@ class ContinuousPINN:
                             xf_batch,
                             self.cfg.nu,
                         )
-                    if grad_key is not None:
+                    if training_cache is not None and grad_key is not None:
                         training_cache.store_gradient(grad_key, residual)
                 pde_batch = torch.mean(residual**2)
                 weight = tf_batch.shape[0] / total_points
@@ -743,7 +751,9 @@ class ContinuousPINN:
         start_step = 1
         if checkpoint_manager and resume:
             try:
-                _, optimizer, start_step, _ = checkpoint_manager.load_latest(
+                # load_latest populates the optimizer in place and hands
+                # back the same object, so there is nothing to reassign.
+                _, _, start_step, _ = checkpoint_manager.load_latest(
                     self.model, optimizer
                 )
                 start_step += 1
@@ -871,7 +881,7 @@ class ContinuousPINN:
                                 xf_batch,
                                 self.cfg.nu,
                             )
-                        if grad_key is not None:
+                        if training_cache is not None and grad_key is not None:
                             training_cache.store_gradient(grad_key, residual_batch)
                     pde_batch = torch.mean(residual_batch**2)
                     backward((w_pde * pde_batch) / accumulation_steps)
@@ -952,6 +962,7 @@ class ContinuousPINN:
                 )
             ):
                 assert active_sampler is not None
+                assert tcfg.active_strategy is not None
                 pool = active_sampler.sample(tcfg.active_candidate_pool)
                 candidate_tensor = torch.as_tensor(
                     pool, dtype=torch.float32, device=self.device
@@ -1047,14 +1058,18 @@ class ContinuousPINN:
                     stopped_early = True
                     break
 
-        self.last_loss_weights = tuple(float(v) for v in weights_vector)
+        self.last_loss_weights = (
+            float(weights_vector[0]),
+            float(weights_vector[1]),
+            float(weights_vector[2]),
+        )
         if adaptive_manager is not None:
             self.adaptive_weight_history = list(adaptive_manager.weight_history)
             analyzer = LossBalancingAnalyzer(adaptive_manager)
             logger.info("Adaptive weighting summary", extra=analyzer.summary())
             if weight_visualizer is not None:
                 payload = weight_visualizer.create_payload(
-                    adaptive_manager.weight_history,
+                    [list(map(float, w)) for w in adaptive_manager.weight_history],
                     adaptive_manager.loss_history.get("total"),
                 )
                 if isinstance(payload, dict):
@@ -1169,7 +1184,7 @@ class ContinuousPINN:
 # ============================================================
 
 
-def burgers_residual(model: nn.Module, t: Tensor, x: Tensor, nu: float) -> Tensor:
+def burgers_residual(model: ModelForward, t: Tensor, x: Tensor, nu: float) -> Tensor:
     """
     Compute the Burgers equation residual using automatic differentiation.
 
@@ -1179,7 +1194,7 @@ def burgers_residual(model: nn.Module, t: Tensor, x: Tensor, nu: float) -> Tenso
     This function computes: f = u_t + u*u_x - ν*u_xx
 
     Args:
-        model: Neural network model
+        model: Callable mapping a coordinate tensor to predictions
         t: Time coordinates, shape (N, 1)
         x: Spatial coordinates, shape (N, 1)
         nu: Viscosity parameter
@@ -1322,14 +1337,30 @@ class DiscreteRKPINN:
         """
         Compute spatial derivatives u_x and u_xx using autograd.
 
+        ``x`` must be the same tensor ``u`` was computed from, with
+        ``requires_grad`` already set. This method used to call
+        ``x.clone().detach().requires_grad_(True)`` here, which produced a
+        *new* tensor that ``u``'s graph had never seen, so every call raised
+        "One of the differentiated Tensors appears to not have been used in the
+        graph" and no RK step could run. The detach-then-predict order is
+        correct elsewhere in this package; the mistake was doing it after the
+        prediction rather than before.
+
         Args:
             u: Solution values, shape (N, 1)
-            x: Spatial coordinates, shape (N, 1)
+            x: Spatial coordinates, shape (N, 1), requiring grad
 
         Returns:
             Tuple of (u_x, u_xx) with same shape as u
+
+        Raises:
+            ValueError: If ``x`` does not require grad, which would otherwise
+                fail deeper inside autograd with a much less obvious message.
         """
-        x = x.clone().detach().requires_grad_(True)
+        if not x.requires_grad:
+            raise ValueError(
+                "x must require grad and be the tensor u was computed from"
+            )
 
         u_x = torch.autograd.grad(
             u, x, torch.ones_like(u), retain_graph=True, create_graph=True
@@ -1394,7 +1425,10 @@ class DiscreteRKPINN:
 
         # Prepare data
         x_np = x_colloc.astype(np.float32).reshape(-1, 1)
-        x_tensor = torch.from_numpy(x_np).to(self.device)
+        # Stage predictions are differentiated with respect to this tensor, so
+        # it has to carry grad from the start rather than being re-created
+        # inside _compute_derivatives.
+        x_tensor = torch.from_numpy(x_np).to(self.device).requires_grad_(True)
 
         h = float(t1 - t0)
         if h <= 0:
@@ -1424,7 +1458,9 @@ class DiscreteRKPINN:
         start_step = 1
         if checkpoint_manager and resume:
             try:
-                _, optimizer, start_step, _ = checkpoint_manager.load_latest(
+                # load_latest populates the optimizer in place and hands
+                # back the same object, so there is nothing to reassign.
+                _, _, start_step, _ = checkpoint_manager.load_latest(
                     self.net, optimizer
                 )
                 start_step += 1
@@ -1460,10 +1496,15 @@ class DiscreteRKPINN:
             # Consistency: final stage should match RK prediction
             consistency_loss = torch.mean((stage_solutions[-1] - u1_pred) ** 2)
 
-            # Smoothness regularization between stages
-            smoothness_loss = 0.0
+            # Smoothness regularization between stages. Starts as a tensor
+            # rather than 0.0 because a single-stage tableau -- forward Euler
+            # is a legitimate one -- skips the loop entirely, and a bare float
+            # then reaches .item() below and raises AttributeError.
+            smoothness_loss = torch.zeros(
+                (), device=self.device, dtype=stage_solutions[0].dtype
+            )
             for i in range(1, s):
-                smoothness_loss += torch.mean(
+                smoothness_loss = smoothness_loss + torch.mean(
                     (stage_solutions[i] - stage_solutions[i - 1]) ** 2
                 )
 
