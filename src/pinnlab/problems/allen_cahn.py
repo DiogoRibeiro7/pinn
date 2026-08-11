@@ -88,6 +88,24 @@ class AllenCahnProblem:
     points, a measure-zero set that random sampling does not hit. This is a
     property of the benchmark, not of the formulation.
 
+    **The trivial solution.** ``u = 0`` satisfies this PDE exactly -- it is the
+    unstable equilibrium between the two phases -- and it satisfies both
+    periodic constraints exactly too. Only the initial condition objects to it,
+    and only on the ``t = 0`` face. Plain Adam training therefore has a wide,
+    easily reached basin that fits the initial condition and then decays to
+    zero for ``t > 0``, scoring a relative L2 error near ``1.0`` while every
+    loss component except the initial condition looks healthy. Measured here at
+    ``nu = 1e-2`` with 1500 Adam steps: ``ic`` reached ``6e-4`` and both
+    periodic losses ``2e-5``, while the mean ``|u|`` over the domain was
+    ``0.07`` against a reference mean of order one.
+
+    This is a property of Allen-Cahn, not of this implementation, and it is why
+    the equation is a standard test for temporal-causality methods. If you see
+    it, the fix is not more Adam steps. Reach for
+    :class:`~pinnlab.training.causal_weighting.CausalWeightConfig`, which
+    refuses to credit late-time residuals until early-time ones are small, or
+    for a time-marching scheme.
+
     Args:
         config: Physical parameters and domain.
         n_constraint_samples: Default sample count for each constraint.

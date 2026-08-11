@@ -281,7 +281,20 @@ Allen-Cahn is nonlinear *and* periodic, and it needs no trainer changes.
    )
    trainer.train(problem, model)
 
-Two things about this problem are worth knowing before using it.
+Three things about this problem are worth knowing before using it.
+
+Allen-Cahn has a trivial solution and plain Adam training falls into it.
+``u = 0`` is the unstable equilibrium between the two phases: it satisfies the
+PDE exactly *and* both periodic constraints exactly, so only the initial
+condition objects to it, and only on the ``t = 0`` face. A run that has landed
+there fits the initial condition, decays to zero for ``t > 0``, and scores a
+relative L2 error near ``1.0`` while three of its four loss components look
+healthy. Measured at ``nu = 1e-2`` with 1500 Adam steps: ``ic`` at ``6e-4`` and
+both periodic losses at ``2e-5``, with mean ``|u|`` of ``0.07`` against a
+reference mean of order one. This is a property of the equation, not of this
+implementation, and it is why Allen-Cahn is a standard test for
+temporal-causality methods. The fix is not more Adam steps -- reach for
+``CausalWeightConfig`` or a time-marching scheme.
 
 Periodicity is imposed as *two* constraints, ``bc_periodic`` on the value and
 ``bc_periodic_flux`` on ``u_x``. Value matching alone is not periodicity: it

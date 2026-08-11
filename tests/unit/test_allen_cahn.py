@@ -141,6 +141,35 @@ class TestResidualVanishesOnExactSolutions:
             residual = problem.strong_residual(model, _coordinates(), backend)
             assert torch.max(torch.abs(residual)) < 1e-12
 
+    def test_zero_field_satisfies_everything_except_the_initial_condition(self):
+        """The trivial solution, pinned down because it is a real training trap.
+
+        ``u = 0`` is the unstable equilibrium between the two phases. It solves
+        the PDE exactly and matches both periodic faces exactly, so the only
+        term that objects is the initial condition, on one face. That is the
+        whole reason plain Adam collapses onto it here: three of the four loss
+        components are already at their minimum.
+        """
+        problem = AllenCahnProblem()
+        backend = AutogradDerivativeBackend()
+        zero = _AnalyticModel(lambda t, x: torch.zeros_like(x)).double()
+
+        residual = problem.strong_residual(zero, _coordinates(), backend)
+        assert torch.max(torch.abs(residual)) == 0.0
+
+        losses = {
+            c.name: float(
+                c.loss(
+                    zero, problem.geometry, backend, dtype=torch.float64
+                ).value.detach()
+            )
+            for c in problem.constraints()
+        }
+        assert losses["bc_periodic"] == 0.0
+        assert losses["bc_periodic_flux"] == 0.0
+        # Only the initial condition can tell the trivial solution apart.
+        assert losses["ic"] > 0.1
+
     def test_residual_rejects_wrongly_shaped_coordinates(self):
         problem = AllenCahnProblem()
         model = _AnalyticModel(lambda t, x: x).double()
