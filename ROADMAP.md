@@ -326,13 +326,13 @@ The composable architecture needs to prove it handles more than scalar
 exact-solution examples.
 
 Concrete work:
-- [done] Add a composable Allen-Cahn problem with constraints and
+- ✅ Add a composable Allen-Cahn problem with constraints and
   reference/benchmark strategy. `AllenCahnProblem` solves
   `u_t - nu u_xx + gamma (u^3 - u) = 0` on a periodic strip and runs through the
   generic `Trainer` with no trainer changes, which was the point: heat and wave
   are linear with separable exact solutions and Burgers is nonlinear but
   Dirichlet, so this is the first problem that is nonlinear *and* periodic.
-- [done] Add exact, numerical or observational reference labels for every new
+- ✅ Add exact, numerical or observational reference labels for every new
   benchmark. Problems expose `reference_kind`; Allen-Cahn reports `numerical`
   and its reference is `reference_grid()`, deliberately not named `exact`.
 - Add a composable nonlinear Schrodinger problem or document the blocking
@@ -357,8 +357,17 @@ only at two corner points, which random sampling does not hit. This is a
 property of the standard benchmark, not of the formulation, and it is documented
 on the class rather than quietly worked around.
 
+Follow-up recorded while doing this:
+- `notebooks/basic/02_allen_cahn.ipynb` predates the composable path. It
+  hand-rolls the residual with raw `torch.autograd.grad` calls and uses
+  `D = 5e-3` rather than the benchmark parameters, so it now duplicates
+  `AllenCahnProblem` in a form that cannot be tested. Migrating it would make
+  the notebook a demonstration of the composable path instead of a competitor
+  to it, and would let it score against `reference_grid` rather than plotting
+  and stopping there.
+
 Done when:
-- [done] At least one additional PDE family runs through the generic trainer
+- ✅ At least one additional PDE family runs through the generic trainer
   with meaningful tests and documented reference data.
 
 ### 4. Unify Sampling And Adaptive Strategies
