@@ -38,18 +38,44 @@ board for all of them -- the network was under-trained at that horizon rather
 than mis-ordered in time, and that comparison says nothing about the weighting
 either.
 
-So the position is that no benefit has been demonstrated here, not that the
-method was shown not to work. Demonstrating it properly needs a problem where
-the causality violation actually bites, and enough seeds to separate the effect
-from the noise.
+Heat and wave were the wrong problems to look for the effect on. Demonstrating
+it needs one where the causality violation actually bites.
 
-That is not evidence against the method. The published gains are reported on
-harder problems -- Allen-Cahn, Kuramoto-Sivashinsky -- with larger budgets and
-tuned architectures, where the failure this fixes actually bites. It does mean
-you should treat ``eps`` and ``n_chunks`` as parameters to tune and measure on
-your own problem, not as a setting that improves things by being switched on.
-See ``examples/advanced/causal_weighting.py``, which reports both errors rather
-than assuming the weighted one wins.
+Allen-Cahn is that problem, and the effect is now measured
+------------------------------------------------------------
+:class:`~pinnlab.problems.AllenCahnProblem` has a trivial solution: ``u = 0``
+satisfies the PDE and both periodic constraints exactly, so only the initial
+condition objects to it. Plain Adam falls into it -- it fits the initial
+condition and decays to zero for ``t > 0``. That is precisely a causality
+failure, since the network is free to ignore what the early times imply about
+the late ones.
+
+At ``nu = 1e-2``, three seeds each, identical budgets (1500 Adam steps plus 200
+L-BFGS, 2000 collocation points, 4x64 MLP), scored as relative L2 against the
+spectral reference:
+
+===========  ======================  ===============
+Setting      Median relative L2      Range
+===========  ======================  ===============
+unweighted   0.917                   0.913 - 0.922
+``eps=1``,   0.615                   0.600 - 0.688
+16 chunks
+===========  ======================  ===============
+
+The ranges are disjoint across seeds, which is the bar the wave-equation
+comparison above failed to clear. The mechanism is visible in the solution
+magnitude rather than only in the score: mean ``|u|`` over the domain was
+``0.07`` unweighted against ``0.32`` to ``0.44`` weighted, where the reference
+is ``0.578``. The weighting is escaping the trivial solution, which is what it
+is supposed to do.
+
+Read that as "the method works and this is where it bites", not as "Allen-Cahn
+is solved". At 0.6 relative error the weighted runs are still far from
+accurate; the budget is small and the architecture untuned. Treat ``eps`` and
+``n_chunks`` as parameters to measure on your own problem rather than a setting
+that improves things by being switched on. See
+``examples/advanced/causal_weighting.py``, which reports both errors rather than
+assuming the weighted one wins.
 """
 
 from __future__ import annotations
