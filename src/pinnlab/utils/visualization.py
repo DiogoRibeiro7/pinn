@@ -19,7 +19,7 @@ Key improvements:
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, List, Dict, Union, Sequence
+from typing import Any, Optional, Tuple, List, Dict, Union, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 import warnings
@@ -518,18 +518,23 @@ class PINNVisualizer:
         try:
             fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
-            # Use provided colors or generate default ones
+            # Use provided colors or generate default ones. The generated
+            # palette is an RGBA array rather than a list of colour names,
+            # so it cannot be assigned back over the parameter.
+            palette: Union[Sequence[Any], np.ndarray]
             if colors is None:
-                colors = plt.cm.tab10(np.linspace(0, 1, len(loss_history)))
-            elif len(colors) < len(loss_history):
-                raise ValueError(
-                    f"Number of colors ({len(colors)}) must match number of loss components ({len(loss_history)})"
-                )
+                palette = plt.cm.tab10(np.linspace(0, 1, len(loss_history)))
+            else:
+                if len(colors) < len(loss_history):
+                    raise ValueError(
+                        f"Number of colors ({len(colors)}) must match number of loss components ({len(loss_history)})"
+                    )
+                palette = colors
 
             for i, (loss_name, loss_values) in enumerate(loss_history.items()):
                 loss_array = np.asarray(loss_values)
                 steps = np.arange(len(loss_array))
-                color = colors[i]
+                color = palette[i]
 
                 # Plot raw data with transparency if requested
                 if show_raw:
@@ -818,7 +823,9 @@ class PINNVisualizer:
             ) from e
 
     @staticmethod
-    def _moving_average(data: Sequence[float], window: int) -> np.ndarray:
+    def _moving_average(
+        data: Union[Sequence[float], np.ndarray], window: int
+    ) -> np.ndarray:
         """
         Calculate moving average for smoothing loss curves.
 
@@ -1013,7 +1020,7 @@ def create_custom_config(
         raise ValueError(f"label_fontsize must be positive, got {label_fontsize}")
 
     # Create configuration with provided parameters
-    config_params = {
+    config_params: Dict[str, Any] = {
         "figsize": figsize,
         "dpi": dpi,
         "line_width": line_width,

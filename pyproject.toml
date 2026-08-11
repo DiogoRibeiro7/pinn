@@ -134,7 +134,6 @@ module = [
     "pinnlab.utils.logging",
     "pinnlab.utils.metrics",
     "pinnlab.utils.profiling",
-    "pinnlab.utils.visualization",
     "pinnlab.visualization",
 ]
 ignore_errors = true
