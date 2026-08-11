@@ -25,7 +25,7 @@ lightweight and validated to prevent misconfiguration during experiments.
 from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, MutableMapping, Optional, Sequence
+from typing import Any, Dict, Iterable, List, MutableMapping, Optional, Sequence
 
 import numpy as np
 import torch
@@ -291,8 +291,14 @@ class AdaptiveLossWeighting:
     # Public API
     # ------------------------------------------------------------------
 
-    def state_dict(self) -> Dict[str, torch.Tensor]:
-        """Return serialisable state for checkpointing."""
+    def state_dict(self) -> Dict[str, Any]:
+        """Return serialisable state for checkpointing.
+
+        Values are heterogeneous, not all tensors: ``loss_history`` is a
+        nested dict of float lists and ``weight_history`` a list of
+        tensors. ``torch.save`` handles that, but the annotation used to
+        claim ``Dict[str, Tensor]``, which it never was.
+        """
 
         return {
             "weights": self.weights.detach().cpu(),
@@ -304,7 +310,7 @@ class AdaptiveLossWeighting:
             "rl_values": self._rl_values.detach().cpu(),
         }
 
-    def load_state_dict(self, state: Dict[str, Tensor]) -> None:
+    def load_state_dict(self, state: Dict[str, Any]) -> None:
         """Restore state saved via :meth:`state_dict`."""
 
         self.weights = state.get("weights", self.weights).to(self.device).float()
@@ -651,7 +657,7 @@ class WeightEvolutionVisualizer:
         self,
         weight_history: Sequence[Sequence[float]],
         total_history: Optional[Sequence[float]] = None,
-    ) -> Optional[Dict[str, List[float]]]:
+    ) -> Optional[Dict[str, Any]]:
         if not weight_history:
             return None
         steps = list(range(len(weight_history)))
@@ -766,10 +772,15 @@ class AdaptivePINNTrainer:
         if self.weighting.requires_gradients:
             grads = compute_gradient_norms(losses, parameters, retain_graph=True)
         weights = self.weighting.update_weights(losses, step=step, gradient_norms=grads)
-        total = sum(
-            weights[idx] * losses[name]
-            for idx, name in enumerate(self.weighting.loss_names)
-        )
+        # loss_names is validated non-empty at construction, so this stack
+        # is never empty. sum() over a generator would be typed
+        # Tensor | Literal[0] because an empty sum returns int.
+        total = torch.stack(
+            [
+                weights[idx] * losses[name]
+                for idx, name in enumerate(self.weighting.loss_names)
+            ]
+        ).sum()
         self.optimizer.zero_grad(set_to_none=True)
         total.backward()
         self.optimizer.step()
