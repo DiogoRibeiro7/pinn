@@ -473,8 +473,21 @@ Concrete work:
   test, which is how a solver that could not take a step went unnoticed. Both
   are fixed and covered by `tests/unit/test_discrete_rk_solver.py`.
 
-  The heaviest remaining modules are `training.adaptive_weighting` (9),
-  `models.multiscale` (8) and `utils.visualization` (7).
+  `training.adaptive_weighting` (9), `models.multiscale` (8) and
+  `utils.visualization` (7) followed, and were annotation debt rather than
+  defects. Two causes dominated. `nn.Module.__getattr__` is typed
+  `Tensor | Module`, so every `register_buffer` attribute reads back as that
+  union until it is declared at class level. And several signatures described
+  a narrower contract than the function had always honoured -- `**kwargs: dict`
+  where callers pass floats, `Sequence[float]` on a helper whose first
+  statement is `np.asarray`, `Dict[str, Tensor]` on a `state_dict` that has
+  always held a nested dict and a list.
+
+  18 modules and 48 errors remain, measured rather than estimated. No single
+  module now carries more than six: `utils.metrics` (6),
+  `sampling.active_learning` (6), `solvers.raissi` (5), then a long tail of
+  three or fewer. The remaining work is spread thin rather than concentrated,
+  so the block can plausibly be emptied and deleted outright.
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
 - Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
