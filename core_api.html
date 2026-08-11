@@ -244,9 +244,9 @@ constraints. Constraint objects sample their own points and evaluate their
 own loss, so the trainer does not need equation-specific branches.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinnlab.problems</span></code></dt><dd><p>Owns equation parameters, dimensions, geometry, constraints and strong-form
-residual definitions. <code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code>, <code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and
-<code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> use coordinate order <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> and provide reference or
-analytic solution helpers.</p>
+residual definitions. <code class="docutils literal notranslate"><span class="pre">AllenCahnProblem</span></code>, <code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code>,
+<code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code> and <code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code> use coordinate order <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> and
+provide reference or analytic solution helpers.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pinnlab.residuals</span></code></dt><dd><p>Provides <code class="docutils literal notranslate"><span class="pre">StrongFormResidual</span></code> and the initial autograd derivative backend.
 A later migration can replace the backend without changing problem or
@@ -267,6 +267,46 @@ classical numerical references. Reference descriptors must label data as
 <code class="docutils literal notranslate"><span class="pre">analytic</span></code>, <code class="docutils literal notranslate"><span class="pre">numerical</span></code> or <code class="docutils literal notranslate"><span class="pre">observational</span></code>.</p>
 </dd>
 </dl>
+</section>
+<section id="nonlinear-and-periodic-problems">
+<h2>Nonlinear And Periodic Problems<a class="headerlink" href="#nonlinear-and-periodic-problems" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">AllenCahnProblem</span></code> solves <code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">u_xx</span> <span class="pre">+</span> <span class="pre">gamma</span> <span class="pre">(u^3</span> <span class="pre">-</span> <span class="pre">u)</span> <span class="pre">=</span> <span class="pre">0</span></code> and is the
+case that tests whether the composable core generalises: heat and wave are
+linear with separable exact solutions, and Burgers is nonlinear but Dirichlet.
+Allen-Cahn is nonlinear <em>and</em> periodic, and it needs no trainer changes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.models.mlp</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.problems</span><span class="w"> </span><span class="kn">import</span> <span class="n">AllenCahnProblem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.training</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerConfig</span><span class="p">,</span> <span class="n">Trainer</span><span class="p">,</span> <span class="n">TrainerConfig</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">AllenCahnProblem</span><span class="p">(</span><span class="n">n_constraint_samples</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hidden_layers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">TrainerConfig</span><span class="p">(</span>
+        <span class="n">collocation_count</span><span class="o">=</span><span class="mi">4_000</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">OptimizerConfig</span><span class="p">(</span><span class="n">adam_steps</span><span class="o">=</span><span class="mi">6_000</span><span class="p">,</span> <span class="n">lbfgs_max_iter</span><span class="o">=</span><span class="mi">500</span><span class="p">),</span>
+        <span class="n">loss_weights</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ic&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span> <span class="s2">&quot;bc_periodic&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
+                      <span class="s2">&quot;bc_periodic_flux&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Two things about this problem are worth knowing before using it.</p>
+<p>Periodicity is imposed as <em>two</em> constraints, <code class="docutils literal notranslate"><span class="pre">bc_periodic</span></code> on the value and
+<code class="docutils literal notranslate"><span class="pre">bc_periodic_flux</span></code> on <code class="docutils literal notranslate"><span class="pre">u_x</span></code>. Value matching alone is not periodicity: it
+admits a field with a kink at the seam, and no collocation point straddles
+<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">xmax</span></code> so the residual never objects. <code class="docutils literal notranslate"><span class="pre">PeriodicBoundary</span></code> grew a
+<code class="docutils literal notranslate"><span class="pre">derivative_order</span></code> field for this; <code class="docutils literal notranslate"><span class="pre">match_boundary_derivative=False</span></code>
+reproduces the weaker condition.</p>
+<p>The reference is <em>numerical</em>, not analytic – Allen-Cahn has no closed-form
+solution. <code class="docutils literal notranslate"><span class="pre">problem.reference_kind</span></code> reports <code class="docutils literal notranslate"><span class="pre">&quot;numerical&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">problem.reference_grid()</span></code> integrates the equation with a Fourier spectral
+method in space and integrating-factor RK4 in time. It carries its own
+discretisation error, so a reported <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code> below the reference’s
+accuracy is not meaningful. The resolution that matters is spatial: with the
+benchmark <code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">1e-4,</span> <span class="pre">gamma</span> <span class="pre">=</span> <span class="pre">5</span></code> the phase interfaces are about
+<code class="docutils literal notranslate"><span class="pre">sqrt(nu</span> <span class="pre">/</span> <span class="pre">gamma)</span> <span class="pre">=</span> <span class="pre">0.0045</span></code> wide, and below roughly <code class="docutils literal notranslate"><span class="pre">n_x</span> <span class="pre">=</span> <span class="pre">512</span></code> on
+<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> they are unresolved and the solution overshoots <code class="docutils literal notranslate"><span class="pre">|u|</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
 </section>
 <section id="compatibility">
 <h2>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading">¶</a></h2>
@@ -320,6 +360,7 @@ available as legacy solver facades.</p>
 <li class="toctree-l2"><a class="reference internal" href="#residual-adaptive-refinement">Residual-Adaptive Refinement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#benchmark-reports">Benchmark Reports</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#design-responsibilities">Design Responsibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nonlinear-and-periodic-problems">Nonlinear And Periodic Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#compatibility">Compatibility</a></li>
 </ul>
 </li>

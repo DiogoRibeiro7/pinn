@@ -144,14 +144,14 @@
         <li><a href="api/index.html#pinnlab.training.adaptive_loss_weights">(in module pinnlab.training)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_reference.html#pinnlab.config.management.SamplingConfig.adaptive_refinement">adaptive_refinement (pinnlab.config.management.SamplingConfig attribute)</a>
 
       <ul>
         <li><a href="api/index.html#pinnlab.TrainerConfig.adaptive_refinement">(pinnlab.TrainerConfig attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinnlab.ContinuousPINN.adaptive_weight_history">adaptive_weight_history (pinnlab.ContinuousPINN attribute)</a>
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.LossConfig.adaptive_weighting">adaptive_weighting (pinnlab.config.management.LossConfig attribute)</a>
@@ -193,6 +193,14 @@
 </li>
       </ul></li>
       <li><a href="api/index.html#pinnlab.training.MemoryUsageRecord.after_mb">after_mb (pinnlab.training.MemoryUsageRecord attribute)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.solvers.reference.allen_cahn_reference_grid">allen_cahn_reference_grid() (in module pinnlab.solvers.reference)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.solvers.reference.allen_cahn_spectral">allen_cahn_spectral() (in module pinnlab.solvers.reference)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig">AllenCahnConfig (class in pinnlab)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem">AllenCahnProblem (class in pinnlab)</a>
 </li>
       <li><a href="api/index.html#pinnlab.DynamicLoadBalancer.allocate">allocate() (pinnlab.DynamicLoadBalancer method)</a>
 </li>
@@ -260,14 +268,14 @@
       </ul></li>
       <li><a href="api/index.html#pinnlab.training.MemoryUsageRecord.before_mb">before_mb (pinnlab.training.MemoryUsageRecord attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinnlab.AdaptiveWeightingConfig.bo_exploration">bo_exploration (pinnlab.AdaptiveWeightingConfig attribute)</a>
 
       <ul>
         <li><a href="api/index.html#pinnlab.training.AdaptiveWeightingConfig.bo_exploration">(pinnlab.training.AdaptiveWeightingConfig attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_reference.html#pinnlab.config.management.DomainConfig.boundary_conditions">boundary_conditions (pinnlab.config.management.DomainConfig attribute)</a>
 </li>
       <li><a href="api/index.html#pinnlab.Geometry.boundary_mask">boundary_mask() (pinnlab.Geometry method)</a>
@@ -280,9 +288,13 @@
 </li>
       <li><a href="api/index.html#pinnlab.build_simplified_pretraining_task">build_simplified_pretraining_task() (in module pinnlab)</a>
 </li>
+      <li><a href="api/index.html#pinnlab.solvers.reference.burgers_cole_hopf">burgers_cole_hopf() (in module pinnlab.solvers.reference)</a>
+</li>
       <li><a href="api/index.html#pinnlab.burgers_demo">burgers_demo() (in module pinnlab)</a>
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.PDEConfig.burgers_nu">burgers_nu (pinnlab.config.management.PDEConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.solvers.reference.burgers_reference_grid">burgers_reference_grid() (in module pinnlab.solvers.reference)</a>
 </li>
       <li><a href="api/index.html#pinnlab.BurgersConfig">BurgersConfig (class in pinnlab)</a>
 </li>
@@ -396,9 +408,11 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.config">config (pinnlab.BurgersProblem attribute)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.config">config (pinnlab.AllenCahnProblem attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.config">(pinnlab.BurgersProblem attribute)</a>
+</li>
         <li><a href="api/index.html#pinnlab.HeatProblem.config">(pinnlab.HeatProblem attribute)</a>
 </li>
         <li><a href="api/index.html#pinnlab.training.ResidualAdaptiveRefiner.config">(pinnlab.training.ResidualAdaptiveRefiner attribute)</a>
@@ -424,9 +438,11 @@
 </li>
       <li><a href="api/index.html#pinnlab.ConstraintKind">ConstraintKind (class in pinnlab)</a>
 </li>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.constraints">constraints() (pinnlab.BurgersProblem method)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.constraints">constraints() (pinnlab.AllenCahnProblem method)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.constraints">(pinnlab.BurgersProblem method)</a>
+</li>
         <li><a href="api/index.html#pinnlab.HeatProblem.constraints">(pinnlab.HeatProblem method)</a>
 </li>
         <li><a href="api/index.html#pinnlab.PDEProblem.constraints">(pinnlab.PDEProblem method)</a>
@@ -523,6 +539,8 @@
       <li><a href="config_reference.html#pinnlab.config.management.demonstrate_config_system">demonstrate_config_system() (in module pinnlab.config.management)</a>
 </li>
       <li><a href="api/index.html#pinnlab.NeumannBoundary.derivative_dim">derivative_dim (pinnlab.NeumannBoundary attribute)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.PeriodicBoundary.derivative_order">derivative_order (pinnlab.PeriodicBoundary attribute)</a>
 </li>
       <li><a href="api/index.html#pinnlab.Nondimensionalizer.derivative_scale_factor">derivative_scale_factor() (pinnlab.Nondimensionalizer method)</a>
 </li>
@@ -790,11 +808,15 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig.gamma">gamma (pinnlab.AllenCahnConfig attribute)</a>
+</li>
       <li><a href="api/index.html#pinnlab.Geometry">Geometry (class in pinnlab)</a>
 </li>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.geometry">geometry (pinnlab.BurgersProblem property)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.geometry">geometry (pinnlab.AllenCahnProblem property)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.geometry">(pinnlab.BurgersProblem property)</a>
+</li>
         <li><a href="api/index.html#pinnlab.HeatProblem.geometry">(pinnlab.HeatProblem property)</a>
 </li>
         <li><a href="api/index.html#pinnlab.PDEProblem.geometry">(pinnlab.PDEProblem property)</a>
@@ -822,14 +844,14 @@
       </ul></li>
       <li><a href="api/index.html#pinnlab.AdaptiveCache.get_with_metadata">get_with_metadata() (pinnlab.AdaptiveCache method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinnlab.gp_prior_predict">gp_prior_predict() (in module pinnlab)</a>
 
       <ul>
         <li><a href="api/index.html#pinnlab.uncertainty.gp_prior_predict">(in module pinnlab.uncertainty)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_reference.html#pinnlab.config.management.TrainingConfig.gradient_accumulation_steps">gradient_accumulation_steps (pinnlab.config.management.TrainingConfig attribute)</a>
 
       <ul>
@@ -918,13 +940,17 @@
 </li>
       <li><a href="api/index.html#pinnlab.ConstraintKind.INITIAL">INITIAL (pinnlab.ConstraintKind attribute)</a>
 </li>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.initial_condition">initial_condition() (pinnlab.BurgersProblem method)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.initial_condition">initial_condition() (pinnlab.AllenCahnProblem method)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.initial_condition">(pinnlab.BurgersProblem method)</a>
+</li>
         <li><a href="api/index.html#pinnlab.HeatProblem.initial_condition">(pinnlab.HeatProblem method)</a>
 </li>
       </ul></li>
       <li><a href="api/index.html#pinnlab.WaveProblem.initial_displacement">initial_displacement() (pinnlab.WaveProblem method)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.initial_profile">initial_profile() (pinnlab.AllenCahnProblem method)</a>
 </li>
       <li><a href="api/index.html#pinnlab.WaveProblem.initial_velocity">initial_velocity() (pinnlab.WaveProblem method)</a>
 </li>
@@ -936,13 +962,15 @@
       </ul></li>
       <li><a href="api/index.html#pinnlab.InitialCondition">InitialCondition (class in pinnlab)</a>
 </li>
-      <li><a href="config_reference.html#pinnlab.config.management.NetworkConfig.initialization">initialization (pinnlab.config.management.NetworkConfig attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.input_dim">input_dim (pinnlab.BurgersProblem property)</a>
+      <li><a href="config_reference.html#pinnlab.config.management.NetworkConfig.initialization">initialization (pinnlab.config.management.NetworkConfig attribute)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.input_dim">input_dim (pinnlab.AllenCahnProblem property)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.input_dim">(pinnlab.BurgersProblem property)</a>
+</li>
         <li><a href="api/index.html#pinnlab.CharacteristicScales.input_dim">(pinnlab.CharacteristicScales property)</a>
 </li>
         <li><a href="config_reference.html#pinnlab.config.management.NetworkConfig.input_dim">(pinnlab.config.management.NetworkConfig attribute)</a>
@@ -1146,6 +1174,8 @@
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.VisualizationConfig.marker_size">marker_size (pinnlab.config.management.VisualizationConfig attribute)</a>
 </li>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.match_boundary_derivative">match_boundary_derivative (pinnlab.AllenCahnProblem attribute)</a>
+</li>
       <li><a href="api/index.html#pinnlab.ActiveLearningConfig.max_active_iterations">max_active_iterations (pinnlab.ActiveLearningConfig attribute)</a>
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.LoggingConfig.max_log_size">max_log_size (pinnlab.config.management.LoggingConfig attribute)</a>
@@ -1226,6 +1256,8 @@
 </li>
         <li><a href="api/index.html#module-pinnlab.models.advanced">pinnlab.models.advanced</a>
 </li>
+        <li><a href="api/index.html#module-pinnlab.solvers.reference">pinnlab.solvers.reference</a>
+</li>
         <li><a href="api/index.html#module-pinnlab.training">pinnlab.training</a>
 </li>
         <li><a href="api/index.html#module-pinnlab.uncertainty">pinnlab.uncertainty</a>
@@ -1275,9 +1307,11 @@
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.SamplingConfig.n_collocation">n_collocation (pinnlab.config.management.SamplingConfig attribute)</a>
 </li>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.n_constraint_samples">n_constraint_samples (pinnlab.BurgersProblem attribute)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.n_constraint_samples">n_constraint_samples (pinnlab.AllenCahnProblem attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.n_constraint_samples">(pinnlab.BurgersProblem attribute)</a>
+</li>
         <li><a href="api/index.html#pinnlab.HeatProblem.n_constraint_samples">(pinnlab.HeatProblem attribute)</a>
 </li>
         <li><a href="api/index.html#pinnlab.WaveProblem.n_constraint_samples">(pinnlab.WaveProblem attribute)</a>
@@ -1343,9 +1377,11 @@
 </li>
       <li><a href="api/index.html#pinnlab.NSTrainConfig">NSTrainConfig (in module pinnlab)</a>
 </li>
-      <li><a href="api/index.html#id0">nu (pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.nu">[1]</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig.nu">nu (pinnlab.AllenCahnConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#id0">(pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.nu">[1]</a>
+</li>
         <li><a href="api/index.html#pinnlab.NSConfig.nu">(pinnlab.NSConfig attribute)</a>
 </li>
       </ul></li>
@@ -1371,9 +1407,11 @@
         <li><a href="config_reference.html#pinnlab.config.management.OptimizerConfig">(class in pinnlab.config.management)</a>
 </li>
       </ul></li>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.output_dim">output_dim (pinnlab.BurgersProblem property)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.output_dim">output_dim (pinnlab.AllenCahnProblem property)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.output_dim">(pinnlab.BurgersProblem property)</a>
+</li>
         <li><a href="api/index.html#pinnlab.CharacteristicScales.output_dim">(pinnlab.CharacteristicScales property)</a>
 </li>
         <li><a href="config_reference.html#pinnlab.config.management.NetworkConfig.output_dim">(pinnlab.config.management.NetworkConfig attribute)</a>
@@ -1487,6 +1525,13 @@
 </li>
       </ul></li>
       <li>
+    pinnlab.solvers.reference
+
+      <ul>
+        <li><a href="api/index.html#module-pinnlab.solvers.reference">module</a>
+</li>
+      </ul></li>
+      <li>
     pinnlab.training
 
       <ul>
@@ -1515,14 +1560,14 @@
       </ul></li>
       <li><a href="api/index.html#pinnlab.DistributedPINNTrainer.plan_batches">plan_batches() (pinnlab.DistributedPINNTrainer method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinnlab.PINNVisualizer.plot_1d_solution">plot_1d_solution() (pinnlab.PINNVisualizer method)</a>
 
       <ul>
         <li><a href="api/index.html#pinnlab.visualization.PINNVisualizer.plot_1d_solution">(pinnlab.visualization.PINNVisualizer method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/index.html#pinnlab.PINNVisualizer.plot_2d_field">plot_2d_field() (pinnlab.PINNVisualizer method)</a>
 
       <ul>
@@ -1675,6 +1720,10 @@
 </li>
       <li><a href="api/index.html#pinnlab.Rectangle">Rectangle (class in pinnlab)</a>
 </li>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.reference_grid">reference_grid() (pinnlab.AllenCahnProblem method)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.reference_kind">reference_kind (pinnlab.AllenCahnProblem property)</a>
+</li>
       <li><a href="api/index.html#pinnlab.BurgersProblem.reference_quad_points">reference_quad_points (pinnlab.BurgersProblem attribute)</a>
 </li>
       <li><a href="api/index.html#pinnlab.training.ResidualAdaptiveRefiner.refine">refine() (pinnlab.training.ResidualAdaptiveRefiner method)</a>
@@ -1696,6 +1745,8 @@
       <li><a href="api/index.html#pinnlab.TransferLearningPINN.register_source_model">register_source_model() (pinnlab.TransferLearningPINN method)</a>
 </li>
       <li><a href="api/index.html#pinnlab.PretrainingManager.register_task">register_task() (pinnlab.PretrainingManager method)</a>
+</li>
+      <li><a href="api/index.html#pinnlab.solvers.reference.relative_l2_error">relative_l2_error() (in module pinnlab.solvers.reference)</a>
 </li>
       <li><a href="api/index.html#pinnlab.AdaptiveLossWeighting.requires_gradients">requires_gradients (pinnlab.AdaptiveLossWeighting property)</a>
 
@@ -1925,9 +1976,11 @@
         <li><a href="api/index.html#pinnlab.training.AdaptiveWeightingConfig.strict_validation">(pinnlab.training.AdaptiveWeightingConfig attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/index.html#pinnlab.BurgersProblem.strong_residual">strong_residual() (pinnlab.BurgersProblem method)</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnProblem.strong_residual">strong_residual() (pinnlab.AllenCahnProblem method)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.BurgersProblem.strong_residual">(pinnlab.BurgersProblem method)</a>
+</li>
         <li><a href="api/index.html#pinnlab.HeatProblem.strong_residual">(pinnlab.HeatProblem method)</a>
 </li>
         <li><a href="api/index.html#pinnlab.PDEProblem.strong_residual">(pinnlab.PDEProblem method)</a>
@@ -2001,15 +2054,19 @@
       </ul></li>
       <li><a href="config_reference.html#pinnlab.config.management.VisualizationConfig.title_fontsize">title_fontsize (pinnlab.config.management.VisualizationConfig attribute)</a>
 </li>
-      <li><a href="api/index.html#id1">tmax (pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.tmax">[1]</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig.tmax">tmax (pinnlab.AllenCahnConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#id1">(pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.tmax">[1]</a>
+</li>
         <li><a href="api/index.html#pinnlab.NSConfig.tmax">(pinnlab.NSConfig attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/index.html#id2">tmin (pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.tmin">[1]</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig.tmin">tmin (pinnlab.AllenCahnConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#id2">(pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.tmin">[1]</a>
+</li>
         <li><a href="api/index.html#pinnlab.NSConfig.tmin">(pinnlab.NSConfig attribute)</a>
 </li>
       </ul></li>
@@ -2041,10 +2098,10 @@
         <li><a href="api/index.html#pinnlab.PerformanceReport.to_json">(pinnlab.PerformanceReport method)</a>
 </li>
       </ul></li>
-      <li><a href="config_reference.html#pinnlab.config.management.BaseConfig.to_yaml">to_yaml() (pinnlab.config.management.BaseConfig method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="config_reference.html#pinnlab.config.management.BaseConfig.to_yaml">to_yaml() (pinnlab.config.management.BaseConfig method)</a>
+</li>
       <li><a href="api/index.html#id57">tol (pinnlab.training.CausalWeightConfig attribute)</a>, <a href="api/index.html#pinnlab.training.CausalWeightConfig.tol">[1]</a>
 </li>
       <li><a href="api/index.html#id52">total_loss (pinnlab.TrainingState attribute)</a>, <a href="api/index.html#pinnlab.TrainingState.total_loss">[1]</a>
@@ -2192,6 +2249,8 @@
       <li><a href="api/index.html#pinnlab.AdaptiveWeightingConfig.validate">validate() (pinnlab.AdaptiveWeightingConfig method)</a>
 
       <ul>
+        <li><a href="api/index.html#pinnlab.AllenCahnConfig.validate">(pinnlab.AllenCahnConfig method)</a>
+</li>
         <li><a href="api/index.html#pinnlab.CacheConfig.validate">(pinnlab.CacheConfig method)</a>
 </li>
         <li><a href="config_reference.html#pinnlab.config.management.BaseConfig.validate">(pinnlab.config.management.BaseConfig method)</a>
@@ -2211,10 +2270,10 @@
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.ConfigValidator.validate_compatibility">validate_compatibility() (pinnlab.config.management.ConfigValidator static method)</a>
 </li>
-      <li><a href="api/index.html#pinnlab.validate_config">validate_config() (in module pinnlab)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/index.html#pinnlab.validate_config">validate_config() (in module pinnlab)</a>
+</li>
       <li><a href="api/index.html#pinnlab.validate_device">validate_device() (in module pinnlab)</a>
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.TrainingConfig.validate_frequency">validate_frequency (pinnlab.config.management.TrainingConfig attribute)</a>
@@ -2295,17 +2354,21 @@
 </li>
       <li><a href="config_reference.html#pinnlab.config.management.DomainConfig.x_min">x_min (pinnlab.config.management.DomainConfig attribute)</a>
 </li>
-      <li><a href="api/index.html#id3">xmax (pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.xmax">[1]</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig.xmax">xmax (pinnlab.AllenCahnConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#id3">(pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.xmax">[1]</a>
+</li>
         <li><a href="api/index.html#pinnlab.NSConfig.xmax">(pinnlab.NSConfig attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/index.html#id4">xmin (pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.xmin">[1]</a>
+      <li><a href="api/index.html#pinnlab.AllenCahnConfig.xmin">xmin (pinnlab.AllenCahnConfig attribute)</a>
 
       <ul>
+        <li><a href="api/index.html#id4">(pinnlab.BurgersConfig attribute)</a>, <a href="api/index.html#pinnlab.BurgersConfig.xmin">[1]</a>
+</li>
         <li><a href="api/index.html#pinnlab.NSConfig.xmin">(pinnlab.NSConfig attribute)</a>
 </li>
       </ul></li>

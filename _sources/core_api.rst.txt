@@ -229,9 +229,9 @@ Design Responsibilities
 
 ``pinnlab.problems``
     Owns equation parameters, dimensions, geometry, constraints and strong-form
-    residual definitions. ``BurgersProblem``, ``HeatProblem`` and
-    ``WaveProblem`` use coordinate order ``(t, x)`` and provide reference or
-    analytic solution helpers.
+    residual definitions. ``AllenCahnProblem``, ``BurgersProblem``,
+    ``HeatProblem`` and ``WaveProblem`` use coordinate order ``(t, x)`` and
+    provide reference or analytic solution helpers.
 
 ``pinnlab.residuals``
     Provides ``StrongFormResidual`` and the initial autograd derivative backend.
@@ -254,6 +254,51 @@ Design Responsibilities
     Own benchmark result serialization, independent residual scoring and
     classical numerical references. Reference descriptors must label data as
     ``analytic``, ``numerical`` or ``observational``.
+
+Nonlinear And Periodic Problems
+-------------------------------
+
+``AllenCahnProblem`` solves ``u_t - nu u_xx + gamma (u^3 - u) = 0`` and is the
+case that tests whether the composable core generalises: heat and wave are
+linear with separable exact solutions, and Burgers is nonlinear but Dirichlet.
+Allen-Cahn is nonlinear *and* periodic, and it needs no trainer changes.
+
+.. code-block:: python
+
+   from pinnlab.models.mlp import MLP
+   from pinnlab.problems import AllenCahnProblem
+   from pinnlab.training import OptimizerConfig, Trainer, TrainerConfig
+
+   problem = AllenCahnProblem(n_constraint_samples=256)
+   model = MLP(in_dim=2, out_dim=1, hidden_layers=4, width=128)
+   trainer = Trainer(
+       TrainerConfig(
+           collocation_count=4_000,
+           optimizer=OptimizerConfig(adam_steps=6_000, lbfgs_max_iter=500),
+           loss_weights={"ic": 100.0, "bc_periodic": 100.0,
+                         "bc_periodic_flux": 100.0},
+       )
+   )
+   trainer.train(problem, model)
+
+Two things about this problem are worth knowing before using it.
+
+Periodicity is imposed as *two* constraints, ``bc_periodic`` on the value and
+``bc_periodic_flux`` on ``u_x``. Value matching alone is not periodicity: it
+admits a field with a kink at the seam, and no collocation point straddles
+``x = xmax`` so the residual never objects. ``PeriodicBoundary`` grew a
+``derivative_order`` field for this; ``match_boundary_derivative=False``
+reproduces the weaker condition.
+
+The reference is *numerical*, not analytic -- Allen-Cahn has no closed-form
+solution. ``problem.reference_kind`` reports ``"numerical"`` and
+``problem.reference_grid()`` integrates the equation with a Fourier spectral
+method in space and integrating-factor RK4 in time. It carries its own
+discretisation error, so a reported ``relative_l2_error`` below the reference's
+accuracy is not meaningful. The resolution that matters is spatial: with the
+benchmark ``nu = 1e-4, gamma = 5`` the phase interfaces are about
+``sqrt(nu / gamma) = 0.0045`` wide, and below roughly ``n_x = 512`` on
+``[-1, 1]`` they are unresolved and the solution overshoots ``|u| = 1``.
 
 Compatibility
 -------------

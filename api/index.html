@@ -405,6 +405,200 @@ values encourage sampling more diverse weights.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.</span></span><span class="sig-name descname"><span class="pre">AllenCahnConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Physical parameters and domain for the Allen-Cahn benchmark.</p>
+<p>The defaults are the standard PINN benchmark values: <code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">1e-4</span></code> and
+<code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">=</span> <span class="pre">5</span></code> on <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span> <span class="pre">x</span> <span class="pre">[-1,</span> <span class="pre">1]</span></code>. That combination is
+deliberately hard. Diffusion is weak enough that the interfaces between the
+<code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">+1</span></code> and <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">-1</span></code> phases stay sharp, and the reaction term is stiff
+enough that a solution which drifts off a phase gets pushed to the wrong
+one rather than being gently corrected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> – Diffusion coefficient; must be positive.</p></li>
+<li><p><strong>gamma</strong> – Reaction strength multiplying <code class="docutils literal notranslate"><span class="pre">u^3</span> <span class="pre">-</span> <span class="pre">u</span></code>; must be positive.</p></li>
+<li><p><strong>tmin</strong> – Initial time.</p></li>
+<li><p><strong>tmax</strong> – Final time; must exceed <code class="docutils literal notranslate"><span class="pre">tmin</span></code>.</p></li>
+<li><p><strong>xmin</strong> – Left edge of the periodic interval.</p></li>
+<li><p><strong>xmax</strong> – Right edge; the spatial period is <code class="docutils literal notranslate"><span class="pre">xmax</span> <span class="pre">-</span> <span class="pre">xmin</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.gamma">
+<span class="sig-name descname"><span class="pre">gamma</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></span><a class="headerlink" href="#pinnlab.AllenCahnConfig.gamma" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.nu">
+<span class="sig-name descname"><span class="pre">nu</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0001</span></span><a class="headerlink" href="#pinnlab.AllenCahnConfig.nu" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.tmax">
+<span class="sig-name descname"><span class="pre">tmax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#pinnlab.AllenCahnConfig.tmax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.tmin">
+<span class="sig-name descname"><span class="pre">tmin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#pinnlab.AllenCahnConfig.tmin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnConfig.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> when the configuration is unphysical.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.xmax">
+<span class="sig-name descname"><span class="pre">xmax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#pinnlab.AllenCahnConfig.xmax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnConfig.xmin">
+<span class="sig-name descname"><span class="pre">xmin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-1.0</span></span><a class="headerlink" href="#pinnlab.AllenCahnConfig.xmin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.</span></span><span class="sig-name descname"><span class="pre">AllenCahnProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">config:</span> <span class="pre">~pinnlab.problems.allen_cahn.AllenCahnConfig</span> <span class="pre">=</span> <span class="pre">AllenCahnConfig(nu=0.0001,</span> <span class="pre">gamma=5.0,</span> <span class="pre">tmin=0.0,</span> <span class="pre">tmax=1.0,</span> <span class="pre">xmin=-1.0,</span> <span class="pre">xmax=1.0),</span> <span class="pre">n_constraint_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">128,</span> <span class="pre">match_boundary_derivative:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">initial_profile:</span> <span class="pre">~typing.Callable[[~numpy.ndarray],</span> <span class="pre">~numpy.ndarray]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">benchmark_initial_profile&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnProblem" title="Link to this definition">¶</a></dt>
+<dd><p>Allen-Cahn reaction-diffusion equation on a periodic space-time strip.</p>
+<p>The equation is <code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">u_xx</span> <span class="pre">+</span> <span class="pre">gamma</span> <span class="pre">(u^3</span> <span class="pre">-</span> <span class="pre">u)</span> <span class="pre">=</span> <span class="pre">0</span></code>, with the benchmark
+initial condition <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span> <span class="pre">=</span> <span class="pre">x^2</span> <span class="pre">cos(pi</span> <span class="pre">x)</span></code> and periodic boundaries.</p>
+<p>Periodicity is imposed as two constraints, on the value and on <code class="docutils literal notranslate"><span class="pre">u_x</span></code>.
+Matching values alone is not periodicity: it permits a kink at the seam,
+which the residual never sees because no collocation point straddles
+<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">xmax</span></code>. Set <code class="docutils literal notranslate"><span class="pre">match_boundary_derivative=False</span></code> to drop the second
+one and reproduce the weaker condition.</p>
+<p>One honest caveat about the benchmark initial data. <code class="docutils literal notranslate"><span class="pre">x^2</span> <span class="pre">cos(pi</span> <span class="pre">x)</span></code> is
+continuous around the circle, but its derivative is not: <code class="docutils literal notranslate"><span class="pre">u_x</span></code> is <code class="docutils literal notranslate"><span class="pre">2</span></code> at
+<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">-1</span></code> and <code class="docutils literal notranslate"><span class="pre">-2</span></code> at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">1</span></code>. So the derivative constraint contradicts
+the initial condition exactly at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code>, and holds for every <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>
+once diffusion has smoothed the seam. The two constraints sample disjoint
+faces – <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">+-1</span></code> – so they meet only at the two corner
+points, a measure-zero set that random sampling does not hit. This is a
+property of the benchmark, not of the formulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – Physical parameters and domain.</p></li>
+<li><p><strong>n_constraint_samples</strong> – Default sample count for each constraint.</p></li>
+<li><p><strong>match_boundary_derivative</strong> – Whether to also match <code class="docutils literal notranslate"><span class="pre">u_x</span></code> across the
+periodic faces.</p></li>
+<li><p><strong>initial_profile</strong> – Callable giving <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span></code> for a NumPy array. Used
+both for the constraint target and for the numerical reference, so
+that the two cannot disagree.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pinnlab.AllenCahnConfig" title="pinnlab.problems.allen_cahn.AllenCahnConfig"><span class="pre">AllenCahnConfig</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">AllenCahnConfig(nu=0.0001,</span> <span class="pre">gamma=5.0,</span> <span class="pre">tmin=0.0,</span> <span class="pre">tmax=1.0,</span> <span class="pre">xmin=-1.0,</span> <span class="pre">xmax=1.0)</span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.constraints">
+<span class="sig-name descname"><span class="pre">constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pinnlab.Constraint" title="pinnlab.constraints.base.Constraint"><span class="pre">Constraint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnProblem.constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnProblem.constraints" title="Link to this definition">¶</a></dt>
+<dd><p>Return the initial condition and the periodic boundary constraints.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.geometry">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">geometry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pinnlab.Rectangle" title="pinnlab.geometry.rectangle.Rectangle"><span class="pre">Rectangle</span></a></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.geometry" title="Link to this definition">¶</a></dt>
+<dd><p>Return the Allen-Cahn space-time rectangle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.initial_condition">
+<span class="sig-name descname"><span class="pre">initial_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnProblem.initial_condition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnProblem.initial_condition" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span></code> on tensor coordinates of shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code>.</p>
+<p>Delegates to <code class="docutils literal notranslate"><span class="pre">initial_profile</span></code> so the constraint target and the
+reference solver’s initial data are the same function by construction.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.initial_profile">
+<span class="sig-name descname"><span class="pre">initial_profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.initial_profile" title="Link to this definition">¶</a></dt>
+<dd><p>Return the benchmark initial condition <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span> <span class="pre">=</span> <span class="pre">x^2</span> <span class="pre">cos(pi</span> <span class="pre">x)</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.input_dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">input_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.input_dim" title="Link to this definition">¶</a></dt>
+<dd><p>time and one spatial coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return coordinate dimension</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.match_boundary_derivative">
+<span class="sig-name descname"><span class="pre">match_boundary_derivative</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.match_boundary_derivative" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.n_constraint_samples">
+<span class="sig-name descname"><span class="pre">n_constraint_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128</span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.n_constraint_samples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.output_dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">output_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.output_dim" title="Link to this definition">¶</a></dt>
+<dd><p>Return scalar output dimension.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.reference_grid">
+<span class="sig-name descname"><span class="pre">reference_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_per_snapshot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnProblem.reference_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnProblem.reference_grid" title="Link to this definition">¶</a></dt>
+<dd><p>Return a numerical reference grid, optionally scoring a prediction.</p>
+<p>Unlike the <code class="docutils literal notranslate"><span class="pre">exact</span></code> methods on the heat, wave and Burgers problems,
+this is a discretised solution with its own error. See
+<a class="reference internal" href="#pinnlab.solvers.reference.allen_cahn_spectral" title="pinnlab.solvers.reference.allen_cahn_spectral"><code class="xref py py-func docutils literal notranslate"><span class="pre">allen_cahn_spectral()</span></code></a> for what that
+error depends on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_t</strong> – Number of time snapshots.</p></li>
+<li><p><strong>n_x</strong> – Spatial grid points used by the spectral solver.</p></li>
+<li><p><strong>steps_per_snapshot</strong> – Time steps taken between snapshots.</p></li>
+<li><p><strong>predict</strong> – Optional callable taking <code class="docutils literal notranslate"><span class="pre">(t_grid,</span> <span class="pre">x_grid)</span></code> and
+returning predictions of the same shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict with <code class="docutils literal notranslate"><span class="pre">t</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">reference</span></code>, plus <code class="docutils literal notranslate"><span class="pre">predicted</span></code> and
+<code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code> when <code class="docutils literal notranslate"><span class="pre">predict</span></code> is supplied.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.reference_kind">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reference_kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#pinnlab.AllenCahnProblem.reference_kind" title="Link to this definition">¶</a></dt>
+<dd><p>Allen-Cahn has no closed-form solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return <code class="docutils literal notranslate"><span class="pre">&quot;numerical&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.AllenCahnProblem.strong_residual">
+<span class="sig-name descname"><span class="pre">strong_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.DerivativeBackend" title="pinnlab.residuals.base.DerivativeBackend"><span class="pre">DerivativeBackend</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#AllenCahnProblem.strong_residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AllenCahnProblem.strong_residual" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">u_xx</span> <span class="pre">+</span> <span class="pre">gamma</span> <span class="pre">(u^3</span> <span class="pre">-</span> <span class="pre">u)</span></code> at <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pinnlab.AsyncGradientBuffer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.</span></span><span class="sig-name descname"><span class="pre">AsyncGradientBuffer</span></span><a class="reference internal" href="../_modules/pinnlab/distributed/communication.html#AsyncGradientBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.AsyncGradientBuffer" title="Link to this definition">¶</a></dt>
 <dd><p>Thread-safe queue for asynchronous gradient updates.</p>
@@ -2701,11 +2895,23 @@ loss values as sequences</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pinnlab.PeriodicBoundary">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.</span></span><span class="sig-name descname"><span class="pre">PeriodicBoundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.ConstraintKind" title="pinnlab.constraints.base.ConstraintKind"><span class="pre">ConstraintKind</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ConstraintKind.PERIODIC</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sample_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/constraints/soft.html#PeriodicBoundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.PeriodicBoundary" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.</span></span><span class="sig-name descname"><span class="pre">PeriodicBoundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.ConstraintKind" title="pinnlab.constraints.base.ConstraintKind"><span class="pre">ConstraintKind</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ConstraintKind.PERIODIC</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sample_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/constraints/soft.html#PeriodicBoundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.PeriodicBoundary" title="Link to this definition">¶</a></dt>
 <dd><p>Soft periodic constraint matching opposite faces of one coordinate.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">derivative_order=0</span></code> the two faces are matched by value, which is
+what most periodic problems need. Value matching alone does not make a
+solution periodic, though: it admits a field with a kink at the seam. A
+second instance with <code class="docutils literal notranslate"><span class="pre">derivative_order=1</span></code> matches the normal derivative
+as well, which is what makes the pair equivalent to solving on a circle.
+Allen-Cahn is the case in point – see
+<code class="xref py py-class docutils literal notranslate"><span class="pre">AllenCahnProblem</span></code>.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pinnlab.PeriodicBoundary.default_sample_count">
 <span class="sig-name descname"><span class="pre">default_sample_count</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128</span></span><a class="headerlink" href="#pinnlab.PeriodicBoundary.default_sample_count" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.PeriodicBoundary.derivative_order">
+<span class="sig-name descname"><span class="pre">derivative_order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#pinnlab.PeriodicBoundary.derivative_order" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -2716,7 +2922,7 @@ loss values as sequences</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="pinnlab.PeriodicBoundary.loss">
 <span class="sig-name descname"><span class="pre">loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.Geometry" title="pinnlab.geometry.base.Geometry"><span class="pre">Geometry</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.DerivativeBackend" title="pinnlab.residuals.base.DerivativeBackend"><span class="pre">DerivativeBackend</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Generator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">device</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dtype</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ConstraintLoss</span></span></span><a class="reference internal" href="../_modules/pinnlab/constraints/soft.html#PeriodicBoundary.loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.PeriodicBoundary.loss" title="Link to this definition">¶</a></dt>
-<dd><p>Evaluate value matching between lower and upper periodic faces.</p>
+<dd><p>Match values, or normal derivatives, across the periodic faces.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -4630,6 +4836,185 @@ hidden-layer bounds.</p>
 
 </dd></dl>
 
+<p id="module-pinnlab.solvers.reference">Reference solutions used to score solvers quantitatively.</p>
+<p>The Burgers solvers in this package have until now been judged by eye against a
+plot. The Cole-Hopf transform gives the viscous Burgers equation an exact
+solution in integral form, which turns “the shock looks about right” into a
+relative L2 error.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.solvers.reference.allen_cahn_reference_grid">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.solvers.reference.</span></span><span class="sig-name descname"><span class="pre">allen_cahn_reference_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_condition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_per_snapshot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/solvers/reference.html#allen_cahn_reference_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.solvers.reference.allen_cahn_reference_grid" title="Link to this definition">¶</a></dt>
+<dd><p>Build an Allen-Cahn reference grid, and optionally score a prediction.</p>
+<p>This mirrors <a class="reference internal" href="#pinnlab.solvers.reference.burgers_reference_grid" title="pinnlab.solvers.reference.burgers_reference_grid"><code class="xref py py-func docutils literal notranslate"><span class="pre">burgers_reference_grid()</span></code></a>, with one difference worth
+stating: the <code class="docutils literal notranslate"><span class="pre">reference</span></code> field is produced by <a class="reference internal" href="#pinnlab.solvers.reference.allen_cahn_spectral" title="pinnlab.solvers.reference.allen_cahn_spectral"><code class="xref py py-func docutils literal notranslate"><span class="pre">allen_cahn_spectral()</span></code></a>
+and so carries discretisation error. A reported <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code> below
+the reference’s own accuracy is not meaningful.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_condition</strong> – Callable mapping the spatial grid to <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span></code>.</p></li>
+<li><p><strong>nu</strong> – Diffusion coefficient.</p></li>
+<li><p><strong>gamma</strong> – Reaction strength.</p></li>
+<li><p><strong>t_final</strong> – End time.</p></li>
+<li><p><strong>xmin</strong> – Left edge of the periodic interval.</p></li>
+<li><p><strong>xmax</strong> – Right edge of the periodic interval.</p></li>
+<li><p><strong>n_t</strong> – Number of time snapshots.</p></li>
+<li><p><strong>n_x</strong> – Spatial grid points.</p></li>
+<li><p><strong>steps_per_snapshot</strong> – Time steps between snapshots.</p></li>
+<li><p><strong>predict</strong> – Optional callable taking <code class="docutils literal notranslate"><span class="pre">(t_grid,</span> <span class="pre">x_grid)</span></code> and returning
+predictions of the same shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict with the <code class="docutils literal notranslate"><span class="pre">t</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code> meshes and the <code class="docutils literal notranslate"><span class="pre">reference</span></code> field, plus
+<code class="docutils literal notranslate"><span class="pre">predicted</span></code> and <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code> when <code class="docutils literal notranslate"><span class="pre">predict</span></code> is supplied.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.solvers.reference.allen_cahn_spectral">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.solvers.reference.</span></span><span class="sig-name descname"><span class="pre">allen_cahn_spectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_condition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_per_snapshot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/solvers/reference.html#allen_cahn_spectral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.solvers.reference.allen_cahn_spectral" title="Link to this definition">¶</a></dt>
+<dd><p>Solve periodic Allen-Cahn numerically by Fourier spectral integration.</p>
+<p>Allen-Cahn, <code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">u_xx</span> <span class="pre">+</span> <span class="pre">gamma</span> <span class="pre">(u^3</span> <span class="pre">-</span> <span class="pre">u)</span> <span class="pre">=</span> <span class="pre">0</span></code>, has no closed-form
+solution, so unlike <a class="reference internal" href="#pinnlab.solvers.reference.burgers_cole_hopf" title="pinnlab.solvers.reference.burgers_cole_hopf"><code class="xref py py-func docutils literal notranslate"><span class="pre">burgers_cole_hopf()</span></code></a> this reference is <em>numerical</em>:
+it is a discretisation with its own error, not ground truth. Treat its
+output as accurate to roughly the tolerances the tests pin down, not to
+machine precision.</p>
+<p>Space is handled by a real FFT on a uniform periodic grid, which is
+exponentially accurate for smooth data. Time uses integrating-factor RK4:
+the stiff diffusion term is advanced exactly by <code class="docutils literal notranslate"><span class="pre">exp(-nu</span> <span class="pre">k^2</span> <span class="pre">dt)</span></code> and only
+the reaction term goes through the Runge-Kutta stages, so the step size is
+limited by accuracy rather than by diffusive stability. The cubic term is
+dealiased with the 2/3 rule.</p>
+<p>What sets <code class="docutils literal notranslate"><span class="pre">n_x</span></code> is the interface width. Allen-Cahn drives the field
+toward the phases <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">+-1</span></code> separated by transition layers of width about
+<code class="docutils literal notranslate"><span class="pre">sqrt(nu</span> <span class="pre">/</span> <span class="pre">gamma)</span></code>, which for the benchmark <code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">1e-4,</span> <span class="pre">gamma</span> <span class="pre">=</span> <span class="pre">5</span></code> is
+roughly <code class="docutils literal notranslate"><span class="pre">0.0045</span></code>. Below about <code class="docutils literal notranslate"><span class="pre">n_x</span> <span class="pre">=</span> <span class="pre">512</span></code> on <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> the grid
+spacing exceeds that, the layers are not resolved, and the solution
+overshoots the phases: measured at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">1</span></code>, the excess over <code class="docutils literal notranslate"><span class="pre">|u|</span> <span class="pre">=</span> <span class="pre">1</span></code>
+is <code class="docutils literal notranslate"><span class="pre">1.0e-2</span></code> at <code class="docutils literal notranslate"><span class="pre">n_x</span> <span class="pre">=</span> <span class="pre">128</span></code>, <code class="docutils literal notranslate"><span class="pre">8.2e-4</span></code> at <code class="docutils literal notranslate"><span class="pre">256</span></code> and <code class="docutils literal notranslate"><span class="pre">8.3e-6</span></code> at
+<code class="docutils literal notranslate"><span class="pre">512</span></code>. It is discretisation error and it converges away, but a reference
+computed at low <code class="docutils literal notranslate"><span class="pre">n_x</span></code> is not one.</p>
+<p>A second, milder caveat: the benchmark initial condition <code class="docutils literal notranslate"><span class="pre">x^2</span> <span class="pre">cos(pi</span> <span class="pre">x)</span></code>
+is continuous around the circle but its derivative is not (<code class="docutils literal notranslate"><span class="pre">u_x</span></code> is <code class="docutils literal notranslate"><span class="pre">2</span></code>
+at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">-1</span></code> and <code class="docutils literal notranslate"><span class="pre">-2</span></code> at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">1</span></code>), so its Fourier coefficients decay
+like <code class="docutils literal notranslate"><span class="pre">1/k^2</span></code> rather than exponentially and the spatial accuracy is
+algebraic near <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code>. With <code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">1e-4</span></code> diffusion smooths the seam
+only over a layer of width about <code class="docutils literal notranslate"><span class="pre">sqrt(nu</span> <span class="pre">t)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_condition</strong> – Callable mapping the spatial grid to <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span></code>.</p></li>
+<li><p><strong>nu</strong> – Diffusion coefficient; must be non-negative.</p></li>
+<li><p><strong>gamma</strong> – Reaction strength; must be non-negative.</p></li>
+<li><p><strong>t_final</strong> – End time; must be positive.</p></li>
+<li><p><strong>xmin</strong> – Left edge of the periodic interval.</p></li>
+<li><p><strong>xmax</strong> – Right edge; the period is <code class="docutils literal notranslate"><span class="pre">xmax</span> <span class="pre">-</span> <span class="pre">xmin</span></code>.</p></li>
+<li><p><strong>n_t</strong> – Number of snapshots returned, including <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p></li>
+<li><p><strong>n_x</strong> – Spatial grid points; must be even and at least four.</p></li>
+<li><p><strong>steps_per_snapshot</strong> – Time steps taken between consecutive snapshots.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict with <code class="docutils literal notranslate"><span class="pre">t</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">u</span></code> meshes of shape <code class="docutils literal notranslate"><span class="pre">(n_t,</span> <span class="pre">n_x)</span></code>. The
+grid excludes <code class="docutils literal notranslate"><span class="pre">xmax</span></code>, which is the same point as <code class="docutils literal notranslate"><span class="pre">xmin</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If any parameter is out of range, or the initial condition
+    does not return one value per grid point.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.solvers.reference.burgers_cole_hopf">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.solvers.reference.</span></span><span class="sig-name descname"><span class="pre">burgers_cole_hopf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_quad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/pinnlab/solvers/reference.html#burgers_cole_hopf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.solvers.reference.burgers_cole_hopf" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the exact solution of the viscous Burgers equation.</p>
+<p>Solves <code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">+</span> <span class="pre">u</span> <span class="pre">u_x</span> <span class="pre">=</span> <span class="pre">nu</span> <span class="pre">u_xx</span></code> on <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">in</span> <span class="pre">[-1,</span> <span class="pre">1]</span></code> with the initial
+condition <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span> <span class="pre">=</span> <span class="pre">-sin(pi</span> <span class="pre">x)</span></code> and homogeneous Dirichlet boundaries –
+the benchmark used throughout the PINN literature.</p>
+<p>The Cole-Hopf transform <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">-2</span> <span class="pre">nu</span> <span class="pre">phi_x</span> <span class="pre">/</span> <span class="pre">phi</span></code> turns Burgers into the heat
+equation, whose solution is a Gaussian convolution. Writing that convolution
+out gives</p>
+<blockquote>
+<div><p>u(t, x) = -N / D,
+N = integral sin(pi (x - eta)) F(x - eta) exp(-eta^2 / (4 nu t)) d eta
+D = integral F(x - eta) exp(-eta^2 / (4 nu t)) d eta
+F(y) = exp(-cos(pi y) / (2 pi nu)).</p>
+</div></blockquote>
+<p>Substituting <code class="docutils literal notranslate"><span class="pre">eta</span> <span class="pre">=</span> <span class="pre">sqrt(4</span> <span class="pre">nu</span> <span class="pre">t)</span> <span class="pre">z</span></code> reduces both integrals to the
+Gauss-Hermite form <code class="docutils literal notranslate"><span class="pre">integral</span> <span class="pre">g(z)</span> <span class="pre">exp(-z^2)</span> <span class="pre">dz</span></code>, evaluated here with
+<code class="docutils literal notranslate"><span class="pre">n_quad</span></code> nodes. <code class="docutils literal notranslate"><span class="pre">F</span></code> spans roughly <code class="docutils literal notranslate"><span class="pre">exp(±1/(2</span> <span class="pre">pi</span> <span class="pre">nu))</span></code>, which overflows
+for small viscosity, so the integrands are rescaled by their maximum
+exponent – a factor that cancels in the ratio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> – Times, any shape. <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> returns the initial condition exactly.</p></li>
+<li><p><strong>x</strong> – Positions, broadcastable against <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p></li>
+<li><p><strong>nu</strong> – Viscosity. The literature benchmark is <code class="docutils literal notranslate"><span class="pre">0.01</span> <span class="pre">/</span> <span class="pre">pi</span></code>.</p></li>
+<li><p><strong>n_quad</strong> – Number of Gauss-Hermite nodes. The default is ample for the
+usual viscosities – the result is unchanged to six figures between
+100 and 200 nodes at <code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">0.01</span> <span class="pre">/</span> <span class="pre">pi</span></code>. Values much above 300 are
+rejected: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.polynomial.hermite.hermgauss()</span></code> overflows while
+computing its weights there and returns NaN rather than failing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">u(t,</span> <span class="pre">x)</span></code> with the broadcast shape of the inputs.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">nu</span></code> is not positive, <code class="docutils literal notranslate"><span class="pre">n_quad</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">300]</span></code>,
+    or any time is negative.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.solvers.reference.burgers_reference_grid">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.solvers.reference.</span></span><span class="sig-name descname"><span class="pre">burgers_reference_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">101</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">201</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_quad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/pinnlab/solvers/reference.html#burgers_reference_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.solvers.reference.burgers_reference_grid" title="Link to this definition">¶</a></dt>
+<dd><p>Build a Burgers reference grid, and optionally score a prediction on it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> – Viscosity.</p></li>
+<li><p><strong>n_t</strong> – Grid points in time.</p></li>
+<li><p><strong>n_x</strong> – Grid points in space.</p></li>
+<li><p><strong>t_final</strong> – End time.</p></li>
+<li><p><strong>n_quad</strong> – Gauss-Hermite nodes passed to <a class="reference internal" href="#pinnlab.solvers.reference.burgers_cole_hopf" title="pinnlab.solvers.reference.burgers_cole_hopf"><code class="xref py py-func docutils literal notranslate"><span class="pre">burgers_cole_hopf()</span></code></a>.</p></li>
+<li><p><strong>predict</strong> – Optional callable taking <code class="docutils literal notranslate"><span class="pre">(t_grid,</span> <span class="pre">x_grid)</span></code> and returning
+predictions of the same shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict with the <code class="docutils literal notranslate"><span class="pre">t</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code> meshes and the <code class="docutils literal notranslate"><span class="pre">exact</span></code> field, plus
+<code class="docutils literal notranslate"><span class="pre">predicted</span></code> and <code class="docutils literal notranslate"><span class="pre">relative_l2_error</span></code> when <code class="docutils literal notranslate"><span class="pre">predict</span></code> is supplied.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.solvers.reference.relative_l2_error">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.solvers.reference.</span></span><span class="sig-name descname"><span class="pre">relative_l2_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predicted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/pinnlab/solvers/reference.html#relative_l2_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.solvers.reference.relative_l2_error" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">||predicted</span> <span class="pre">-</span> <span class="pre">exact||_2</span> <span class="pre">/</span> <span class="pre">||exact||_2</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predicted</strong> – Predicted values.</p></li>
+<li><p><strong>exact</strong> – Reference values of the same shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The relative error, or the absolute error when the reference is
+identically zero.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the shapes disagree.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p id="module-pinnlab.training">Training strategies for advanced PINN workflows.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pinnlab.training.AdaptiveLossWeighting">
@@ -5688,6 +6073,8 @@ additional video encoder dependencies are required.</p>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.AdaptiveLossWeighting"><code class="docutils literal notranslate"><span class="pre">AdaptiveLossWeighting</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.AdaptivePINNTrainer"><code class="docutils literal notranslate"><span class="pre">AdaptivePINNTrainer</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.AdaptiveWeightingConfig"><code class="docutils literal notranslate"><span class="pre">AdaptiveWeightingConfig</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.AllenCahnConfig"><code class="docutils literal notranslate"><span class="pre">AllenCahnConfig</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.AllenCahnProblem"><code class="docutils literal notranslate"><span class="pre">AllenCahnProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.AsyncGradientBuffer"><code class="docutils literal notranslate"><span class="pre">AsyncGradientBuffer</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.AttentionPINN"><code class="docutils literal notranslate"><span class="pre">AttentionPINN</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.AutogradDerivativeBackend"><code class="docutils literal notranslate"><span class="pre">AutogradDerivativeBackend</span></code></a></li>
@@ -5822,6 +6209,11 @@ additional video encoder dependencies are required.</p>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.models.advanced.MultiScalePINN"><code class="docutils literal notranslate"><span class="pre">MultiScalePINN</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.models.advanced.SineLayer"><code class="docutils literal notranslate"><span class="pre">SineLayer</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.models.advanced.SirenPINN"><code class="docutils literal notranslate"><span class="pre">SirenPINN</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.solvers.reference.allen_cahn_reference_grid"><code class="docutils literal notranslate"><span class="pre">allen_cahn_reference_grid()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.solvers.reference.allen_cahn_spectral"><code class="docutils literal notranslate"><span class="pre">allen_cahn_spectral()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.solvers.reference.burgers_cole_hopf"><code class="docutils literal notranslate"><span class="pre">burgers_cole_hopf()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.solvers.reference.burgers_reference_grid"><code class="docutils literal notranslate"><span class="pre">burgers_reference_grid()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.solvers.reference.relative_l2_error"><code class="docutils literal notranslate"><span class="pre">relative_l2_error()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.training.AdaptiveLossWeighting"><code class="docutils literal notranslate"><span class="pre">AdaptiveLossWeighting</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.training.AdaptivePINNTrainer"><code class="docutils literal notranslate"><span class="pre">AdaptivePINNTrainer</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.training.AdaptiveWeightingConfig"><code class="docutils literal notranslate"><span class="pre">AdaptiveWeightingConfig</span></code></a></li>

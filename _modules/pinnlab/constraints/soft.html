@@ -275,17 +275,53 @@
 <a class="viewcode-back" href="../../../api/index.html#pinnlab.PeriodicBoundary">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">PeriodicBoundary</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft periodic constraint matching opposite faces of one coordinate.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft periodic constraint matching opposite faces of one coordinate.</span>
+
+<span class="sd">    With ``derivative_order=0`` the two faces are matched by value, which is</span>
+<span class="sd">    what most periodic problems need. Value matching alone does not make a</span>
+<span class="sd">    solution periodic, though: it admits a field with a kink at the seam. A</span>
+<span class="sd">    second instance with ``derivative_order=1`` matches the normal derivative</span>
+<span class="sd">    as well, which is what makes the pair equivalent to solving on a circle.</span>
+<span class="sd">    Allen-Cahn is the case in point -- see</span>
+<span class="sd">    :class:`~pinnlab.problems.AllenCahnProblem`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">periodic_dim</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">kind</span><span class="p">:</span> <span class="n">ConstraintKind</span> <span class="o">=</span> <span class="n">ConstraintKind</span><span class="o">.</span><span class="n">PERIODIC</span>
     <span class="n">default_sample_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span>
     <span class="n">output_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">derivative_order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate sample count.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate sample count and derivative order.&quot;&quot;&quot;</span>
         <span class="n">validate_sample_count</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_sample_count</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivative_order</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;derivative_order must be 0 or 1, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">derivative_order</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_face_values</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="n">coordinates</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">derivative_backend</span><span class="p">:</span> <span class="n">DerivativeBackend</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the model output, or its normal derivative, on one face.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivative_order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">outputs</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">output_index</span><span class="p">]]</span>
+            <span class="k">return</span> <span class="n">outputs</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">derivative_backend</span><span class="o">.</span><span class="n">partial_derivative</span><span class="p">(</span>
+            <span class="n">outputs</span><span class="p">,</span>
+            <span class="n">coords</span><span class="p">,</span>
+            <span class="n">output_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_index</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">coordinate_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">periodic_dim</span><span class="p">,</span>
+            <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
 
 <div class="viewcode-block" id="PeriodicBoundary.loss">
 <a class="viewcode-back" href="../../../api/index.html#pinnlab.PeriodicBoundary.loss">[docs]</a>
@@ -300,8 +336,7 @@
         <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConstraintLoss</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate value matching between lower and upper periodic faces.&quot;&quot;&quot;</span>
-        <span class="k">del</span> <span class="n">derivative_backend</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Match values, or normal derivatives, across the periodic faces.&quot;&quot;&quot;</span>
         <span class="n">count</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="k">if</span> <span class="n">n_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_sample_count</span>
         <span class="n">validate_sample_count</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
         <span class="n">lower</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">sample_boundary</span><span class="p">(</span>
@@ -317,11 +352,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">periodic_dim</span>
         <span class="p">]</span>
         <span class="n">upper</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">periodic_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper_bound</span>
-        <span class="n">pred_lower</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span>
-        <span class="n">pred_upper</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pred_lower</span> <span class="o">=</span> <span class="n">pred_lower</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">output_index</span><span class="p">]]</span>
-            <span class="n">pred_upper</span> <span class="o">=</span> <span class="n">pred_upper</span><span class="p">[:,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">output_index</span><span class="p">]]</span>
+        <span class="n">pred_lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_face_values</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">derivative_backend</span><span class="p">)</span>
+        <span class="n">pred_upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_face_values</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">derivative_backend</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ConstraintLoss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">pred_lower</span> <span class="o">-</span> <span class="n">pred_upper</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div>
 </div>
 
