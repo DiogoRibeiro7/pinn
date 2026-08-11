@@ -186,7 +186,7 @@
 <div class="viewcode-block" id="OptimizerConfig">
 <a class="viewcode-back" href="../../../config_reference.html#pinnlab.config.management.OptimizerConfig">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">OptimizerConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimizerConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for optimizer settings.&quot;&quot;&quot;</span>
 
     <span class="c1"># Adam optimizer settings</span>
@@ -239,7 +239,7 @@
 <div class="viewcode-block" id="SamplingConfig">
 <a class="viewcode-back" href="../../../config_reference.html#pinnlab.config.management.SamplingConfig">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">SamplingConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SamplingConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for sampling strategies.&quot;&quot;&quot;</span>
 
     <span class="c1"># Collocation points</span>
@@ -303,7 +303,7 @@
 <div class="viewcode-block" id="LossConfig">
 <a class="viewcode-back" href="../../../config_reference.html#pinnlab.config.management.LossConfig">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">LossConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LossConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for loss function weights and settings.&quot;&quot;&quot;</span>
 
     <span class="c1"># Loss weights</span>

@@ -84,9 +84,14 @@
 
     <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
     <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">gradient</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span>
+    <span class="k">if</span> <span class="n">gradient</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Otherwise this fails as `unsupported operand float * None`,</span>
+        <span class="c1"># which says nothing about the actual mistake.</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;loss_fn must depend on param: backward produced no gradient&quot;</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="n">param</span> <span class="o">-=</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span>
-    <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
+        <span class="n">param</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">lr</span> <span class="o">*</span> <span class="n">gradient</span><span class="p">)</span>
+    <span class="n">gradient</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
 
 
 
