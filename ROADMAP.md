@@ -557,11 +557,21 @@ and `pinnlab.utils` imports that module eagerly. Measured with
 `python -X importtime`, that was 2.3s of a 9.0s import for a single palette
 call. The palette is now applied on first plot instead.
 
-Measured over five runs each way on the same machine, whose disk caching makes
-absolute numbers noisy: median 13.4s before against 6.6-8.9s after, across two
-independent batches, with ranges that barely overlap. The reliable part is
-structural rather than the timing -- seaborn, ipywidgets and IPython are no
-longer in the import graph at all, which
+The clean measurement is an end-to-end one, taken with a warm filesystem cache
+by swapping in the previous version of the module from git: running
+`examples/basic/heat_equation.py` at a 5-step budget averages 8.17s before
+against 6.14s and 6.37s after, over three runs each. About 2.0s per process,
+which matches what `-X importtime` attributed to seaborn.
+
+Two measurement traps here, both fallen into first. Raw `import pinnlab` timings
+on this machine swing between 5.6s and 15.3s purely from disk caching, so early
+cold-cache numbers made the saving look like 30s when it is 2s. And a `git
+stash`-based A/B silently compares identical code once the change is committed
+-- `git stash` has nothing to take, and the run reports a difference of zero
+with no error.
+
+The reliable claim is structural rather than the timing: seaborn, ipywidgets and
+IPython are no longer in the import graph at all, which
 `tests/unit/test_packaging.py::TestImportCostStaysDown` pins in a subprocess.
 
 seaborn moved from the required dependencies to the `viz` extra as a result. It
