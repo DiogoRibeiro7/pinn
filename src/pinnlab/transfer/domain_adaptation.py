@@ -42,6 +42,7 @@ class DomainAdaptationPINN:
         self.config = config or DomainAdaptationConfig()
         self.logger = get_logger(__name__)
         self.feature_extractor = feature_extractor or self._default_feature_extractor
+        self.domain_discriminator: Optional[torch.nn.Module]
         if self.config.method == "adversarial":
             self.domain_discriminator = self._create_discriminator()
         else:
@@ -218,8 +219,9 @@ class DomainAdaptationPINN:
     def _default_feature_extractor(
         self, model: torch.nn.Module, inputs: torch.Tensor
     ) -> torch.Tensor:
-        if hasattr(model, "feature_extractor"):
-            return model.feature_extractor(inputs)
+        extractor = getattr(model, "feature_extractor", None)
+        if extractor is not None:
+            return extractor(inputs)
         outputs = model(inputs)
         if outputs.dim() == 1:
             return outputs.unsqueeze(-1)

@@ -122,12 +122,6 @@ module = [
     "pinnlab.distributed.distributed",
     "pinnlab.solvers.raissi_generic",
     "pinnlab.training.optimization",
-    "pinnlab.transfer.domain_adaptation",
-    "pinnlab.transfer.pretrain",
-    "pinnlab.uncertainty",
-    "pinnlab.utils.logging",
-    "pinnlab.utils.profiling",
-    "pinnlab.visualization",
 ]
 ignore_errors = true
 

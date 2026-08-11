@@ -37,7 +37,7 @@ except Exception:  # pragma: no cover - optional
 try:  # Optional GPU support
     import torch  # type: ignore
 except Exception:  # pragma: no cover - optional
-    torch = None
+    torch = None  # type: ignore[assignment]
 
 __all__ = [
     "configure_logging",
@@ -202,7 +202,7 @@ def log_gpu_usage(logger: logging.Logger) -> None:
         return
     allocated = torch.cuda.memory_allocated() / (1024**2)
     reserved = torch.cuda.memory_reserved() / (1024**2)
-    extra = {
+    extra: Dict[str, Any] = {
         "gpu_mem_allocated_mb": round(allocated, 2),
         "gpu_mem_reserved_mb": round(reserved, 2),
     }

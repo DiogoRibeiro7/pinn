@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import (
+    Any,
     Callable,
     Dict,
     Iterable,
@@ -278,7 +279,7 @@ def create_cross_pde_pretraining_tasks(
 def create_linear_reference_task(
     slope: float = 1.0,
     intercept: float = 0.0,
-    **kwargs: object,
+    **kwargs: Any,
 ) -> PretrainingTask:
     """Convenience helper returning a linear reference task."""
 

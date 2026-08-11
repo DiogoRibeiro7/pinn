@@ -17,8 +17,8 @@ def mc_dropout_predict(
     preds = []
     for _ in range(passes):
         preds.append(model(x))
-    preds = torch.stack(preds)
-    return preds.mean(dim=0), preds.std(dim=0)
+    stacked = torch.stack(preds)
+    return stacked.mean(dim=0), stacked.std(dim=0)
 
 
 def deep_ensemble_predict(

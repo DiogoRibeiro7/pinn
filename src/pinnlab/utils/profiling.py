@@ -30,7 +30,7 @@ from typing import Callable, List, Optional
 try:  # optional
     import torch  # type: ignore
 except Exception:  # pragma: no cover - optional
-    torch = None
+    torch = None  # type: ignore[assignment]
 
 try:  # optional
     import psutil  # type: ignore
@@ -95,8 +95,8 @@ class MemoryTracker:
         tracemalloc.start()
         self._start_snapshot = tracemalloc.take_snapshot()
         self.peak_memory = 0.0
-        self.gpu_start = None
-        self.gpu_peak_memory = None
+        self.gpu_start: Optional[int] = None
+        self.gpu_peak_memory: Optional[float] = None
         if torch is not None and torch.cuda.is_available():
             torch.cuda.reset_peak_memory_stats()
             self.gpu_start = torch.cuda.memory_allocated()
