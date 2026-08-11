@@ -67,6 +67,8 @@
     <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_adv</span><span class="p">)</span>
     <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
     <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">x_adv</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover - guards a real crash</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;no gradient reached the input; the loss must depend on it&quot;</span><span class="p">)</span>
     <span class="n">x_adv</span> <span class="o">=</span> <span class="n">x_adv</span> <span class="o">+</span> <span class="n">epsilon</span> <span class="o">*</span> <span class="n">x_adv</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">sign</span><span class="p">()</span>
     <span class="n">adv_pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_adv</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">adv_pred</span></div>

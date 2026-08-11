@@ -61,10 +61,19 @@
 <span class="sd">        Number of gradient steps per task.</span>
 <span class="sd">    lr:</span>
 <span class="sd">        Learning rate for the inner adaptation.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    ``task_batch`` is consumed once. An empty batch leaves the model unchanged.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">meta_grads</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()]</span>
+    <span class="c1"># Counted while iterating rather than with len(): the parameter is declared</span>
+    <span class="c1"># Iterable, and len() raises TypeError on a generator, so passing one would</span>
+    <span class="c1"># have crashed after all the inner training work had been done.</span>
+    <span class="n">n_tasks</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">task_batch</span><span class="p">:</span>
+        <span class="n">n_tasks</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">temp_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">temp_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inner_steps</span><span class="p">):</span>
@@ -74,8 +83,10 @@
             <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">mg</span><span class="p">,</span> <span class="n">p_t</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">meta_grads</span><span class="p">,</span> <span class="n">temp_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
             <span class="n">mg</span> <span class="o">+=</span> <span class="n">p_t</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">if</span> <span class="n">n_tasks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
     <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">mg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">meta_grads</span><span class="p">):</span>
-        <span class="n">p</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">mg</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">task_batch</span><span class="p">)</span></div>
+        <span class="n">p</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">mg</span> <span class="o">/</span> <span class="n">n_tasks</span></div>
 
 </pre></div>
 
