@@ -121,7 +121,6 @@ module = [
     "pinnlab.config.management",
     "pinnlab.distributed.distributed",
     "pinnlab.distributed.trainer",
-    "pinnlab.models.multiscale",
     "pinnlab.sampling.active_learning",
     "pinnlab.solvers.navier_stokes",
     "pinnlab.solvers.raissi",

@@ -64,7 +64,7 @@ class MultiScaleAttention(nn.Module):
         if not scale_features:
             raise ValueError("scale_features must not be empty")
 
-        stacked = torch.stack(scale_features, dim=1)  # (batch, num_scales, feature_dim)
+        stacked = torch.stack(list(scale_features), dim=1)  # (batch, scales, dim)
         query = self.query_network(stacked.mean(dim=1))  # (batch, hidden_dim)
         keys = torch.stack(
             [layer(feat) for layer, feat in zip(self.key_networks, scale_features)],
@@ -85,6 +85,11 @@ class MultiScaleAttention(nn.Module):
 
 class MultiScalePINN(nn.Module):
     """Physics-informed network that processes inputs at multiple scales."""
+
+    # Declared because nn.Module.__getattr__ is typed Tensor | Module, so a
+    # registered buffer otherwise reads back as that union everywhere.
+    scales_tensor: Tensor
+    _scale_usage: Tensor
 
     def __init__(
         self,
@@ -202,7 +207,7 @@ class MultiScalePINN(nn.Module):
     ) -> Tensor:
         num_scales = len(outputs)
         if self._combination_method == "learned":
-            combined_features = torch.cat(features, dim=-1)
+            combined_features = torch.cat(list(features), dim=-1)
             logits = self.combination_network(combined_features)
             return torch.softmax(logits, dim=-1)
         if self._combination_method == "attention":
@@ -256,7 +261,7 @@ class HierarchicalPINN(nn.Module):
             raise ValueError("levels must be >= 1")
         self.levels = levels
         self.level_networks = nn.ModuleList()
-        width = base_width
+        width: float = float(base_width)
         for level in range(levels):
             net = MLP(
                 in_dim=in_features, hidden_layers=3 + level, width=int(width), out_dim=1
@@ -347,6 +352,8 @@ class FourierMultiScalePINN(MultiScalePINN):
             B = sigma * torch.randn(in_features, mapping_size)
 
             class _FourierModule(nn.Module):
+                B: Tensor
+
                 def __init__(self) -> None:
                     super().__init__()
                     self.register_buffer("B", B, persistent=False)
@@ -400,7 +407,7 @@ class MultiScaleTrainer:
     def _consistency_loss(self, per_scale: Sequence[Tensor]) -> Tensor:
         if not per_scale:
             return torch.tensor(0.0, device=self.device)
-        stacked = torch.stack(per_scale, dim=-1)
+        stacked = torch.stack(list(per_scale), dim=-1)
         variance = torch.var(stacked, dim=-1, unbiased=False)
         return variance.mean()
 
@@ -441,7 +448,7 @@ def multiscale_loss(
 
     mse = torch.mean((prediction - target) ** 2)
     if per_scale_outputs:
-        stacked = torch.stack(per_scale_outputs, dim=-1)
+        stacked = torch.stack(list(per_scale_outputs), dim=-1)
         consistency = torch.var(stacked, dim=-1, unbiased=False).mean()
     else:
         consistency = torch.tensor(0.0, device=prediction.device)
