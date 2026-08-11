@@ -21,7 +21,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Burgers inverse problem")
     parser.add_argument("--config", type=str, help="Configuration file")
     parser.add_argument("--output-dir", type=str, default="./results")
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=3000,
+        help="Adam steps. Lower it to smoke-test the example quickly.",
+    )
     args = parser.parse_args()
+    if args.steps < 1:
+        raise SystemExit("--steps must be >= 1")
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -47,7 +55,7 @@ def main() -> None:
     meas_x = torch.from_numpy(XX.reshape(-1, 1)).to(device)
     meas_u = torch.from_numpy(U_true.reshape(-1, 1)).to(device)
 
-    for step in range(1, 3001):
+    for step in range(1, args.steps + 1):
         # collocation points
         t = torch.rand(256, 1, device=device)
         x = torch.rand(256, 1, device=device) * 2 - 1

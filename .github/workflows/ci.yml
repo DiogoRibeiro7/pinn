@@ -61,13 +61,10 @@ jobs:
       - run: pip install .[dev,viz]
       # Executing the examples is what would have caught DiscreteRKPINN sitting
       # in the public API unable to take a single step; the only test touching
-      # it checked that it imported. The default run is the budget-capable
-      # subset, about a minute. workflow_dispatch runs all sixteen, which takes
-      # roughly ten because the rest have no budget flags yet -- see the
-      # script's docstring.
+      # it checked that it imported. All sixteen run here, in about three
+      # minutes, now that every one of them takes a budget flag.
       - name: Smoke-test examples
-        run: |
-          python scripts/smoke_examples.py             ${{ github.event_name == 'workflow_dispatch' && ' ' || '--fast' }}
+        run: python scripts/smoke_examples.py
 
   test:
     name: Test (${{ matrix.os }}, py${{ matrix.python-version }})

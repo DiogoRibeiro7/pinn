@@ -20,6 +20,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Multi-scale PINN training")
     parser.add_argument("--config", type=str, help="Configuration file")
     parser.add_argument("--output-dir", type=str, default="./results")
+    parser.add_argument(
+        "--adam-steps",
+        type=int,
+        default=1_000,
+        help="Adam steps. Lower it to smoke-test the example quickly.",
+    )
     args = parser.parse_args()
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -35,13 +41,15 @@ def main() -> None:
     pinn = ContinuousPINN(model, device, burgers_residual, cfg)
 
     # Phase 1: coarse training
-    tcfg1 = TrainConfig(n_u0=32, n_bc=32, n_f=1_000, adam_steps=1_000, lbfgs_max_iter=0)
+    tcfg1 = TrainConfig(
+        n_u0=32, n_bc=32, n_f=1_000, adam_steps=args.adam_steps, lbfgs_max_iter=0
+    )
     logger.info("Phase 1: coarse training")
     pinn.train(tcfg1)
 
     # Phase 2: fine training with more collocation points
     tcfg2 = TrainConfig(
-        n_u0=64, n_bc=64, n_f=5_000, adam_steps=1_000, lbfgs_max_iter=50
+        n_u0=64, n_bc=64, n_f=5_000, adam_steps=args.adam_steps, lbfgs_max_iter=50
     )
     logger.info("Phase 2: fine training")
     pinn.train(tcfg2)

@@ -20,6 +20,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Convergence study for PINN width")
     parser.add_argument("--config", type=str, help="Configuration file")
     parser.add_argument("--output-dir", type=str, default="./results")
+    parser.add_argument(
+        "--adam-steps",
+        type=int,
+        default=1_000,
+        help="Adam steps. Lower it to smoke-test the example quickly.",
+    )
     args = parser.parse_args()
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -29,7 +35,9 @@ def main() -> None:
         BurgersConfig()
     )  # ConfigFactory returns a generic PINNConfig without .nu/.tmin
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    tcfg = TrainConfig(n_u0=32, n_bc=32, n_f=1_000, adam_steps=1_000, lbfgs_max_iter=0)
+    tcfg = TrainConfig(
+        n_u0=32, n_bc=32, n_f=1_000, adam_steps=args.adam_steps, lbfgs_max_iter=0
+    )
 
     results = {}
     for width in [16, 32, 64]:

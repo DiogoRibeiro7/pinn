@@ -9,15 +9,15 @@ have found it years earlier and for free.
 
 Budgets
 -------
-Examples that take budget flags are run at a token budget: the point is to
-execute every code path once, not to converge. Examples that do not take budget
-flags run at their full default, which is slower. That split is listed
-explicitly in ``EXAMPLES`` below rather than hidden, and the runtimes are real
-measurements, not estimates.
+Every example is run at a token budget: the point is to execute each code path
+once, not to converge. Fourteen take an explicit ``--adam-steps`` or ``--steps``
+flag; ``custom_pde.py`` and ``performance_benchmark.py`` have none but are
+already fast at their defaults, and that is marked ``budget=FULL`` in the output
+rather than left implicit. The runtimes in ``EXAMPLES`` are real measurements.
 
-The examples still lacking budget flags are the config-driven ones. Giving them
-``--adam-steps`` the way ``heat_equation.py`` and ``wave_equation.py`` already
-have it is the obvious follow-up, and would take this from minutes to seconds.
+Reducing the budget only changes how long the example trains, never what it
+does, so every code path still executes. Passing here means the example runs,
+not that it converges to anything useful.
 
 Usage
 -----
@@ -97,16 +97,41 @@ EXAMPLES: tuple[Example, ...] = (
         ["--epochs", "5", "--num-points", "64"],
         measured_seconds=20,
     ),
-    # No budget flags yet: these run at full default budget.
-    Example("examples/basic/burgers_equation.py", measured_seconds=37),
+    # Config-driven examples: these take --adam-steps or --steps.
+    Example(
+        "examples/basic/burgers_equation.py", ["--adam-steps", "5"], measured_seconds=10
+    ),
+    Example(
+        "examples/basic/navier_stokes_2d.py", ["--adam-steps", "5"], measured_seconds=15
+    ),
+    Example(
+        "examples/advanced/inverse_problems.py", ["--steps", "5"], measured_seconds=10
+    ),
+    Example(
+        "examples/advanced/multi_scale_training.py",
+        ["--adam-steps", "5"],
+        measured_seconds=10,
+    ),
+    Example(
+        "examples/advanced/transfer_learning.py",
+        ["--adam-steps", "5"],
+        measured_seconds=10,
+    ),
+    Example(
+        "examples/advanced/uncertainty_quantification.py",
+        ["--adam-steps", "5"],
+        measured_seconds=10,
+    ),
+    Example(
+        "examples/benchmarks/convergence_study.py",
+        ["--adam-steps", "5"],
+        measured_seconds=10,
+    ),
+    # These two have no budget flag but are already fast at their defaults:
+    # performance_benchmark already uses adam_steps=5, and custom_pde trains a
+    # small network briefly.
     Example("examples/basic/custom_pde.py", measured_seconds=23),
-    Example("examples/basic/navier_stokes_2d.py", measured_seconds=130),
-    Example("examples/advanced/inverse_problems.py", measured_seconds=33),
-    Example("examples/advanced/multi_scale_training.py", measured_seconds=39),
-    Example("examples/advanced/transfer_learning.py", measured_seconds=40),
-    Example("examples/advanced/uncertainty_quantification.py", measured_seconds=40),
-    Example("examples/benchmarks/convergence_study.py", measured_seconds=40),
-    Example("examples/benchmarks/performance_benchmark.py", measured_seconds=40),
+    Example("examples/benchmarks/performance_benchmark.py", measured_seconds=10),
 )
 
 

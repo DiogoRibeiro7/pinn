@@ -43,6 +43,12 @@ def main() -> None:
         "--output-dir", type=str, default="./results", help="Directory for results"
     )
     parser.add_argument(
+        "--adam-steps",
+        type=int,
+        default=2_000,
+        help="Adam steps. Lower it to smoke-test the example quickly.",
+    )
+    parser.add_argument(
         "--distributed", action="store_true", help="Enable multi-GPU training"
     )
     args = parser.parse_args()
@@ -70,7 +76,7 @@ def main() -> None:
         n_bc=64,
         n_f=2_000,
         lr=1e-3,
-        adam_steps=2_000,
+        adam_steps=args.adam_steps,
         lbfgs_max_iter=50,
         seed=123,
         track_losses=True,

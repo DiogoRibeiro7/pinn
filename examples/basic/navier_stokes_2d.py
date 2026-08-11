@@ -25,6 +25,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Solve 2D Navier-Stokes with PINN")
     parser.add_argument("--config", type=str, help="Configuration file")
     parser.add_argument("--output-dir", type=str, default="./results")
+    parser.add_argument(
+        "--adam-steps",
+        type=int,
+        default=2_000,
+        help="Adam steps. Lower it to smoke-test the example quickly.",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.output_dir)
@@ -39,7 +45,9 @@ def main() -> None:
     model = MLP(in_dim=3, hidden_layers=4, width=64, out_dim=3)
     pinn = NavierStokesPINN(model=model, cfg=cfg, device=device)
 
-    tcfg = TrainConfig(n_ic=200, n_f=2_000, n_per=400, lr=1e-3, adam_steps=2_000)
+    tcfg = TrainConfig(
+        n_ic=200, n_f=2_000, n_per=400, lr=1e-3, adam_steps=args.adam_steps
+    )
     checkpoint_manager = CheckpointManager(
         out_dir / "checkpoints", save_frequency=1_000, keep_best_n=2
     )

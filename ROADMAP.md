@@ -543,13 +543,19 @@ Concrete work:
   All sixteen pass today, which is the baseline, not a guarantee -- they had
   never been run together before.
 
-  The split is in the script rather than hidden: seven examples take budget
-  flags and run in 6-10s at a token budget; the other nine have none and run at
-  full default, which is why the complete pass takes about ten minutes and why
-  `navier_stokes_2d` alone accounts for 200s of it. Giving the config-driven
-  examples an `--adam-steps` flag, as `heat_equation.py` and `wave_equation.py`
-  already have and as `allen_cahn.py` just gained, would take the full run from
-  minutes to seconds.
+  Every example now takes a budget flag. Seven already did; `allen_cahn.py`,
+  `burgers_equation.py`, `navier_stokes_2d.py`, `inverse_problems.py`,
+  `multi_scale_training.py`, `transfer_learning.py`,
+  `uncertainty_quantification.py` and `convergence_study.py` gained one, always
+  defaulting to the value that was previously hardcoded so the examples behave
+  identically when run by hand. That took the full pass from about ten minutes
+  to under three -- `navier_stokes_2d` alone went from 202s to 11s -- which is
+  what makes running all sixteen on every push affordable rather than a
+  `workflow_dispatch` special case.
+
+  `custom_pde.py` and `performance_benchmark.py` still have no budget flag and
+  are marked `budget=FULL` in the output. Both are already fast, the latter
+  because it uses `adam_steps=5` by design.
 - Add a CI job that executes selected notebooks. Not started; the examples job
   above is the cheaper half of what this line originally covered.
 - Keep tests pointed at production implementations, not local test doubles that
