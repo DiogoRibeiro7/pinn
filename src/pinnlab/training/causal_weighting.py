@@ -27,12 +27,21 @@ A note on what has actually been measured here
 The weighting itself is verified against the formula above in
 ``tests/unit/test_exact_solvers.py``, including the closed-form weights for a
 uniform residual. What is *not* established is an accuracy benefit on the
-problems currently in this package. On the 1-D wave equation it made no useful
-difference: over a single period the error was 4.3e-2 with weighting against
-4.0e-2 without, and over three periods every configuration tried landed between
-0.85 and 0.88 (plain 0.865; eps of 1, 10 and 100 with 24 windows giving 0.880,
-0.873 and 0.849), which is failure across the board -- the network was
-under-trained at that horizon rather than mis-ordered in time.
+problems currently in this package.
+
+On the 1-D wave equation over a single period, one run with weighting reached
+4.3e-2 against 4.0e-2 without. Do not read that as a result: run-to-run spread
+on these problems has since been measured at 2.2x to 2.4x, so a 7% difference
+between single runs carries no information at all. Over three periods every
+configuration tried landed between 0.85 and 0.88, which is failure across the
+board for all of them -- the network was under-trained at that horizon rather
+than mis-ordered in time, and that comparison says nothing about the weighting
+either.
+
+So the position is that no benefit has been demonstrated here, not that the
+method was shown not to work. Demonstrating it properly needs a problem where
+the causality violation actually bites, and enough seeds to separate the effect
+from the noise.
 
 That is not evidence against the method. The published gains are reported on
 harder problems -- Allen-Cahn, Kuramoto-Sivashinsky -- with larger budgets and

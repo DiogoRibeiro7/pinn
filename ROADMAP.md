@@ -279,17 +279,23 @@ Concrete work:
   6.3x improvement, reproduced across separate experiments and supported by a
   mechanism, comfortably exceeds the noise.
 
-  The figures quoted in the README, the notebook and the release notes are
-  single runs, and the 3.5e-4 for the single-mode heat problem is better than
-  the best of the three legacy seeds measured here. They are favourable draws
-  rather than typical results. Reporting a median over seeds would be more
-  honest and is worth doing before they are quoted again.
-- Convert callable-based generic PDE examples into explicit problem/constraint
-  adapters where practical.
-- Keep `raissi_improved` as the compatibility facade until caching,
-  checkpoints, active learning and batching have generic equivalents.
-- Continue centralizing duplicated helpers, following the pattern used for
-  `pinnlab.sampling.latin_hypercube`.
+  The figures the project publishes were single runs, and both were optimistic.
+  Measured over five seeds at the notebook's budget:
+
+  | | published | median | range |
+  | --- | --- | --- | --- |
+  | heat single-mode | 3.5e-4 | 7.3e-4 | 3.6e-4 to 9.6e-4 |
+  | heat two-mode | 2.3e-3 | 6.0e-3 | 3.6e-3 to 8.6e-3 |
+
+  Both published values beat the best of five seeds, so a reader who reran the
+  notebook would most likely see roughly double the documented error and
+  reasonably conclude they had broken something. The notebook now states the
+  median and range before printing its own single figure, and its outputs have
+  been regenerated against the delegated path.
+
+  Remaining: the v0.2.0 changelog entry still quotes 1.7e-3, 2.3e-3 and 4.0e-2
+  as characteristic. It is a historical record of what was measured then and
+  has been left as written, but it should not be treated as a benchmark.
 
 Done when:
 - ✅ Public import compatibility tests cover the retained legacy symbols.

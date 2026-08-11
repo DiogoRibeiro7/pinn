@@ -10,6 +10,22 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ### Changed
 
+- Accuracy figures are reported as a median over seeds rather than a single
+  run. Measured over five seeds at the notebook's budget, the single-mode heat
+  problem has a median relative L2 error of 7.3e-4 spanning 3.6e-4 to 9.6e-4,
+  and the two-mode case a median of 6.0e-3 spanning 3.6e-3 to 8.6e-3. The
+  previously published 3.5e-4 and 2.3e-3 were both better than the best of
+  those five seeds, so anyone rerunning the notebook would have seen roughly
+  double the documented error and reasonably suspected their own setup.
+  `notebooks/basic/05_heat_equation.ipynb` now states the median and range
+  before printing its own figure, and its outputs were regenerated against the
+  delegated training path.
+- The causal weighting module no longer presents its single-run comparison as
+  evidence. It cited 4.3e-2 with weighting against 4.0e-2 without, a 7%
+  difference between two single runs on a problem whose run-to-run spread is
+  about 2.5x. The conclusion is unchanged -- no benefit has been demonstrated
+  -- but it is now stated as absence of evidence rather than as a measurement.
+
 - `HeatPINN` and `WavePINN` train through the composable `Trainer` and their
   `pinnlab.problems` equivalent instead of carrying their own optimisation
   loop. Their public API is unchanged: the same `TrainConfig` goes in and the
