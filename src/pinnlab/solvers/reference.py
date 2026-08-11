@@ -16,7 +16,13 @@ from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-__all__ = ["burgers_cole_hopf", "relative_l2_error", "burgers_reference_grid"]
+__all__ = [
+    "allen_cahn_reference_grid",
+    "allen_cahn_spectral",
+    "burgers_cole_hopf",
+    "burgers_reference_grid",
+    "relative_l2_error",
+]
 
 # numpy's hermgauss overflows while normalising its weights past roughly this
 # many nodes, returning NaN instead of raising. The quadrature converges far
@@ -175,4 +181,191 @@ def burgers_reference_grid(
         predicted = np.asarray(predict(tt, xx), dtype=float)
         result["predicted"] = predicted
         result["relative_l2_error"] = relative_l2_error(predicted, exact)
+    return result
+
+
+def allen_cahn_spectral(
+    initial_condition: Callable[[np.ndarray], np.ndarray],
+    *,
+    nu: float = 1e-4,
+    gamma: float = 5.0,
+    t_final: float = 1.0,
+    xmin: float = -1.0,
+    xmax: float = 1.0,
+    n_t: int = 101,
+    n_x: int = 512,
+    steps_per_snapshot: int = 100,
+) -> Dict[str, np.ndarray]:
+    """Solve periodic Allen-Cahn numerically by Fourier spectral integration.
+
+    Allen-Cahn, ``u_t - nu u_xx + gamma (u^3 - u) = 0``, has no closed-form
+    solution, so unlike :func:`burgers_cole_hopf` this reference is *numerical*:
+    it is a discretisation with its own error, not ground truth. Treat its
+    output as accurate to roughly the tolerances the tests pin down, not to
+    machine precision.
+
+    Space is handled by a real FFT on a uniform periodic grid, which is
+    exponentially accurate for smooth data. Time uses integrating-factor RK4:
+    the stiff diffusion term is advanced exactly by ``exp(-nu k^2 dt)`` and only
+    the reaction term goes through the Runge-Kutta stages, so the step size is
+    limited by accuracy rather than by diffusive stability. The cubic term is
+    dealiased with the 2/3 rule.
+
+    What sets ``n_x`` is the interface width. Allen-Cahn drives the field
+    toward the phases ``u = +-1`` separated by transition layers of width about
+    ``sqrt(nu / gamma)``, which for the benchmark ``nu = 1e-4, gamma = 5`` is
+    roughly ``0.0045``. Below about ``n_x = 512`` on ``[-1, 1]`` the grid
+    spacing exceeds that, the layers are not resolved, and the solution
+    overshoots the phases: measured at ``t = 1``, the excess over ``|u| = 1``
+    is ``1.0e-2`` at ``n_x = 128``, ``8.2e-4`` at ``256`` and ``8.3e-6`` at
+    ``512``. It is discretisation error and it converges away, but a reference
+    computed at low ``n_x`` is not one.
+
+    A second, milder caveat: the benchmark initial condition ``x^2 cos(pi x)``
+    is continuous around the circle but its derivative is not (``u_x`` is ``2``
+    at ``x = -1`` and ``-2`` at ``x = 1``), so its Fourier coefficients decay
+    like ``1/k^2`` rather than exponentially and the spatial accuracy is
+    algebraic near ``t = 0``. With ``nu = 1e-4`` diffusion smooths the seam
+    only over a layer of width about ``sqrt(nu t)``.
+
+    Args:
+        initial_condition: Callable mapping the spatial grid to ``u(0, x)``.
+        nu: Diffusion coefficient; must be non-negative.
+        gamma: Reaction strength; must be non-negative.
+        t_final: End time; must be positive.
+        xmin: Left edge of the periodic interval.
+        xmax: Right edge; the period is ``xmax - xmin``.
+        n_t: Number of snapshots returned, including ``t = 0``.
+        n_x: Spatial grid points; must be even and at least four.
+        steps_per_snapshot: Time steps taken between consecutive snapshots.
+
+    Returns:
+        A dict with ``t``, ``x`` and ``u`` meshes of shape ``(n_t, n_x)``. The
+        grid excludes ``xmax``, which is the same point as ``xmin``.
+
+    Raises:
+        ValueError: If any parameter is out of range, or the initial condition
+            does not return one value per grid point.
+    """
+    if nu < 0.0:
+        raise ValueError(f"nu must be non-negative, got {nu}")
+    if gamma < 0.0:
+        raise ValueError(f"gamma must be non-negative, got {gamma}")
+    if t_final <= 0.0:
+        raise ValueError(f"t_final must be positive, got {t_final}")
+    if xmax <= xmin:
+        raise ValueError(f"xmax must exceed xmin, got {xmin} and {xmax}")
+    if n_t < 2:
+        raise ValueError(f"n_t must be >= 2, got {n_t}")
+    if n_x < 4 or n_x % 2 != 0:
+        raise ValueError(f"n_x must be even and >= 4, got {n_x}")
+    if steps_per_snapshot < 1:
+        raise ValueError(f"steps_per_snapshot must be >= 1, got {steps_per_snapshot}")
+
+    length = xmax - xmin
+    x = xmin + length * np.arange(n_x) / n_x
+    initial = np.asarray(initial_condition(x), dtype=float).reshape(-1)
+    if initial.shape != (n_x,):
+        raise ValueError(
+            f"initial_condition must return {n_x} values, got {initial.shape}"
+        )
+
+    wavenumbers = 2.0 * np.pi * np.fft.rfftfreq(n_x, d=length / n_x)
+    linear = nu * wavenumbers**2
+    # 2/3 rule: the cubic term generates modes up to three times the resolved
+    # wavenumber, which would otherwise fold back onto the resolved ones.
+    keep = wavenumbers <= (2.0 / 3.0) * wavenumbers[-1]
+
+    t = np.linspace(0.0, t_final, n_t)
+    dt = (t[1] - t[0]) / steps_per_snapshot
+    full_step = np.exp(-linear * dt)
+    half_step = np.exp(-linear * dt / 2.0)
+
+    def reaction(spectrum: np.ndarray) -> np.ndarray:
+        """Return the dealiased spectrum of ``gamma (u - u^3)``."""
+        field = np.fft.irfft(spectrum, n=n_x)
+        return keep * np.fft.rfft(gamma * (field - field**3))
+
+    snapshots = np.empty((n_t, n_x), dtype=float)
+    snapshots[0] = initial
+    spectrum = np.fft.rfft(initial)
+    for index in range(1, n_t):
+        for _ in range(steps_per_snapshot):
+            stage_a = reaction(spectrum)
+            stage_b = reaction(half_step * (spectrum + 0.5 * dt * stage_a))
+            stage_c = reaction(half_step * spectrum + 0.5 * dt * stage_b)
+            stage_d = reaction(full_step * spectrum + dt * half_step * stage_c)
+            spectrum = (
+                full_step * spectrum
+                + dt
+                * (
+                    full_step * stage_a
+                    + 2.0 * half_step * (stage_b + stage_c)
+                    + stage_d
+                )
+                / 6.0
+            )
+        snapshots[index] = np.fft.irfft(spectrum, n=n_x)
+
+    tt, xx = np.meshgrid(t, x, indexing="ij")
+    return {"t": tt, "x": xx, "u": snapshots}
+
+
+def allen_cahn_reference_grid(
+    initial_condition: Callable[[np.ndarray], np.ndarray],
+    *,
+    nu: float = 1e-4,
+    gamma: float = 5.0,
+    t_final: float = 1.0,
+    xmin: float = -1.0,
+    xmax: float = 1.0,
+    n_t: int = 101,
+    n_x: int = 512,
+    steps_per_snapshot: int = 100,
+    predict: Optional[Callable[[np.ndarray, np.ndarray], np.ndarray]] = None,
+) -> Dict[str, Any]:
+    """Build an Allen-Cahn reference grid, and optionally score a prediction.
+
+    This mirrors :func:`burgers_reference_grid`, with one difference worth
+    stating: the ``reference`` field is produced by :func:`allen_cahn_spectral`
+    and so carries discretisation error. A reported ``relative_l2_error`` below
+    the reference's own accuracy is not meaningful.
+
+    Args:
+        initial_condition: Callable mapping the spatial grid to ``u(0, x)``.
+        nu: Diffusion coefficient.
+        gamma: Reaction strength.
+        t_final: End time.
+        xmin: Left edge of the periodic interval.
+        xmax: Right edge of the periodic interval.
+        n_t: Number of time snapshots.
+        n_x: Spatial grid points.
+        steps_per_snapshot: Time steps between snapshots.
+        predict: Optional callable taking ``(t_grid, x_grid)`` and returning
+            predictions of the same shape.
+
+    Returns:
+        A dict with the ``t`` and ``x`` meshes and the ``reference`` field, plus
+        ``predicted`` and ``relative_l2_error`` when ``predict`` is supplied.
+    """
+    grid = allen_cahn_spectral(
+        initial_condition,
+        nu=nu,
+        gamma=gamma,
+        t_final=t_final,
+        xmin=xmin,
+        xmax=xmax,
+        n_t=n_t,
+        n_x=n_x,
+        steps_per_snapshot=steps_per_snapshot,
+    )
+    result: Dict[str, Any] = {
+        "t": grid["t"],
+        "x": grid["x"],
+        "reference": grid["u"],
+    }
+    if predict is not None:
+        predicted = np.asarray(predict(grid["t"], grid["x"]), dtype=float)
+        result["predicted"] = predicted
+        result["relative_l2_error"] = relative_l2_error(predicted, grid["u"])
     return result

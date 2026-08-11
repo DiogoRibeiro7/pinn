@@ -228,17 +228,53 @@ class NeumannBoundary(SoftPointConstraint):
 
 @dataclass(frozen=True)
 class PeriodicBoundary:
-    """Soft periodic constraint matching opposite faces of one coordinate."""
+    """Soft periodic constraint matching opposite faces of one coordinate.
+
+    With ``derivative_order=0`` the two faces are matched by value, which is
+    what most periodic problems need. Value matching alone does not make a
+    solution periodic, though: it admits a field with a kink at the seam. A
+    second instance with ``derivative_order=1`` matches the normal derivative
+    as well, which is what makes the pair equivalent to solving on a circle.
+    Allen-Cahn is the case in point -- see
+    :class:`~pinnlab.problems.AllenCahnProblem`.
+    """
 
     name: str
     periodic_dim: int
     kind: ConstraintKind = ConstraintKind.PERIODIC
     default_sample_count: int = 128
     output_index: int | None = None
+    derivative_order: int = 0
 
     def __post_init__(self) -> None:
-        """Validate sample count."""
+        """Validate sample count and derivative order."""
         validate_sample_count(self.default_sample_count)
+        if self.derivative_order not in (0, 1):
+            raise ValueError(
+                f"derivative_order must be 0 or 1, got {self.derivative_order}"
+            )
+
+    def _face_values(
+        self,
+        model: nn.Module,
+        coordinates: Tensor,
+        derivative_backend: DerivativeBackend,
+    ) -> Tensor:
+        """Return the model output, or its normal derivative, on one face."""
+        if self.derivative_order == 0:
+            outputs = model(coordinates)
+            if self.output_index is not None:
+                return outputs[:, [self.output_index]]
+            return outputs
+        coords = coordinates.clone().detach().requires_grad_(True)
+        outputs = model(coords)
+        return derivative_backend.partial_derivative(
+            outputs,
+            coords,
+            output_index=self.output_index or 0,
+            coordinate_index=self.periodic_dim,
+            order=1,
+        )
 
     def loss(
         self,
@@ -251,8 +287,7 @@ class PeriodicBoundary:
         device: torch.device | str | None = None,
         dtype: torch.dtype | None = None,
     ) -> ConstraintLoss:
-        """Evaluate value matching between lower and upper periodic faces."""
-        del derivative_backend
+        """Match values, or normal derivatives, across the periodic faces."""
         count = n_samples if n_samples is not None else self.default_sample_count
         validate_sample_count(count)
         lower = geometry.sample_boundary(
@@ -268,9 +303,6 @@ class PeriodicBoundary:
             self.periodic_dim
         ]
         upper[:, self.periodic_dim] = upper_bound
-        pred_lower = model(lower)
-        pred_upper = model(upper)
-        if self.output_index is not None:
-            pred_lower = pred_lower[:, [self.output_index]]
-            pred_upper = pred_upper[:, [self.output_index]]
+        pred_lower = self._face_values(model, lower, derivative_backend)
+        pred_upper = self._face_values(model, upper, derivative_backend)
         return ConstraintLoss(self.name, torch.mean((pred_lower - pred_upper) ** 2))

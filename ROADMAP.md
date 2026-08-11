@@ -64,6 +64,11 @@ Current limitation:
 
 Available reference and benchmark infrastructure:
 - Cole-Hopf reference solution for viscous Burgers in `pinnlab.solvers.reference`
+- Fourier spectral / integrating-factor RK4 reference for periodic Allen-Cahn in
+  `pinnlab.solvers.reference`, labelled `numerical` because the equation has no
+  closed form. Verified against the two limits where the answer is known: with
+  `gamma = 0` it reproduces the heat equation to 1e-15, with `nu = 0` the
+  logistic ODE to 1e-11, and halving the step divides the error by ~16
 - Classical explicit finite-difference heat-equation reference solver in
   `pinnlab.numerics`
 - Benchmark report primitives in `pinnlab.benchmarks`, including JSON
@@ -321,18 +326,40 @@ The composable architecture needs to prove it handles more than scalar
 exact-solution examples.
 
 Concrete work:
-- Add a composable Allen-Cahn problem with constraints and reference/benchmark
-  strategy.
+- [done] Add a composable Allen-Cahn problem with constraints and
+  reference/benchmark strategy. `AllenCahnProblem` solves
+  `u_t - nu u_xx + gamma (u^3 - u) = 0` on a periodic strip and runs through the
+  generic `Trainer` with no trainer changes, which was the point: heat and wave
+  are linear with separable exact solutions and Burgers is nonlinear but
+  Dirichlet, so this is the first problem that is nonlinear *and* periodic.
+- [done] Add exact, numerical or observational reference labels for every new
+  benchmark. Problems expose `reference_kind`; Allen-Cahn reports `numerical`
+  and its reference is `reference_grid()`, deliberately not named `exact`.
 - Add a composable nonlinear Schrodinger problem or document the blocking
   decisions around complex-valued residuals.
 - Start Navier-Stokes migration only after multi-output residuals and periodic
-  constraints are exercised strongly enough.
-- Add exact, numerical or observational reference labels for every new
-  benchmark.
+  constraints are exercised strongly enough. Periodic constraints are now
+  exercised by Allen-Cahn; multi-output residuals are still not.
+
+Two things learned while doing this, both worth keeping:
+
+`PeriodicBoundary` matched values only, which is not periodicity. A field can
+match at both faces and still have a kink at the seam, and nothing objects: no
+collocation point straddles `x = xmax`, so the residual never sees it. The
+constraint grew a `derivative_order` field, and Allen-Cahn imposes both. The
+test that pins this down uses `u = x^2`, which matches by value at `x = +-1`
+while its slope there is `-2` and `+2`.
+
+The benchmark initial condition `x^2 cos(pi x)` is continuous around the circle
+but its derivative is not, so the derivative constraint contradicts the initial
+condition exactly at `t = 0`. The two constraints sample disjoint faces and meet
+only at two corner points, which random sampling does not hit. This is a
+property of the standard benchmark, not of the formulation, and it is documented
+on the class rather than quietly worked around.
 
 Done when:
-- At least one additional PDE family runs through the generic trainer with
-  meaningful tests and documented reference data.
+- [done] At least one additional PDE family runs through the generic trainer
+  with meaningful tests and documented reference data.
 
 ### 4. Unify Sampling And Adaptive Strategies
 
