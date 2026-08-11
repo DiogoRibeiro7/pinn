@@ -196,17 +196,21 @@
         <span class="n">correlation</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">abs_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">eps</span> <span class="k">else</span> <span class="mf">0.0</span>
         <span class="n">r2_score</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">abs_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">eps</span> <span class="k">else</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
+    <span class="c1"># Converted at the boundary: these are numpy scalars, and ErrorMetrics</span>
+    <span class="c1"># declares plain floats. Whether a given numpy version&#39;s stubs happen to</span>
+    <span class="c1"># call the result `float` or `floating[Any]` varies, so relying on it made</span>
+    <span class="c1"># the type check pass locally and fail in CI.</span>
     <span class="k">return</span> <span class="n">ErrorMetrics</span><span class="p">(</span>
-        <span class="n">mae</span><span class="o">=</span><span class="n">mae</span><span class="p">,</span>
-        <span class="n">mse</span><span class="o">=</span><span class="n">mse</span><span class="p">,</span>
-        <span class="n">rmse</span><span class="o">=</span><span class="n">rmse</span><span class="p">,</span>
-        <span class="n">max_error</span><span class="o">=</span><span class="n">max_error</span><span class="p">,</span>
-        <span class="n">relative_mae</span><span class="o">=</span><span class="n">relative_mae</span><span class="p">,</span>
-        <span class="n">relative_rmse</span><span class="o">=</span><span class="n">relative_rmse</span><span class="p">,</span>
-        <span class="n">l2_norm</span><span class="o">=</span><span class="n">l2_norm</span><span class="p">,</span>
-        <span class="n">l_inf_norm</span><span class="o">=</span><span class="n">l_inf_norm</span><span class="p">,</span>
-        <span class="n">correlation</span><span class="o">=</span><span class="n">correlation</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">correlation</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">r2_score</span><span class="o">=</span><span class="n">r2_score</span><span class="p">,</span>
+        <span class="n">mae</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">mae</span><span class="p">),</span>
+        <span class="n">mse</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">mse</span><span class="p">),</span>
+        <span class="n">rmse</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">rmse</span><span class="p">),</span>
+        <span class="n">max_error</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">max_error</span><span class="p">),</span>
+        <span class="n">relative_mae</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">relative_mae</span><span class="p">),</span>
+        <span class="n">relative_rmse</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">relative_rmse</span><span class="p">),</span>
+        <span class="n">l2_norm</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">l2_norm</span><span class="p">),</span>
+        <span class="n">l_inf_norm</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">l_inf_norm</span><span class="p">),</span>
+        <span class="n">correlation</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">correlation</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">correlation</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">r2_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">r2_score</span><span class="p">),</span>
     <span class="p">)</span></div>
 
 
@@ -275,9 +279,9 @@
         <span class="n">residual_magnitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residuals</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">PhysicsMetrics</span><span class="p">(</span>
-        <span class="n">mean_residual</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">),</span>
-        <span class="n">max_residual</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">),</span>
-        <span class="n">residual_std</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">),</span>
+        <span class="n">mean_residual</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">)),</span>
+        <span class="n">max_residual</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">)),</span>
+        <span class="n">residual_std</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">residual_magnitudes</span><span class="p">)),</span>
     <span class="p">)</span>
 
 
