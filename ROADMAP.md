@@ -455,13 +455,25 @@ Concrete work:
   the same commit. It is deliberately not a wildcard, which would silently
   exempt new files as well.
 
-  Started at 27 modules and 93 errors on 2026-08-11; 22 remain. Three of the
+  Started at 27 modules and 93 errors on 2026-08-11; 21 remain. Three of the
   first five fixes were real defects rather than annotation noise: an
   unguarded `Optional` dereference of `.grad` in adversarial training, a
   `len()` call on a declared `Iterable` in meta-learning that crashes on a
   generator after doing all the inner training work, and a base class reading
-  an attribute only its subclasses define. The heaviest remaining modules are
-  `solvers.raissi_improved` (15), `training.adaptive_weighting` (9),
+  an attribute only its subclasses define.
+
+  `solvers.raissi_improved`, the heaviest at 15 errors, was worth the whole
+  exercise on its own. One of its errors was a latent crash — a smoothness
+  term initialised to `0.0` and only promoted to a tensor inside a loop that a
+  one-stage tableau skips, so `.item()` hit a bare float. Chasing it revealed
+  that `DiscreteRKPINN.train_one_step` had never worked at all:
+  `_compute_derivatives` detached its coordinate tensor *after* the prediction
+  was computed from it, so autograd could not find it in the graph and every
+  call raised. The class was in the public API with only an importability
+  test, which is how a solver that could not take a step went unnoticed. Both
+  are fixed and covered by `tests/unit/test_discrete_rk_solver.py`.
+
+  The heaviest remaining modules are `training.adaptive_weighting` (9),
   `models.multiscale` (8) and `utils.visualization` (7).
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
