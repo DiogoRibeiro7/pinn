@@ -130,7 +130,7 @@ class BaseConfig(ABC):
 
 
 @dataclass(frozen=True)
-class OptimizerConfig:
+class OptimizerConfig(BaseConfig):
     """Configuration for optimizer settings."""
 
     # Adam optimizer settings
@@ -180,7 +180,7 @@ class OptimizerConfig:
 
 
 @dataclass(frozen=True)
-class SamplingConfig:
+class SamplingConfig(BaseConfig):
     """Configuration for sampling strategies."""
 
     # Collocation points
@@ -241,7 +241,7 @@ class SamplingConfig:
 
 
 @dataclass(frozen=True)
-class LossConfig:
+class LossConfig(BaseConfig):
     """Configuration for loss function weights and settings."""
 
     # Loss weights

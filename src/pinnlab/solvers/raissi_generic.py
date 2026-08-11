@@ -229,7 +229,7 @@ class ContinuousPINNGeneric:
         callbacks = list(callbacks or [])
         if checkpoint_manager and resume:
             try:
-                _, opt, start_step, _ = checkpoint_manager.load_latest(self.model, opt)
+                _, _, start_step, _ = checkpoint_manager.load_latest(self.model, opt)
                 start_step += 1
             except FileNotFoundError:
                 start_step = 1
@@ -284,7 +284,11 @@ class ContinuousPINNGeneric:
                 cb(step, {"loss": loss_value})
 
         # Optional L-BFGS
-        self.last_loss_weights = tuple(float(v) for v in weights_vector)
+        self.last_loss_weights = (
+            float(weights_vector[0]),
+            float(weights_vector[1]),
+            float(weights_vector[2]),
+        )
         if adaptive_manager is not None:
             self.adaptive_weight_history = [
                 list(w) for w in adaptive_manager.weight_history
@@ -293,7 +297,7 @@ class ContinuousPINNGeneric:
             logger.info("Adaptive weighting summary", extra=analyzer.summary())
             if weight_visualizer is not None:
                 payload = weight_visualizer.create_payload(
-                    adaptive_manager.weight_history,
+                    [list(map(float, w)) for w in adaptive_manager.weight_history],
                     adaptive_manager.loss_history.get("total"),
                 )
                 if isinstance(payload, dict):

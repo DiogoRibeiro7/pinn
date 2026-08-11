@@ -447,16 +447,14 @@ allowing drift.
 Concrete work:
 - Fix Sphinx warning debt so documentation can eventually build with warnings
   as errors.
-- Burn down the mypy backlog. The type check is now **blocking** in CI. The
-  modules that still carry errors are listed explicitly, one per line, under
-  `[[tool.mypy.overrides]]` in `pyproject.toml`; everything else must stay
-  clean, so new code cannot introduce type errors and a cleaned module cannot
-  regress. The list only shrinks: removing an entry means fixing that module in
-  the same commit. It is deliberately not a wildcard, which would silently
-  exempt new files as well.
+- ✅ Burn down the mypy backlog. **Done.** The type check is blocking in CI and
+  there are no exemptions left: 27 modules and 93 errors on 2026-08-11 to zero
+  on the same day. The `[[tool.mypy.overrides]]` block has been deleted rather
+  than left empty. Verified by injecting a type error into a
+  previously-exempt module and confirming the check fails.
 
-  Started at 27 modules and 93 errors on 2026-08-11; 21 remain. Three of the
-  first five fixes were real defects rather than annotation noise: an
+  It was worth doing for the defects it surfaced, not for the clean run. Three
+  of the first five fixes were real: an
   unguarded `Optional` dereference of `.grad` in adversarial training, a
   `len()` call on a declared `Iterable` in meta-learning that crashes on a
   generator after doing all the inner training work, and a base class reading
@@ -493,10 +491,22 @@ Concrete work:
   dropout, which calls `model.train()`, failing as an `AttributeError` inside
   the uncertainty helper rather than saying what was wrong.
 
-  16 modules and 36 errors remain, measured rather than estimated. The heaviest
-  is `solvers.raissi` at five, then a long tail of three or fewer. The work is
-  spread thin rather than concentrated, so the block can plausibly be emptied
-  and deleted outright.
+  The last stretch found one more crash. `PINNConfig.validate()` raised
+  `AttributeError` on the *default* config, because `OptimizerConfig`,
+  `SamplingConfig` and `LossConfig` never inherited `BaseConfig` — the only
+  three config classes in the module that did not. Each already defined
+  `_validate_implementation`, so their validation logic existed and had never
+  been reachable. Fixing the inheritance revives it: bad learning rates, betas,
+  collocation counts and loss weights are now rejected with `ConfigError`
+  instead of being accepted silently.
+
+  Two lessons recorded rather than the count. Local mypy is not authoritative
+  for numpy scalars: `np.linalg.norm` flowing into a `float` field passed here
+  on numpy 2.3.5 and failed in CI, and clearing the cache did not reproduce it,
+  so conversions now happen at dataclass boundaries. And a `# type: ignore`
+  with the wrong error code suppresses nothing — assigning `None` over a class
+  name is `[misc]`, not `[assignment]`, which several optional-import guards
+  had wrong.
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
 - Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
@@ -506,8 +516,8 @@ Concrete work:
   shadow imports.
 
 Done when:
-- Type checking can move from `continue-on-error: true` to blocking for at
-  least the composable core packages.
+- ✅ Type checking moved from `continue-on-error: true` to blocking. It now
+  covers every module under `src/`, not just the composable core.
 - Documentation warning count trends down and is tracked.
 
 ---

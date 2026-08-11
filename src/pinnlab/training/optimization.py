@@ -43,9 +43,14 @@ def gradient_hyperparam_search(
 
     loss = loss_fn(param)
     loss.backward()
+    gradient = param.grad
+    if gradient is None:
+        # Otherwise this fails as `unsupported operand float * None`,
+        # which says nothing about the actual mistake.
+        raise ValueError("loss_fn must depend on param: backward produced no gradient")
     with torch.no_grad():
-        param -= lr * param.grad
-    param.grad.zero_()
+        param.sub_(lr * gradient)
+    gradient.zero_()
 
 
 def architecture_search(

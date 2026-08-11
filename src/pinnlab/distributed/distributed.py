@@ -194,8 +194,11 @@ class DistributedPINNTrainer(DistributedTrainer):
         params = dict(target.named_parameters())
         for gradients in self.async_buffer.pop_all():
             for name, grad in gradients.items():
-                if name in params and params[name].grad is not None:
-                    params[name].grad.add_(grad.to(params[name].grad.device))
+                if name not in params:
+                    continue
+                existing = params[name].grad
+                if existing is not None:
+                    existing.add_(grad.to(existing.device))
         self.synchronize_gradients(target)
 
     # ----------------------------------------------------------- fault tolerance

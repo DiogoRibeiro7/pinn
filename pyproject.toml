@@ -103,27 +103,14 @@ ignore_missing_imports = true
 
 # flake8 configuration lives in .flake8 — flake8 cannot read pyproject.toml.
 
-# Type-check backlog: 22 modules remaining, down from 27 (93 errors) on
-# 2026-08-11.
+# There is no type-check backlog. Every module under src/ passes mypy, and the
+# check is blocking in CI, so new code cannot introduce type errors.
 #
-# The type check is blocking in CI, so any module NOT listed here must stay
-# clean: new code cannot add type errors, and a module cannot regress once it
-# leaves this list. The list only shrinks. Removing an entry means fixing that
-# module's errors in the same commit, which is why it is written out one module
-# per line rather than as a wildcard -- a pattern would silently re-exempt new
-# files.
-#
-# Do not add to this list. If a change would need a new entry, the change
-# should carry the fix instead.
-[[tool.mypy.overrides]]
-module = [
-    "pinnlab",
-    "pinnlab.config.management",
-    "pinnlab.distributed.distributed",
-    "pinnlab.solvers.raissi_generic",
-    "pinnlab.training.optimization",
-]
-ignore_errors = true
+# This block used to carry an explicit exemption list -- 27 modules and 93
+# errors on 2026-08-11 -- written one module per line rather than as a wildcard
+# so a pattern could not silently re-exempt new files. It is now empty and has
+# been removed. If a change would need it back, the change should carry the fix
+# instead.
 
 [tool.bandit]
 exclude = ["tests"]

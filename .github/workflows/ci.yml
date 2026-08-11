@@ -28,10 +28,8 @@ jobs:
       - run: black --check .
       - run: flake8 .
       - run: bandit -r src -ll
-      # Blocking. The 27 modules that still carry type errors are listed
-      # explicitly under [[tool.mypy.overrides]] in pyproject.toml, so every
-      # other module must stay clean and new code cannot introduce errors. That
-      # list only shrinks; see ROADMAP.md.
+      # Blocking, with no exemptions: every module under src/ type-checks.
+      # The [[tool.mypy.overrides]] backlog this used to reference is gone.
       - run: mypy src
 
   metadata:
