@@ -509,8 +509,13 @@ Concrete work:
   had wrong.
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
-- Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
-  change.
+- ✅ Raise `--cov-fail-under` only after meaningful tests land, not as a
+  cosmetic change. Raised 58 to 64 on 2026-08-11, after the Allen-Cahn and
+  discrete-RK suites added 63 tests. Measured before moving it: 65.93% in CI,
+  66.50% locally. CI reports an identical figure on all six matrix cells, so
+  the ~2 points of headroom cover future drift rather than platform variation,
+  of which there is none. Worth noting the direction, since the previous
+  comment here assumed the opposite: CI measures slightly *below* local.
 - Add CI jobs that execute examples and selected notebooks.
 - Keep tests pointed at production implementations, not local test doubles that
   shadow imports.
