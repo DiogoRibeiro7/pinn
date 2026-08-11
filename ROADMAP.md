@@ -445,8 +445,29 @@ The project has enough surface area now that soft quality checks will keep
 allowing drift.
 
 Concrete work:
-- Fix Sphinx warning debt so documentation can eventually build with warnings
-  as errors.
+- ✅ Fix Sphinx warning debt so documentation builds with warnings as errors.
+  `sphinx-build -W` is now blocking in the Docs workflow and the build is at
+  zero warnings, down from 64.
+
+  All 64 had one cause, and it was not the one the count suggested. Every
+  warning was a duplicate object description, and a single `automodule`
+  directive reproduced 18 of them on its own: any class with a numpydoc
+  `Attributes` section has each attribute described twice under the same name,
+  once by napoleon and once by autodoc's `:undoc-members:`. `napoleon_use_ivar
+  = True` renders those as `:ivar:` fields inside the class body instead. The
+  alternative, dropping `:undoc-members:`, also silences them but hides
+  genuinely undocumented API.
+
+  The API reference was restructured in the same pass, and that is the larger
+  win: it documented the top-level package plus five modules, and now documents
+  all twenty subpackages, each once at its own path.
+
+  Follow-up, measured rather than guessed: `nitpicky = True` would add 670
+  warnings, almost all unresolvable references to `torch` and `numpy` types.
+  Closing that needs `intersphinx_mapping` for both plus a `nitpick_ignore`
+  list, not docstring edits. Until then broken `:class:` cross-references fail
+  silently -- `-W` does not catch them, which a first probe here wrongly
+  assumed it would.
 - ✅ Burn down the mypy backlog. **Done.** The type check is blocking in CI and
   there are no exemptions left: 27 modules and 93 errors on 2026-08-11 to zero
   on the same day. The `[[tool.mypy.overrides]]` block has been deleted rather
@@ -523,7 +544,8 @@ Concrete work:
 Done when:
 - ✅ Type checking moved from `continue-on-error: true` to blocking. It now
   covers every module under `src/`, not just the composable core.
-- Documentation warning count trends down and is tracked.
+- ✅ Documentation warning count trends down and is tracked. It is zero, and
+  `-W` keeps it there.
 
 ---
 
