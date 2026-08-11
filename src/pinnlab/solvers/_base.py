@@ -34,6 +34,11 @@ __all__ = ["Domain1D", "TrainConfig", "ExactlySolvablePINN", "gradient"]
 def gradient(outputs: Tensor, inputs: Tensor) -> Tensor:
     """Differentiate ``outputs`` with respect to ``inputs``, keeping the graph.
 
+    Retained for callers who imported it, though nothing in the package uses
+    it now: the equations are differentiated through
+    :class:`~pinnlab.residuals.AutogradDerivativeBackend`, which the problems
+    use, so derivative handling lives in one place.
+
     Args:
         outputs: Tensor produced from ``inputs``.
         inputs: Tensor with ``requires_grad=True``.
@@ -157,6 +162,21 @@ class ExactlySolvablePINN(ABC):
         one place.
         """
         raise NotImplementedError
+
+    def _problem_residual(self, t: Tensor, x: Tensor) -> Tensor:
+        """Evaluate the composable problem's residual on column coordinates.
+
+        Keeps a single definition of each equation. The wrapper exposes
+        ``residual(t, x)`` for direct use and testing, while the problem holds
+        the physics that training actually optimises; without this adapter the
+        two could drift apart and only one of them would be under test.
+        """
+        from ..residuals import AutogradDerivativeBackend
+
+        coordinates = torch.cat([t, x], dim=1).detach().requires_grad_(True)
+        return self.composable_problem().strong_residual(
+            self.model, coordinates, AutogradDerivativeBackend()
+        )
 
     def _require_composable_domain(self) -> None:
         """Reject a domain the composable problem cannot represent.

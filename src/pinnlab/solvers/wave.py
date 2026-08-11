@@ -30,7 +30,7 @@ import torch
 from torch import Tensor, nn
 
 from ..utils.logging import get_logger
-from ._base import Domain1D, ExactlySolvablePINN, TrainConfig, gradient
+from ._base import Domain1D, ExactlySolvablePINN, TrainConfig
 
 logger = get_logger(__name__)
 
@@ -148,13 +148,13 @@ class WavePINN(ExactlySolvablePINN):
         return WaveProblem(self.config, t_final=self.domain.tmax)
 
     def residual(self, t: Tensor, x: Tensor) -> Tensor:
-        """Return ``u_tt - c^2 * u_xx`` at the given points."""
-        u = self.model(torch.cat([t, x], dim=1))
-        u_t = gradient(u, t)
-        u_tt = gradient(u_t, t)
-        u_x = gradient(u, x)
-        u_xx = gradient(u_x, x)
-        return u_tt - self.config.c**2 * u_xx
+        """Return ``u_tt - c^2 * u_xx`` at the given points.
+
+        Defined once by :class:`~pinnlab.problems.WaveProblem`; this adapts the
+        calling convention only. See :meth:`HeatPINN.residual` for the note on
+        where gradients flow.
+        """
+        return self._problem_residual(t, x)
 
     def initial_condition(self, x: np.ndarray) -> np.ndarray:
         """Return the initial displacement."""

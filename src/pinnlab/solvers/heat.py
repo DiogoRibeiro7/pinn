@@ -27,7 +27,7 @@ import torch
 from torch import Tensor, nn
 
 from ..utils.logging import get_logger
-from ._base import Domain1D, ExactlySolvablePINN, TrainConfig, gradient
+from ._base import Domain1D, ExactlySolvablePINN, TrainConfig
 
 logger = get_logger(__name__)
 
@@ -140,12 +140,18 @@ class HeatPINN(ExactlySolvablePINN):
         return HeatProblem(self.config, t_final=self.domain.tmax)
 
     def residual(self, t: Tensor, x: Tensor) -> Tensor:
-        """Return ``u_t - alpha * u_xx`` at the given points."""
-        u = self.model(torch.cat([t, x], dim=1))
-        u_t = gradient(u, t)
-        u_x = gradient(u, x)
-        u_xx = gradient(u_x, x)
-        return u_t - self.config.alpha * u_xx
+        """Return ``u_t - alpha * u_xx`` at the given points.
+
+        The physics is defined once, by
+        :class:`~pinnlab.problems.HeatProblem`; this only adapts the calling
+        convention, since the wrapper takes ``t`` and ``x`` as separate columns
+        while the problem takes a single ``(N, 2)`` coordinate tensor.
+
+        Gradients flow to the coordinates the problem differentiates, not to
+        the ``t`` and ``x`` passed in, so use the returned values rather than
+        backpropagating into the arguments.
+        """
+        return self._problem_residual(t, x)
 
     def initial_condition(self, x: np.ndarray) -> np.ndarray:
         """Return the sine-series initial temperature profile."""
