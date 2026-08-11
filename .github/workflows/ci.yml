@@ -28,12 +28,11 @@ jobs:
       - run: black --check .
       - run: flake8 .
       - run: bandit -r src -ll
-      # mypy reports 91 pre-existing errors across 25 modules. It runs for
-      # visibility but does not gate the build yet; see ROADMAP.md. Flip this
-      # to a blocking step once the backlog is cleared.
-      - name: Type-check (non-blocking)
-        run: mypy src
-        continue-on-error: true
+      # Blocking. The 27 modules that still carry type errors are listed
+      # explicitly under [[tool.mypy.overrides]] in pyproject.toml, so every
+      # other module must stay clean and new code cannot introduce errors. That
+      # list only shrinks; see ROADMAP.md.
+      - run: mypy src
 
   metadata:
     name: Validate citation metadata

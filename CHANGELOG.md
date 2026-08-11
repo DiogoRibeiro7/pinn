@@ -10,6 +10,11 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ### Changed
 
+- The CI type check is blocking. Modules that still carry type errors are
+  listed explicitly in `pyproject.toml`, so every other module is checked for
+  real and new code cannot add errors. The list started at 27 modules and 93
+  errors and only shrinks; 22 remain.
+
 - Accuracy figures are reported as a median over seeds rather than a single
   run. Measured over five seeds at the notebook's budget, the single-mode heat
   problem has a median relative L2 error of 7.3e-4 spanning 3.6e-4 to 9.6e-4,
@@ -51,6 +56,16 @@ tag, publish the GitHub release, and — if desired — build and upload with
   draws rather than typical results.
 
 ### Fixed
+
+- Adversarial training no longer crashes when no gradient reaches its input.
+  `adversarial_training_step` dereferenced `x_adv.grad.sign()` where `.grad` is
+  `Optional`, so an input the loss did not depend on raised `AttributeError`
+  mid-training; it now raises a message that says what went wrong.
+- `meta_learning_step` accepts a generator. It declared `task_batch` as an
+  `Iterable` and then called `len()` on it, which raises `TypeError` for any
+  iterator -- after every inner training loop had already run. The batch is now
+  counted while iterating, and an empty batch leaves the model unchanged
+  instead of dividing by zero.
 
 - L-BFGS is far more effective in the composable `Trainer`. Its closure
   resampled collocation and constraint points on every evaluation, so the

@@ -186,7 +186,8 @@ class ExactlySolvablePINN(ABC):
         constructed on a shifted or rescaled domain would otherwise be trained
         against a different region than it reports, silently.
         """
-        length = getattr(self.config, "length", None)
+        config = getattr(self, "config", None)
+        length = getattr(config, "length", None)
         if (
             self.domain.tmin != 0.0
             or self.domain.xmin != 0.0

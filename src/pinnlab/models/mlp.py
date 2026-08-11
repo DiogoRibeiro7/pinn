@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, cast
 
 from torch import nn, Tensor
 
@@ -47,5 +47,6 @@ class MLP(nn.Module):
             nn.init.zeros_(m.bias)
 
     def forward(self, tx: Tensor) -> Tensor:
-        check_array("tx", tx, shape=(-1, self.net[0].in_features), strict=False)
+        first_layer = cast(nn.Linear, self.net[0])
+        check_array("tx", tx, shape=(-1, first_layer.in_features), strict=False)
         return self.net(tx)

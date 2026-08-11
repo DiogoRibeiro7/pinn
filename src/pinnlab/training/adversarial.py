@@ -32,6 +32,8 @@ def adversarial_training_step(
     pred = model(x_adv)
     loss = loss_fn(pred, y)
     loss.backward()
+    if x_adv.grad is None:  # pragma: no cover - guards a real crash
+        raise RuntimeError("no gradient reached the input; the loss must depend on it")
     x_adv = x_adv + epsilon * x_adv.grad.sign()
     adv_pred = model(x_adv.detach())
     return adv_pred

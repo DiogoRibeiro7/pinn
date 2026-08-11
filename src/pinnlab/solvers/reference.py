@@ -8,7 +8,7 @@ relative L2 error.
 
 from __future__ import annotations
 
-from typing import Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 
@@ -170,7 +170,7 @@ def burgers_reference_grid(
     tt, xx = np.meshgrid(t, x, indexing="ij")
     exact = burgers_cole_hopf(tt, xx, nu, n_quad=n_quad)
 
-    result = {"t": tt, "x": xx, "exact": exact}
+    result: Dict[str, Any] = {"t": tt, "x": xx, "exact": exact}
     if predict is not None:
         predicted = np.asarray(predict(tt, xx), dtype=float)
         result["predicted"] = predicted

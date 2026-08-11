@@ -402,12 +402,22 @@ allowing drift.
 Concrete work:
 - Fix Sphinx warning debt so documentation can eventually build with warnings
   as errors.
-- Reduce the mypy backlog: 88 errors across 25 modules, measured 2026-08-10 with
-  `[tool.mypy] python_version = "3.12"`. Earlier counts recorded here were not
-  meaningful: with the previous `3.10` target mypy aborted on a PEP 695 `type`
-  statement in numpy's own stubs and checked *zero* source files, so the
-  `continue-on-error` type-check step in CI was reporting a single stub parse
-  error rather than anything about this codebase.
+- Burn down the mypy backlog. The type check is now **blocking** in CI. The
+  modules that still carry errors are listed explicitly, one per line, under
+  `[[tool.mypy.overrides]]` in `pyproject.toml`; everything else must stay
+  clean, so new code cannot introduce type errors and a cleaned module cannot
+  regress. The list only shrinks: removing an entry means fixing that module in
+  the same commit. It is deliberately not a wildcard, which would silently
+  exempt new files as well.
+
+  Started at 27 modules and 93 errors on 2026-08-11; 22 remain. Three of the
+  first five fixes were real defects rather than annotation noise: an
+  unguarded `Optional` dereference of `.grad` in adversarial training, a
+  `len()` call on a declared `Iterable` in meta-learning that crashes on a
+  generator after doing all the inner training work, and a base class reading
+  an attribute only its subclasses define. The heaviest remaining modules are
+  `solvers.raissi_improved` (15), `training.adaptive_weighting` (9),
+  `models.multiscale` (8) and `utils.visualization` (7).
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
 - Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
