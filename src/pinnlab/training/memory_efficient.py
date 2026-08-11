@@ -183,6 +183,7 @@ class MemoryEfficientPINN(ContinuousPINN):
             torch.cuda.synchronize(self.device)
             torch.cuda.reset_peak_memory_stats(self.device)
             self.model.zero_grad(set_to_none=True)
+            context: contextlib.AbstractContextManager
             if tcfg.use_mixed_precision:
                 dtype = self._resolve_amp_dtype(tcfg) or torch.float16
                 context = torch.cuda.amp.autocast(dtype=dtype)

@@ -327,7 +327,9 @@ class NavierStokesPINN:
         callbacks = list(callbacks or [])
         if checkpoint_manager and resume:
             try:
-                _, opt, start_step, _ = checkpoint_manager.load_latest(model, opt)
+                # load_latest populates the optimizer in place and hands
+                # back the same object, so there is nothing to reassign.
+                _, _, start_step, _ = checkpoint_manager.load_latest(model, opt)
                 start_step += 1
             except FileNotFoundError:
                 start_step = 1

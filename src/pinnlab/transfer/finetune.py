@@ -271,7 +271,9 @@ class TransferLearningPINN:
                 raise ValueError("Continual learning expects a 'target' tensor")
             loss = loss_fn(preds, target)
             if self._reference_params:
-                penalty = 0.0
+                # Tensor rather than 0.0: every parameter can be skipped
+                # by the guard below, leaving the accumulator a float.
+                penalty = torch.zeros((), device=loss.device, dtype=loss.dtype)
                 for name, param in self.base_model.named_parameters():
                     ref = self._reference_params.get(name)
                     fisher = self._fisher_information.get(name)

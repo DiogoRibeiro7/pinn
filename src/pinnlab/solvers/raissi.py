@@ -268,7 +268,9 @@ class ContinuousPINN:
         callbacks = list(callbacks or [])
         if checkpoint_manager and resume:
             try:
-                _, opt, start_step, _ = checkpoint_manager.load_latest(self.model, opt)
+                # load_latest populates the optimizer in place and hands
+                # back the same object, so there is nothing to reassign.
+                _, _, start_step, _ = checkpoint_manager.load_latest(self.model, opt)
                 start_step += 1
             except FileNotFoundError:
                 start_step = 1
@@ -323,7 +325,11 @@ class ContinuousPINN:
                 cb(step, {"loss": loss_value})
 
         # Optional L-BFGS polish
-        self.last_loss_weights = tuple(float(v) for v in weights_vector)
+        self.last_loss_weights = (
+            float(weights_vector[0]),
+            float(weights_vector[1]),
+            float(weights_vector[2]),
+        )
         if adaptive_manager is not None:
             self.adaptive_weight_history = [
                 list(w) for w in adaptive_manager.weight_history
@@ -332,7 +338,7 @@ class ContinuousPINN:
             logger.info("Adaptive weighting summary", extra=analyzer.summary())
             if weight_visualizer is not None:
                 payload = weight_visualizer.create_payload(
-                    adaptive_manager.weight_history,
+                    [list(map(float, w)) for w in adaptive_manager.weight_history],
                     adaptive_manager.loss_history.get("total"),
                 )
                 if isinstance(payload, dict):
@@ -527,7 +533,9 @@ class DiscreteRKPINN:
         start_step = 1
         if checkpoint_manager and resume:
             try:
-                _, opt, start_step, _ = checkpoint_manager.load_latest(self.net, opt)
+                # load_latest populates the optimizer in place and hands
+                # back the same object, so there is nothing to reassign.
+                _, _, start_step, _ = checkpoint_manager.load_latest(self.net, opt)
                 start_step += 1
             except FileNotFoundError:
                 start_step = 1
@@ -559,7 +567,11 @@ class DiscreteRKPINN:
 
             # PDE compliance of stages (stationary residual consistency): u_t ≈ N[u], but we don't have u_t at stage times.
             # We add a mild smoothness regularizer across stages at each x to couple Ui's:
-            smooth = 0.0
+            # A tensor rather than 0.0 so a single-stage tableau, which
+            # skips the loop below, still yields a tensor. Benign here --
+            # smooth only ever feeds a tensor expression -- but the same
+            # shape in raissi_improved reached .item() and crashed.
+            smooth = torch.zeros((), device=Ui[0].device, dtype=Ui[0].dtype)
             for i in range(1, s):
                 smooth = smooth + torch.mean((Ui[i] - Ui[i - 1]) ** 2)
 

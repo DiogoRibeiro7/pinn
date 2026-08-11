@@ -17,7 +17,7 @@ reused by higher level orchestration utilities in :mod:`pinnlab.distributed`.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, List, Sequence, Union, cast
 
 import time
 
@@ -89,10 +89,14 @@ class DistributedTrainer:
         if devices == "auto":
             env = _auto_devices()
         else:
+            device_list: List[Union[int, str]]
             if isinstance(devices, Sequence) and not isinstance(devices, (str, bytes)):
                 device_list = list(devices)
             else:
-                device_list = [devices]  # type: ignore[arg-type]
+                # The signature admits only str here, but the isinstance
+                # negation leaves mypy with str | bytes. Keep the
+                # defensive single-item wrap and say what it is.
+                device_list = [cast(Union[int, str], devices)]
             if not device_list:
                 device_list = ["cpu"]
             first = device_list[0]

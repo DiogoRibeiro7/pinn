@@ -161,17 +161,21 @@ def compute_error_metrics(
         correlation = 1.0 if abs_errors[0] < eps else 0.0
         r2_score = 1.0 if abs_errors[0] < eps else -np.inf
 
+    # Converted at the boundary: these are numpy scalars, and ErrorMetrics
+    # declares plain floats. Whether a given numpy version's stubs happen to
+    # call the result `float` or `floating[Any]` varies, so relying on it made
+    # the type check pass locally and fail in CI.
     return ErrorMetrics(
-        mae=mae,
-        mse=mse,
-        rmse=rmse,
-        max_error=max_error,
-        relative_mae=relative_mae,
-        relative_rmse=relative_rmse,
-        l2_norm=l2_norm,
-        l_inf_norm=l_inf_norm,
-        correlation=correlation if not np.isnan(correlation) else 0.0,
-        r2_score=r2_score,
+        mae=float(mae),
+        mse=float(mse),
+        rmse=float(rmse),
+        max_error=float(max_error),
+        relative_mae=float(relative_mae),
+        relative_rmse=float(relative_rmse),
+        l2_norm=float(l2_norm),
+        l_inf_norm=float(l_inf_norm),
+        correlation=float(correlation) if not np.isnan(correlation) else 0.0,
+        r2_score=float(r2_score),
     )
 
 
@@ -239,9 +243,9 @@ def compute_residual_metrics(residuals: np.ndarray) -> PhysicsMetrics:
         residual_magnitudes = np.abs(residuals)
 
     return PhysicsMetrics(
-        mean_residual=np.mean(residual_magnitudes),
-        max_residual=np.max(residual_magnitudes),
-        residual_std=np.std(residual_magnitudes),
+        mean_residual=float(np.mean(residual_magnitudes)),
+        max_residual=float(np.max(residual_magnitudes)),
+        residual_std=float(np.std(residual_magnitudes)),
     )
 
 
