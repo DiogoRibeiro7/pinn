@@ -97,7 +97,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">scale_features</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;scale_features must not be empty&quot;</span><span class="p">)</span>
 
-        <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">scale_features</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (batch, num_scales, feature_dim)</span>
+        <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">scale_features</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (batch, scales, dim)</span>
         <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_network</span><span class="p">(</span><span class="n">stacked</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>  <span class="c1"># (batch, hidden_dim)</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
             <span class="p">[</span><span class="n">layer</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span> <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">feat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_networks</span><span class="p">,</span> <span class="n">scale_features</span><span class="p">)],</span>
@@ -120,6 +120,11 @@
 <a class="viewcode-back" href="../../../api/index.html#pinnlab.MultiScalePINN">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiScalePINN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Physics-informed network that processes inputs at multiple scales.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Declared because nn.Module.__getattr__ is typed Tensor | Module, so a</span>
+    <span class="c1"># registered buffer otherwise reads back as that union everywhere.</span>
+    <span class="n">scales_tensor</span><span class="p">:</span> <span class="n">Tensor</span>
+    <span class="n">_scale_usage</span><span class="p">:</span> <span class="n">Tensor</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -249,7 +254,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="n">num_scales</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination_method</span> <span class="o">==</span> <span class="s2">&quot;learned&quot;</span><span class="p">:</span>
-            <span class="n">combined_features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">combined_features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">features</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combination_network</span><span class="p">(</span><span class="n">combined_features</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combination_method</span> <span class="o">==</span> <span class="s2">&quot;attention&quot;</span><span class="p">:</span>
@@ -315,7 +320,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;levels must be &gt;= 1&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="o">=</span> <span class="n">levels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">level_networks</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
-        <span class="n">width</span> <span class="o">=</span> <span class="n">base_width</span>
+        <span class="n">width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_width</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
             <span class="n">net</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span>
                 <span class="n">in_dim</span><span class="o">=</span><span class="n">in_features</span><span class="p">,</span> <span class="n">hidden_layers</span><span class="o">=</span><span class="mi">3</span> <span class="o">+</span> <span class="n">level</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">width</span><span class="p">),</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">1</span>
@@ -418,6 +423,8 @@
             <span class="n">B</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">mapping_size</span><span class="p">)</span>
 
             <span class="k">class</span><span class="w"> </span><span class="nc">_FourierModule</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+                <span class="n">B</span><span class="p">:</span> <span class="n">Tensor</span>
+
                 <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">persistent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -480,7 +487,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_consistency_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_scale</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">per_scale</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">per_scale</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">per_scale</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">variance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">stacked</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">unbiased</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">variance</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
@@ -527,7 +534,7 @@
 
     <span class="n">mse</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">prediction</span> <span class="o">-</span> <span class="n">target</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">per_scale_outputs</span><span class="p">:</span>
-        <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">per_scale_outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">stacked</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">per_scale_outputs</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">consistency</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">stacked</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">unbiased</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">consistency</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">prediction</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
