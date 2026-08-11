@@ -537,7 +537,21 @@ Concrete work:
   the ~2 points of headroom cover future drift rather than platform variation,
   of which there is none. Worth noting the direction, since the previous
   comment here assumed the opposite: CI measures slightly *below* local.
-- Add CI jobs that execute examples and selected notebooks.
+- ✅ Add a CI job that executes examples. `scripts/smoke_examples.py` runs each
+  one end to end and reports a per-example table; CI runs the budget-capable
+  subset on every push, about a minute, and all sixteen on `workflow_dispatch`.
+  All sixteen pass today, which is the baseline, not a guarantee -- they had
+  never been run together before.
+
+  The split is in the script rather than hidden: seven examples take budget
+  flags and run in 6-10s at a token budget; the other nine have none and run at
+  full default, which is why the complete pass takes about ten minutes and why
+  `navier_stokes_2d` alone accounts for 200s of it. Giving the config-driven
+  examples an `--adam-steps` flag, as `heat_equation.py` and `wave_equation.py`
+  already have and as `allen_cahn.py` just gained, would take the full run from
+  minutes to seconds.
+- Add a CI job that executes selected notebooks. Not started; the examples job
+  above is the cheaper half of what this line originally covered.
 - Keep tests pointed at production implementations, not local test doubles that
   shadow imports.
 

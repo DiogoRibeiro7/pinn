@@ -48,6 +48,27 @@ jobs:
       - name: Validate .zenodo.json
         run: python -c "import json; json.load(open('.zenodo.json'))"
 
+  examples:
+    name: Run examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install .[dev,viz]
+      # Executing the examples is what would have caught DiscreteRKPINN sitting
+      # in the public API unable to take a single step; the only test touching
+      # it checked that it imported. The default run is the budget-capable
+      # subset, about a minute. workflow_dispatch runs all sixteen, which takes
+      # roughly ten because the rest have no budget flags yet -- see the
+      # script's docstring.
+      - name: Smoke-test examples
+        run: |
+          python scripts/smoke_examples.py             ${{ github.event_name == 'workflow_dispatch' && ' ' || '--fast' }}
+
   test:
     name: Test (${{ matrix.os }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}

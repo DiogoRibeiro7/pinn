@@ -44,7 +44,23 @@ class ACConfig:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Allen-Cahn PINN example")
     parser.add_argument("--output-dir", type=str, default="./results")
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=3000,
+        help="Adam steps. Lower it to smoke-test the example quickly.",
+    )
+    parser.add_argument(
+        "--collocation",
+        type=int,
+        default=256,
+        help="Collocation points drawn per step.",
+    )
     args = parser.parse_args()
+    if args.steps < 1:
+        raise SystemExit("--steps must be >= 1")
+    if args.collocation < 1:
+        raise SystemExit("--collocation must be >= 1")
 
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -61,10 +77,11 @@ def main() -> None:
         out_dir / "checkpoints", save_frequency=500, keep_best_n=2
     )
 
-    for step in range(1, 3001):
+    for step in range(1, args.steps + 1):
         # sample collocation points
-        t = torch.rand(256, 1, device=device) * (cfg.tmax - cfg.tmin) + cfg.tmin
-        x = torch.rand(256, 1, device=device) * (cfg.xmax - cfg.xmin) + cfg.xmin
+        n = args.collocation
+        t = torch.rand(n, 1, device=device) * (cfg.tmax - cfg.tmin) + cfg.tmin
+        x = torch.rand(n, 1, device=device) * (cfg.xmax - cfg.xmin) + cfg.xmin
         r = allen_cahn_residual(model, t, x, cfg.eps)
         loss_pde = torch.mean(r**2)
 
