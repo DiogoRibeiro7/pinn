@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, replace
-from typing import Any, Callable, Iterable, Optional, Sequence
+from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
 import torch
 from torch import Tensor, nn
@@ -70,12 +70,15 @@ def _ensure_std(std: Tensor, eps: float = 1e-12) -> Tensor:
     return torch.clamp(std, min=eps)
 
 
+PredictModel = Union[nn.Module, Sequence[nn.Module], Callable[[Tensor], Tensor]]
+
+
 def _predict_mean_std(
-    model: nn.Module | Sequence[nn.Module] | Callable[[Tensor], Tensor],
+    model: PredictModel,
     points: Tensor,
     *,
     ensemble: Optional[Sequence[nn.Module]] = None,
-    custom: Optional[Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]] = None,
+    custom: Optional[Callable[[PredictModel, Tensor], tuple[Tensor, Tensor]]] = None,
     mc_passes: int = 16,
 ) -> tuple[Tensor, Tensor]:
     """Obtain predictive mean and standard deviation for ``points``."""
@@ -92,9 +95,19 @@ def _predict_mean_std(
         mean, std = deep_ensemble_predict(ensemble, points)
         return mean, std
 
-    if hasattr(model, "predict_with_uncertainty"):
-        mean, std = model.predict_with_uncertainty(points)
+    predictor = getattr(model, "predict_with_uncertainty", None)
+    if predictor is not None:
+        mean, std = predictor(points)
         return mean, std
+
+    if not isinstance(model, nn.Module):
+        # mc_dropout_predict calls model.train() to enable dropout, which a
+        # bare callable does not have. Say so here rather than let it fail
+        # as an AttributeError inside the uncertainty helper.
+        raise TypeError(
+            "a plain callable needs `custom` or `ensemble`: Monte Carlo "
+            "dropout requires an nn.Module to toggle train mode"
+        )
 
     mean, std = mc_dropout_predict(model, points, passes=mc_passes)
     return mean, std
@@ -115,7 +128,7 @@ class UncertaintyAcquisition:
         mc_passes: int = 16,
         ensemble: Optional[Sequence[nn.Module]] = None,
         custom_predict: Optional[
-            Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]
+            Callable[[PredictModel, Tensor], tuple[Tensor, Tensor]]
         ] = None,
     ) -> None:
         self.mode = mode
@@ -123,7 +136,7 @@ class UncertaintyAcquisition:
         self.ensemble = ensemble
         self.custom_predict = custom_predict
 
-    def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
+    def __call__(self, points: Tensor, *, model: nn.Module, **_kwargs: Any) -> Tensor:
         mean, std = _predict_mean_std(
             model,
             points,
@@ -152,7 +165,7 @@ class ExpectedImprovementAcquisition:
         maximize: bool = False,
         mc_passes: int = 16,
         custom_predict: Optional[
-            Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]
+            Callable[[PredictModel, Tensor], tuple[Tensor, Tensor]]
         ] = None,
     ) -> None:
         self.best_value = best_value
@@ -161,7 +174,7 @@ class ExpectedImprovementAcquisition:
         self.mc_passes = mc_passes
         self.custom_predict = custom_predict
 
-    def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
+    def __call__(self, points: Tensor, *, model: nn.Module, **_kwargs: Any) -> Tensor:
         mean, std = _predict_mean_std(
             model, points, custom=self.custom_predict, mc_passes=self.mc_passes
         )
@@ -187,7 +200,7 @@ class UpperConfidenceBoundAcquisition:
         maximize: bool = False,
         mc_passes: int = 16,
         custom_predict: Optional[
-            Callable[[nn.Module, Tensor], tuple[Tensor, Tensor]]
+            Callable[[PredictModel, Tensor], tuple[Tensor, Tensor]]
         ] = None,
     ) -> None:
         self.beta = beta
@@ -195,7 +208,7 @@ class UpperConfidenceBoundAcquisition:
         self.mc_passes = mc_passes
         self.custom_predict = custom_predict
 
-    def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
+    def __call__(self, points: Tensor, *, model: nn.Module, **_kwargs: Any) -> Tensor:
         mean, std = _predict_mean_std(
             model, points, custom=self.custom_predict, mc_passes=self.mc_passes
         )
@@ -213,7 +226,7 @@ class InformationGainAcquisition:
         self.noise = noise
         self.mc_passes = mc_passes
 
-    def __call__(self, points: Tensor, *, model: nn.Module, **_: dict) -> Tensor:
+    def __call__(self, points: Tensor, *, model: nn.Module, **_kwargs: Any) -> Tensor:
         _, std = _predict_mean_std(model, points, mc_passes=self.mc_passes)
         var = std**2
         score = 0.5 * torch.log1p(var / (self.noise**2))
@@ -227,7 +240,7 @@ class QueryByCommitteeAcquisition:
         self.committee = committee
 
     def __call__(
-        self, points: Tensor, *, model: nn.Module | Sequence[nn.Module], **_: dict
+        self, points: Tensor, *, model: nn.Module | Sequence[nn.Module], **_kwargs: Any
     ) -> Tensor:
         committee = self.committee or (
             model if isinstance(model, Sequence) else (model,)
@@ -365,6 +378,11 @@ class MultiObjectiveActiveLearning(ActiveLearningStrategy):
     ) -> None:
         if not objectives:
             raise ValueError("At least one acquisition objective is required")
+        if weights is not None and len(weights) != len(objectives):
+            raise ValueError(
+                f"weights must have one entry per objective, got "
+                f"{len(weights)} for {len(objectives)} objectives"
+            )
         self.objectives = list(objectives)
         self.weights = list(weights) if weights is not None else [1.0] * len(objectives)
         self.cost_fn = cost_fn
@@ -374,7 +392,10 @@ class MultiObjectiveActiveLearning(ActiveLearningStrategy):
             scores = []
             for w, obj in zip(self.weights, self.objectives):
                 scores.append(w * obj(points, model=model, **kwargs))
-            total = sum(scores)
+            # objectives is non-empty and weights now matches its length,
+            # so this stack is never empty; sum() would be typed
+            # Tensor | Literal[0] because an empty sum returns int.
+            total = torch.stack(scores).sum(dim=0)
             if self.cost_fn is not None:
                 total = total - cost_tradeoff * _flatten_scores(self.cost_fn(points))
             return total

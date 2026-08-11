@@ -121,7 +121,6 @@ module = [
     "pinnlab.config.management",
     "pinnlab.distributed.distributed",
     "pinnlab.distributed.trainer",
-    "pinnlab.sampling.active_learning",
     "pinnlab.solvers.navier_stokes",
     "pinnlab.solvers.raissi",
     "pinnlab.solvers.raissi_generic",
@@ -132,7 +131,6 @@ module = [
     "pinnlab.transfer.pretrain",
     "pinnlab.uncertainty",
     "pinnlab.utils.logging",
-    "pinnlab.utils.metrics",
     "pinnlab.utils.profiling",
     "pinnlab.visualization",
 ]

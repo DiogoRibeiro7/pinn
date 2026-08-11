@@ -739,7 +739,7 @@ def comprehensive_error_analysis(
     Returns:
         Dictionary containing all analysis results
     """
-    results = {}
+    results: Dict[str, Any] = {}
 
     # Basic error metrics
     results["error_metrics"] = compute_error_metrics(y_true, y_pred, weights)
@@ -841,7 +841,7 @@ def validate_pinn_solution(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     residuals: np.ndarray,
-    tolerance: Dict[str, float] = None,
+    tolerance: Optional[Dict[str, float]] = None,
 ) -> Tuple[bool, Dict[str, bool], str]:
     """
     Validate PINN solution against tolerance criteria.

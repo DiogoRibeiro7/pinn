@@ -483,11 +483,20 @@ Concrete work:
   statement is `np.asarray`, `Dict[str, Tensor]` on a `state_dict` that has
   always held a nested dict and a list.
 
-  18 modules and 48 errors remain, measured rather than estimated. No single
-  module now carries more than six: `utils.metrics` (6),
-  `sampling.active_learning` (6), `solvers.raissi` (5), then a long tail of
-  three or fewer. The remaining work is spread thin rather than concentrated,
-  so the block can plausibly be emptied and deleted outright.
+  `utils.metrics` and `sampling.active_learning` followed, and active learning
+  turned up three more real problems. Its acquisition kwargs catch-all was
+  literally named `_`, which the throwaway in `_, std = ...` immediately
+  overwrote. `MultiObjectiveActiveLearning` never checked that `weights`
+  matched `objectives`, so a short list silently dropped objectives through
+  `zip` and an empty one made the weighted total a bare `int`. And a plain
+  callable passed without `custom` or `ensemble` fell through to Monte Carlo
+  dropout, which calls `model.train()`, failing as an `AttributeError` inside
+  the uncertainty helper rather than saying what was wrong.
+
+  16 modules and 36 errors remain, measured rather than estimated. The heaviest
+  is `solvers.raissi` at five, then a long tail of three or fewer. The work is
+  spread thin rather than concentrated, so the block can plausibly be emptied
+  and deleted outright.
 - Decide whether full flake8 should cover legacy solver modules or whether
   per-file ignores should document known debt explicitly.
 - Raise `--cov-fail-under` only after meaningful tests land, not as a cosmetic
