@@ -483,6 +483,22 @@ once diffusion has smoothed the seam. The two constraints sample disjoint
 faces – <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">+-1</span></code> – so they meet only at the two corner
 points, a measure-zero set that random sampling does not hit. This is a
 property of the benchmark, not of the formulation.</p>
+<p><strong>The trivial solution.</strong> <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">0</span></code> satisfies this PDE exactly – it is the
+unstable equilibrium between the two phases – and it satisfies both
+periodic constraints exactly too. Only the initial condition objects to it,
+and only on the <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> face. Plain Adam training therefore has a wide,
+easily reached basin that fits the initial condition and then decays to
+zero for <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, scoring a relative L2 error near <code class="docutils literal notranslate"><span class="pre">1.0</span></code> while every
+loss component except the initial condition looks healthy. Measured here at
+<code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">1e-2</span></code> with 1500 Adam steps: <code class="docutils literal notranslate"><span class="pre">ic</span></code> reached <code class="docutils literal notranslate"><span class="pre">6e-4</span></code> and both
+periodic losses <code class="docutils literal notranslate"><span class="pre">2e-5</span></code>, while the mean <code class="docutils literal notranslate"><span class="pre">|u|</span></code> over the domain was
+<code class="docutils literal notranslate"><span class="pre">0.07</span></code> against a reference mean of order one.</p>
+<p>This is a property of Allen-Cahn, not of this implementation, and it is why
+the equation is a standard test for temporal-causality methods. If you see
+it, the fix is not more Adam steps. Reach for
+<a class="reference internal" href="#pinnlab.training.CausalWeightConfig" title="pinnlab.training.causal_weighting.CausalWeightConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">CausalWeightConfig</span></code></a>, which
+refuses to credit late-time residuals until early-time ones are small, or
+for a time-marching scheme.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

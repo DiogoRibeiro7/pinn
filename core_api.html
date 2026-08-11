@@ -291,7 +291,19 @@ Allen-Cahn is nonlinear <em>and</em> periodic, and it needs no trainer changes.<
 <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Two things about this problem are worth knowing before using it.</p>
+<p>Three things about this problem are worth knowing before using it.</p>
+<p>Allen-Cahn has a trivial solution and plain Adam training falls into it.
+<code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">0</span></code> is the unstable equilibrium between the two phases: it satisfies the
+PDE exactly <em>and</em> both periodic constraints exactly, so only the initial
+condition objects to it, and only on the <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> face. A run that has landed
+there fits the initial condition, decays to zero for <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, and scores a
+relative L2 error near <code class="docutils literal notranslate"><span class="pre">1.0</span></code> while three of its four loss components look
+healthy. Measured at <code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">1e-2</span></code> with 1500 Adam steps: <code class="docutils literal notranslate"><span class="pre">ic</span></code> at <code class="docutils literal notranslate"><span class="pre">6e-4</span></code> and
+both periodic losses at <code class="docutils literal notranslate"><span class="pre">2e-5</span></code>, with mean <code class="docutils literal notranslate"><span class="pre">|u|</span></code> of <code class="docutils literal notranslate"><span class="pre">0.07</span></code> against a
+reference mean of order one. This is a property of the equation, not of this
+implementation, and it is why Allen-Cahn is a standard test for
+temporal-causality methods. The fix is not more Adam steps – reach for
+<code class="docutils literal notranslate"><span class="pre">CausalWeightConfig</span></code> or a time-marching scheme.</p>
 <p>Periodicity is imposed as <em>two</em> constraints, <code class="docutils literal notranslate"><span class="pre">bc_periodic</span></code> on the value and
 <code class="docutils literal notranslate"><span class="pre">bc_periodic_flux</span></code> on <code class="docutils literal notranslate"><span class="pre">u_x</span></code>. Value matching alone is not periodicity: it
 admits a field with a kink at the seam, and no collocation point straddles
