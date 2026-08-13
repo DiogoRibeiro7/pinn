@@ -666,6 +666,25 @@ executes unless given `--write`, because writing outputs produces a very large
 diff and should not be a side effect of a CI run. Notebooks that fail keep their
 existing outputs, so a partial run cannot half-update the gallery.
 
+**Not doing: budget parameters for notebooks.** The examples got `--adam-steps`
+flags and went from ten minutes to under three, which is what made running them
+per push affordable. The same treatment would do the same here. It is
+deliberately not being applied, for two reasons. Notebook budgets are narrative
+-- the prose quotes step counts and the outputs show the losses those steps
+reach -- so a flag means either branching inside teaching code or committing
+outputs that were produced at a budget the text does not describe. And the
+weekly cadence already buys most of the value: the failure this guards against
+is rot, which arrives over weeks, not within a single push. Revisit if the pass
+grows past the 90-minute job timeout, or if a notebook breaks between weekly
+runs often enough to be annoying.
+
+**Known and accepted: committed outputs carry the machine that produced them.**
+Timings, figure rasterisation and font metrics come from whoever last ran
+`--write`. That is inherent to committing executed notebooks, which the gallery
+does on purpose so it renders on GitHub without being run. The alternative,
+stripping outputs, trades a visible gallery for reproducible diffs, and the
+gallery is the point.
+
 ### Import Cost
 
 `import pinnlab` used to import seaborn, and through it ipywidgets and IPython,
