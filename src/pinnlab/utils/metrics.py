@@ -23,7 +23,12 @@ import warnings
 try:
     # integrate is imported to probe SciPy's availability, not used directly.
     from scipy import stats, integrate  # noqa: F401
-    from scipy.spatial.distance import wasserstein_distance
+
+    # wasserstein_distance lives in scipy.stats, not scipy.spatial.distance.
+    # Importing it from the wrong module raised ImportError on every SciPy
+    # version, so SCIPY_AVAILABLE was False even with SciPy installed and every
+    # metric behind it returned nan while warning that SciPy was missing.
+    from scipy.stats import wasserstein_distance
 
     SCIPY_AVAILABLE = True
 except ImportError:

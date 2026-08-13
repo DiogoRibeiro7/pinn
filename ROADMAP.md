@@ -249,34 +249,22 @@ Non-goals for the immediate next cycle:
 Concrete open work, in the order I would take it. Each has been scoped against
 the code rather than guessed at, and the cost figures are measured.
 
-1. **Regenerate the notebook outputs.** All 19 execute and their source is
-   correct, but the stored outputs date from `0.1.0`, so a reader sees a setup
-   cell printing `pinnlab` above saved output reading `pinn version : 0.1.0`.
-   About 30 minutes of compute -- `basic/04_navier_stokes_2d.ipynb` alone is
-   554s -- and a very large diff, since every figure and timing is replaced.
-   Cheap to do, awkward to review, so it wants its own commit.
-
-2. **A notebooks CI job.** The other half of the line item the examples job
-   closed. At 30 minutes the full set is too slow for every push. Either run a
-   subset, or give the notebooks the budget parameters the examples now have,
-   which took the examples suite from ten minutes to under three.
-
-3. **Multi-output residuals.** The remaining structural gap in the composable
+1. **Multi-output residuals.** The remaining structural gap in the composable
    core, and the honest blocker for migrating Navier-Stokes. Periodic
    constraints are now exercised properly by Allen-Cahn, which was the other
    precondition.
 
-4. **A composable nonlinear Schrodinger problem, or a written decision not to.**
+2. **A composable nonlinear Schrodinger problem, or a written decision not to.**
    It needs complex-valued residuals, which the current `StrongFormResidual`
    contract does not express. Documenting why is a valid outcome.
 
-5. **`nitpicky = True` for the docs.** Measured at 670 warnings, almost all
+3. **`nitpicky = True` for the docs.** Measured at 670 warnings, almost all
    unresolvable references to `torch` and `numpy` types. Closing it needs an
    `intersphinx_mapping` for both plus a `nitpick_ignore` list, not docstring
    edits. Until then broken `:class:` cross-references fail silently, since
    `-W` does not catch them.
 
-6. **Return `matplotlib` to the `viz` extra.** seaborn made it out this cycle.
+4. **Return `matplotlib` to the `viz` extra.** seaborn made it out this cycle.
    matplotlib is still imported at module scope by `pinnlab.utils.visualization`,
    which `pinnlab.utils` imports eagerly, so this needs that eager import
    guarded first.
@@ -656,22 +644,23 @@ Done when:
 
 ---
 
-### Notebook Outputs Are Stale
+### Notebooks
 
-All 19 notebooks execute and pass, verified on 2026-08-11, and their source was
-fixed for the `pinn` -> `pinnlab` rename. Their *stored* outputs were not
-regenerated: they date from 0.1.0, so a reader sees a setup cell that prints
-`pinnlab` above saved output reading `pinn version : 0.1.0`.
+All 20 notebooks execute, are checked weekly by `.github/workflows/notebooks.yml`
+via `scripts/smoke_notebooks.py`, and their outputs were regenerated against
+`0.5.0` on 2026-08-11. Before that they had been last executed under `0.1.0`, so
+a reader saw a setup cell printing `pinnlab` above output reading
+`pinn version : 0.1.0`.
 
-Regenerating all of them takes about 30 minutes of compute -- `navier_stokes_2d`
-alone is 554s -- and produces a very large diff, since every figure and timing
-is replaced. Worth doing, but as its own change rather than folded into a
-release.
+The full pass takes 29 minutes, dominated by `basic/04_navier_stokes_2d`
+(~10 min) and `basic/06_composable_api` (~5 min), which is why CI runs it weekly
+and on demand rather than per push. The examples
+job covers the same library code paths in about three minutes on every commit.
 
-The same run is the basis for a notebooks CI job, the other half of the line
-item the examples job closed. At 30 minutes it is too slow to run on every
-push; a subset, or notebooks parameterised the way the examples now are, would
-make it affordable.
+Regenerating is deliberately separate from checking: `smoke_notebooks.py` only
+executes unless given `--write`, because writing outputs produces a very large
+diff and should not be a side effect of a CI run. Notebooks that fail keep their
+existing outputs, so a partial run cannot half-update the gallery.
 
 ### Import Cost
 

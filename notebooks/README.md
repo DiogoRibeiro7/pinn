@@ -1,16 +1,21 @@
 # 📓 PINN Notebooks
 
-A gallery of **self-contained, runnable** Jupyter notebooks for the `pinn` library — written in a
+A gallery of **self-contained, runnable** Jupyter notebooks for the `pinnlab` library — written in a
 narrative, Kaggle-style format with theory, code, executed outputs, and visualizations baked in.
 
 Each notebook stands on its own: a styled header, a table of contents, the relevant physics with
-LaTeX, step-by-step code, and a takeaways section. They run end-to-end on a laptop **CPU** in a
-minute or two each.
+LaTeX, step-by-step code, and a takeaways section. They all run end-to-end on a laptop **CPU**.
+
+Runtimes, measured on one machine over a full execution pass rather than estimated: the median
+notebook takes about 75 seconds and most finish inside two minutes, but the tail is long —
+[`basic/04_navier_stokes_2d`](basic/04_navier_stokes_2d.ipynb) is the slowest at roughly 9 minutes,
+and [`basic/05_heat_equation`](basic/05_heat_equation.ipynb) about 3. Budgets are deliberately modest;
+see the notes at the bottom.
 
 ## 🚀 Quick start
 
 ```bash
-pip install -e .          # from the repository root
+pip install pinnlab            # or: pip install -e ".[dev,viz]" from a clone
 jupyter notebook notebooks/    # or open in VS Code
 ```
 
@@ -26,7 +31,8 @@ Then open [`01_getting_started.ipynb`](01_getting_started.ipynb) and run all cel
 | 4 | [`basic/03_custom_pde`](basic/03_custom_pde.ipynb) | A reusable template (verified vs. an exact solution) |
 | 5 | [`basic/04_navier_stokes_2d`](basic/04_navier_stokes_2d.ipynb) | A coupled PDE **system** (fluid flow) |
 | 6 | [`basic/05_heat_equation`](basic/05_heat_equation.ipynb) | Scoring a PINN against a **closed-form** solution 📐 |
-| 7 | [`advanced/…`](advanced/) and [`benchmarks/…`](benchmarks/) | Techniques & studies (below) |
+| 7 | [`basic/06_composable_api`](basic/06_composable_api.ipynb) | Splitting the **equation** from the **optimisation** 🧩 |
+| 8 | [`advanced/…`](advanced/) and [`benchmarks/…`](benchmarks/) | Techniques & studies (below) |
 
 ## 📚 Contents
 
@@ -44,6 +50,9 @@ Then open [`01_getting_started.ipynb`](01_getting_started.ipynb) and run all cel
 - [`basic/04_navier_stokes_2d`](basic/04_navier_stokes_2d.ipynb) — 2-D incompressible flow (Taylor–Green vortex).
 - [`basic/05_heat_equation`](basic/05_heat_equation.ipynb) — the heat equation against its Fourier-series
   solution, reporting a relative L2 error rather than a plot, plus a stiffer two-mode variant.
+- [`basic/06_composable_api`](basic/06_composable_api.ipynb) — the same physics as `02`, split into a
+  problem that knows the equation and a trainer that does not. Uses Allen–Cahn's trivial solution, which
+  plain training walks into, to show a strategy being swapped by changing one config field.
 
 ### Advanced — techniques
 

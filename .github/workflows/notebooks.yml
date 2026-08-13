@@ -1,0 +1,41 @@
+name: Notebooks
+
+# A full pass executes every notebook and takes roughly 40 minutes, dominated by
+# the two that train properly rather than for show. That is too slow to run on
+# every push, so it runs weekly and on demand. The examples job in ci.yml covers
+# the same library code paths in about three minutes on every commit; this
+# catches the failures that only appear when the narrative code runs -- an
+# incomplete rename once left 18 of 19 notebooks raising NameError in their
+# setup cell, and nothing noticed because nothing ran them.
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'notebooks/**'
+      - 'scripts/smoke_notebooks.py'
+      - '.github/workflows/notebooks.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notebooks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  execute:
+    name: Execute all notebooks
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install .[dev,viz]
+      - name: Execute notebooks
+        run: python scripts/smoke_notebooks.py

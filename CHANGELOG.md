@@ -6,6 +6,72 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
+## [Unreleased]
+
+### Fixed
+
+- **SciPy was never detected, even when installed.** `utils/metrics.py`
+  imported `wasserstein_distance` from `scipy.spatial.distance`, where it has
+  never lived -- it is in `scipy.stats`. The import raised `ImportError` on
+  every SciPy version, so `SCIPY_AVAILABLE` was permanently `False`,
+  `compute_distribution_distance` and `compute_divergence` always returned
+  `nan`, and the module warned that SciPy was missing while it was installed
+  and importable.
+
+  Nothing caught it because the failure was indistinguishable from the
+  supported one: a user genuinely without SciPy sees the same warning and the
+  same `nan`. Found by chasing a warning that appeared in a notebook's output
+  after SciPy had been installed. `tests/unit/test_metrics_scipy_gate.py` now
+  asserts that importable SciPy means detected SciPy, and that each distance
+  responds to its data rather than merely returning a finite number.
+
+- `notebooks/basic/05_heat_equation.ipynb` rendered no figures at all. It was
+  the only notebook calling `matplotlib.use("Agg")`, which forces a
+  non-interactive backend, so every `plt.show()` warned and displayed nothing --
+  in a gallery notebook whose section 4 is "Where the error lives". Removed; it
+  now renders like the other nineteen.
+
+- The accuracy claim in `notebooks/basic/03_custom_pde.ipynb` was wrong by more
+  than a factor of ten. It said "a relative L2 error around 1e-3 confirms the
+  template is sound". Measured over five seeds at the notebook's own
+  configuration: median 1.3e-2, spanning 4.1e-3 to 2.1e-2, a 5.2x spread. No
+  seed reached 1e-3; the best of five was 4x above it. Anyone reproducing the
+  notebook would have seen roughly ten times the documented error and
+  reasonably suspected their own setup.
+
+### Changed
+
+- All 20 notebook outputs regenerated against 0.5.0. They had last been
+  executed under 0.1.0, so the gallery rendered a setup cell printing `pinnlab`
+  above saved output reading `pinn version : 0.1.0`.
+
+- Remaining `pinn` references in notebook prose updated to `pinnlab`: 18
+  footers, one heading, three body mentions and the gallery README. References
+  where `pinn` names a local variable holding a solver are correct and were
+  left alone.
+
+- `notebooks/README.md` states measured runtimes instead of claiming every
+  notebook finishes "in a minute or two". The median is about 75 seconds, but
+  `basic/04_navier_stokes_2d` takes roughly ten minutes.
+
+- `notebooks/basic/05_heat_equation.ipynb` gained the gallery's header, badges,
+  table of contents and footer. It was the only notebook missing all four.
+
+### Added
+
+- **`notebooks/basic/06_composable_api.ipynb`.** Only three of nineteen
+  notebooks touched the composable API and none used it as their primary path,
+  so the architecture 0.5.0 is built around was invisible in the gallery. It
+  splits Allen-Cahn into a problem that knows the equation and a trainer that
+  does not, then uses the trivial-solution trap to show a strategy being
+  swapped by changing one config field with the problem object untouched.
+
+- **`scripts/smoke_notebooks.py` and `.github/workflows/notebooks.yml`.** A full
+  pass executes all 20 in 29 minutes, so CI runs it weekly, on demand, and on
+  pull requests that touch notebooks, rather than per push. Execution and
+  regeneration are separate: `--write` saves outputs, and without it nothing is
+  written, because a very large diff should not be a side effect of a check.
+
 ## [0.5.0] - 2026-08-11
 
 ### Changed
