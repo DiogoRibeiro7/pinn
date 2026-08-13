@@ -480,10 +480,14 @@ Concrete work:
   Allen-Cahn is that problem, because its trivial solution `u = 0` satisfies
   the PDE and both periodic constraints exactly and plain Adam falls into it,
   which is a causality failure in the precise sense the weighting addresses.
-  At `nu = 1e-2`, three seeds each, identical budgets: median relative L2 of
-  `0.917` unweighted (range `0.913-0.922`) against `0.615` weighted (range
-  `0.600-0.688`). The ranges are disjoint, which the earlier wave-equation
-  comparison never managed. Mean `|u|` over the domain went from `0.07` to
+  At `nu = 1e-2`, four seeds each, identical budgets: median relative L2 of
+  `0.920` unweighted (range `0.913-0.940`) against `0.651` weighted (range
+  `0.600-0.791`). The ranges are disjoint -- the worst weighted run beats the
+  best unweighted one -- which the earlier wave-equation comparison never
+  managed. The fourth seed was added after
+  `notebooks/basic/06_composable_api.ipynb` drew one outside the original
+  three-seed range; three seeds had understated the spread, and the conclusion
+  survived widening it. Mean `|u|` over the domain went from `0.07` to
   `0.32-0.44` against a reference of `0.578`, so the mechanism is visible
   directly and not only in the score. This is not "Allen-Cahn is solved" --
   `0.6` relative error is still far from accurate at that budget.
