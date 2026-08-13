@@ -656,10 +656,15 @@ via `scripts/smoke_notebooks.py`, and their outputs were regenerated against
 a reader saw a setup cell printing `pinnlab` above output reading
 `pinn version : 0.1.0`.
 
-The full pass takes 29 minutes, dominated by `basic/04_navier_stokes_2d`
-(~10 min) and `basic/06_composable_api` (~5 min), which is why CI runs it weekly
-and on demand rather than per push. The examples
-job covers the same library code paths in about three minutes on every commit.
+The full pass takes **11 minutes in CI**, dominated by
+`basic/04_navier_stokes_2d` (152s) and `basic/05_heat_equation` (97s). It takes
+29 minutes locally, and that difference matters: the GitHub runner is about 2.5x
+*faster* than the laptop these notebooks were developed on, the opposite of the
+usual assumption. Measure in CI before deciding anything about CI cost.
+
+It runs weekly and on demand rather than per push, but at 11 minutes that is a
+much closer call than the local number suggested -- see the note below, which
+was written against the wrong figure and is left standing with its correction.
 
 Regenerating is deliberately separate from checking: `smoke_notebooks.py` only
 executes unless given `--write`, because writing outputs produces a very large
@@ -669,14 +674,18 @@ existing outputs, so a partial run cannot half-update the gallery.
 **Not doing: budget parameters for notebooks.** The examples got `--adam-steps`
 flags and went from ten minutes to under three, which is what made running them
 per push affordable. The same treatment would do the same here. It is
-deliberately not being applied, for two reasons. Notebook budgets are narrative
--- the prose quotes step counts and the outputs show the losses those steps
-reach -- so a flag means either branching inside teaching code or committing
-outputs that were produced at a budget the text does not describe. And the
-weekly cadence already buys most of the value: the failure this guards against
-is rot, which arrives over weeks, not within a single push. Revisit if the pass
-grows past the 90-minute job timeout, or if a notebook breaks between weekly
-runs often enough to be annoying.
+deliberately not being applied. Notebook budgets are narrative -- the prose
+quotes step counts and the outputs show the losses those steps reach -- so a
+flag means either branching inside teaching code or committing outputs produced
+at a budget the text does not describe. That reason stands.
+
+The second reason given here originally does not. It argued the pass was too
+expensive to run per push, citing 29 minutes; the first CI run came in at 11,
+because the runner is faster than the development laptop. Running the whole
+gallery on every push is affordable after all. It stays weekly because the
+failure being guarded against is rot, which arrives over weeks -- a reason about
+what the check is *for*, not what it costs. Worth revisiting if notebooks start
+breaking between weekly runs.
 
 **Known and accepted: committed outputs carry the machine that produced them.**
 Timings, figure rasterisation and font metrics come from whoever last ran
