@@ -6,52 +6,15 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
-## [Unreleased]
+## [0.6.0] - 2026-08-14
 
-### Changed
+Two new composable problems, both with more than one output, and a lighter
+install: `pip install pinnlab` no longer pulls in matplotlib.
 
-- **`matplotlib` moved to the `viz` extra.** `pinnlab.utils` now imports the
-  visualisation module on first access rather than at package import, and the
-  top-level plotting names resolve the same way, so the solver path never
-  touches matplotlib. `pip install pinnlab` brings torch, numpy, PyYAML and
-  tqdm; matplotlib, seaborn, plotly and scipy are all in `[viz]`.
-
-  Verified by blocking matplotlib and importing the package, not by reading the
-  dependency list. One behaviour change worth knowing: accessing
-  `PINNVisualizer` and friends without the extra raises `AttributeError` naming
-  what to install, where they were previously set to `None` -- which deferred
-  the failure to a `TypeError` somewhere less obvious.
+The headline fix is in the legacy Navier-Stokes solver, where the Taylor-Green
+pressure carried the wrong sign and was actively degrading training.
 
 ### Added
-
-- **`SchrodingerProblem`**, the second composable problem with more than one
-  output, and the one showing the outputs need not be physically distinct
-  fields: here they are the real and imaginary parts of a single complex field,
-  split by the problem rather than handled by the core.
-
-  The amplitude decides whether it can be scored. At the default
-  `amplitude = 1` the initial data is the fundamental soliton and
-  `sech(x) exp(i t / 2)` is exact, so `reference_kind` is `"analytic"`. At
-  `amplitude = 2`, the familiar benchmark, the initial data is a breather with
-  no closed form -- it leaves a residual of order 1 -- so `reference_kind` is
-  `"unavailable"` and `exact()` raises instead of returning something wrong.
-
-  Periodicity is matched on value only, which is exact here because `sech` is
-  even. Derivative periodicity is violated, since `sech'` is odd, and Dirichlet
-  would contradict the solution by `0.0135`. Trained at a modest budget it
-  reaches a `|h|` relative L2 of `4.2e-3`.
-
-### Fixed
-
-- Performance benchmarks no longer run inside the correctness suite.
-  `test_mlp_forward_speed` asserts that 100 forward passes finish within a
-  second, which is a statement about the machine rather than the code: it
-  failed once during a full-gate run that took 18 minutes under load, and
-  passed immediately on an unloaded one. `addopts` now deselects the
-  `performance` marker, and `performance.yml` re-enables it with
-  `-m performance`, because without that override the job collects nothing and
-  pytest exits 5 -- which reads as a failure. Both paths verified.
-
 
 - **`NavierStokesProblem`**, the first composable problem with more than one
   output: three coupled unknowns (`u`, `v`, `p`) and three residuals, one of
@@ -72,6 +35,41 @@ tag, publish the GitHub release, and — if desired — build and upload with
   constrained (range 0.42-0.68), disjoint over three seeds, with velocity
   unaffected either way. Pass `constrain_pressure=False` for the unsupervised
   formulation. Even at 0.64 pressure is not solved, only learned.
+
+- **`SchrodingerProblem`**, the second composable problem with more than one
+  output, and the one showing the outputs need not be physically distinct
+  fields: here they are the real and imaginary parts of a single complex field,
+  split by the problem rather than handled by the core.
+
+  The amplitude decides whether it can be scored. At the default
+  `amplitude = 1` the initial data is the fundamental soliton and
+  `sech(x) exp(i t / 2)` is exact, so `reference_kind` is `"analytic"`. At
+  `amplitude = 2`, the familiar benchmark, the initial data is a breather with
+  no closed form -- it leaves a residual of order 1 -- so `reference_kind` is
+  `"unavailable"` and `exact()` raises instead of returning something wrong.
+
+  Periodicity is matched on value only, which is exact here because `sech` is
+  even. Derivative periodicity is violated, since `sech'` is odd, and Dirichlet
+  would contradict the solution by `0.0135`. Trained at a modest budget it
+  reaches a `|h|` relative L2 of `4.2e-3`.
+
+### Changed
+
+- **`matplotlib` moved to the `viz` extra.** `pinnlab.utils` now imports the
+  visualisation module on first access rather than at package import, and the
+  top-level plotting names resolve the same way, so the solver path never
+  touches matplotlib. `pip install pinnlab` brings torch, numpy, PyYAML and
+  tqdm; matplotlib, seaborn, plotly and scipy are all in `[viz]`.
+
+  Verified by blocking matplotlib and importing the package, not by reading the
+  dependency list. One behaviour change worth knowing: accessing
+  `PINNVisualizer` and friends without the extra raises `AttributeError` naming
+  what to install, where they were previously set to `None` -- which deferred
+  the failure to a `TypeError` somewhere less obvious.
+
+- The causal-weighting module docstring now reports the four-seed Allen-Cahn
+  measurement, matching the notebook, changelog and roadmap. It was the last
+  place still citing three seeds.
 
 ### Fixed
 
@@ -112,11 +110,35 @@ tag, publish the GitHub release, and — if desired — build and upload with
   equations with different diffusivities -- trains through the generic
   `Trainer` with each output converging on its own equation.
 
-### Changed
+- Performance benchmarks no longer run inside the correctness suite.
+  `test_mlp_forward_speed` asserts that 100 forward passes finish within a
+  second, which is a statement about the machine rather than the code: it
+  failed once during a full-gate run that took 18 minutes under load, and
+  passed immediately on an unloaded one. `addopts` now deselects the
+  `performance` marker, and `performance.yml` re-enables it with
+  `-m performance`, because without that override the job collects nothing and
+  pytest exits 5 -- which reads as a failure. Both paths verified.
 
-- The causal-weighting module docstring now reports the four-seed Allen-Cahn
-  measurement, matching the notebook, changelog and roadmap. It was the last
-  place still citing three seeds.
+
+- **`NavierStokesProblem`**, the first composable problem with more than one
+  output: three coupled unknowns (`u`, `v`, `p`) and three residuals, one of
+  which -- incompressibility -- carries no time derivative, which is what makes
+  a velocity-pressure PINN structurally different from the scalar problems here.
+  It scores against the Taylor-Green vortex and so is also the first composable
+  problem reporting `reference_kind == "analytic"` rather than `"numerical"`.
+
+  Its residual is verified to vanish on the closed-form solution at 1e-12 in
+  float64, with a wrong-viscosity control so that "the residual is small" cannot
+  pass by accident.
+
+  Pressure is supervised at `t = 0` by default. The opposite is defensible --
+  only `grad p` appears in the equations, so a constant offset is equally
+  correct and penalising it is unphysical -- and it was the original default
+  here. It lost to measurement: mean-centred relative L2 of 0.98 unconstrained
+  (range 0.97-1.03, indistinguishable from predicting a constant) against 0.64
+  constrained (range 0.42-0.68), disjoint over three seeds, with velocity
+  unaffected either way. Pass `constrain_pressure=False` for the unsupervised
+  formulation. Even at 0.64 pressure is not solved, only learned.
 
 ## [0.5.1] - 2026-08-14
 

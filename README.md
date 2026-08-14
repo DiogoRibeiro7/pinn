@@ -546,7 +546,7 @@ version, so it is the right one to cite when you mean the software in general.
   author    = {Ribeiro, Diogo},
   title     = {{pinn}: A Modular PyTorch Framework for Physics-Informed Neural Networks},
   year      = {2026},
-  version   = {0.5.1},
+  version   = {0.6.0},
   publisher = {Zenodo},
   doi       = {10.5281/zenodo.21844101},
   url       = {https://doi.org/10.5281/zenodo.21844101}

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pinnlab"
-version = "0.5.1"
+version = "0.6.0"
 description = "Physics-Informed Neural Network implementations"
 authors = [{name = "Diogo Ribeiro", email = "dfr@esmad.ipp.pt"}]
 maintainers = [{name = "Diogo Ribeiro", email = "dfr@esmad.ipp.pt"}]
