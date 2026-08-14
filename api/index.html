@@ -2290,6 +2290,190 @@ one is exact rather than numerical, which <code class="docutils literal notransl
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">SchrodingerConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5707963267948966</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Domain and initial amplitude for the nonlinear Schrodinger benchmark.</p>
+<p>The default <code class="docutils literal notranslate"><span class="pre">amplitude</span> <span class="pre">=</span> <span class="pre">1</span></code> gives the fundamental soliton
+<code class="docutils literal notranslate"><span class="pre">h(0,</span> <span class="pre">x)</span> <span class="pre">=</span> <span class="pre">sech(x)</span></code>, whose exact solution is <code class="docutils literal notranslate"><span class="pre">sech(x)</span> <span class="pre">exp(i</span> <span class="pre">t</span> <span class="pre">/</span> <span class="pre">2)</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">amplitude</span> <span class="pre">=</span> <span class="pre">2</span></code> is the more familiar PINN benchmark, from Raissi et al.
+That initial condition is <em>not</em> a stationary soliton – it is a breather,
+and it has no closed form – so the problem still trains but nothing can
+score it. See <a class="reference internal" href="#pinnlab.problems.SchrodingerProblem.reference_kind" title="pinnlab.problems.SchrodingerProblem.reference_kind"><code class="xref py py-attr docutils literal notranslate"><span class="pre">SchrodingerProblem.reference_kind</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>amplitude</strong> – Multiplier on the <code class="docutils literal notranslate"><span class="pre">sech</span></code> initial profile; must be positive.</p></li>
+<li><p><strong>tmin</strong> – Initial time.</p></li>
+<li><p><strong>tmax</strong> – Final time; must exceed <code class="docutils literal notranslate"><span class="pre">tmin</span></code>. Defaults to <code class="docutils literal notranslate"><span class="pre">pi</span> <span class="pre">/</span> <span class="pre">2</span></code>.</p></li>
+<li><p><strong>xmin</strong> – Left edge of the periodic interval.</p></li>
+<li><p><strong>xmax</strong> – Right edge; the spatial period is <code class="docutils literal notranslate"><span class="pre">xmax</span> <span class="pre">-</span> <span class="pre">xmin</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.amplitude">
+<span class="sig-name descname"><span class="pre">amplitude</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.amplitude" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.has_closed_form">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">has_closed_form</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.has_closed_form" title="Link to this definition">¶</a></dt>
+<dd><p>Whether this amplitude admits the soliton solution.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.tmax">
+<span class="sig-name descname"><span class="pre">tmax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.5707963267948966</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.tmax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.tmin">
+<span class="sig-name descname"><span class="pre">tmin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.tmin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> when the configuration is unphysical.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.xmax">
+<span class="sig-name descname"><span class="pre">xmax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.xmax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerConfig.xmin">
+<span class="sig-name descname"><span class="pre">xmin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-5.0</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerConfig.xmin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">SchrodingerProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.problems.SchrodingerConfig" title="pinnlab.problems.schrodinger.SchrodingerConfig"><span class="pre">SchrodingerConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">SchrodingerConfig(amplitude=1.0,</span> <span class="pre">tmin=0.0,</span> <span class="pre">tmax=1.5707963267948966,</span> <span class="pre">xmin=-5.0,</span> <span class="pre">xmax=5.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_constraint_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem" title="Link to this definition">¶</a></dt>
+<dd><p>Nonlinear Schrodinger equation on a periodic space-time strip.</p>
+<p>The network has two outputs, the real and imaginary parts of <code class="docutils literal notranslate"><span class="pre">h</span></code>. Nothing
+in the trainer, residual form or constraints needed changing to support a
+complex field: splitting it is enough, and the split is entirely this
+problem’s business.</p>
+<p><strong>Periodicity is matched on value only, and that is exact here.</strong> <code class="docutils literal notranslate"><span class="pre">sech</span></code>
+is even, so <code class="docutils literal notranslate"><span class="pre">sech(xmin)</span> <span class="pre">==</span> <span class="pre">sech(xmax)</span></code> to the last bit at the default
+<code class="docutils literal notranslate"><span class="pre">[-5,</span> <span class="pre">5]</span></code>. The derivative is not periodic – <code class="docutils literal notranslate"><span class="pre">sech'</span></code> is odd, so the two
+ends differ in sign – which is why no flux constraint is imposed. Dirichlet
+conditions would be worse than either: <code class="docutils literal notranslate"><span class="pre">sech(5)</span></code> is <code class="docutils literal notranslate"><span class="pre">0.0135</span></code>, not zero,
+so pinning the ends to zero would contradict the exact solution by more than
+a percent of the peak.</p>
+<p><strong>Scoring depends on the amplitude.</strong> At the default <code class="docutils literal notranslate"><span class="pre">amplitude</span> <span class="pre">=</span> <span class="pre">1</span></code> the
+solution is the stationary soliton and <code class="docutils literal notranslate"><span class="pre">reference_kind</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code>.
+At any other amplitude – including <code class="docutils literal notranslate"><span class="pre">2</span></code>, the familiar benchmark – the
+initial data is a breather with no closed form, <code class="docutils literal notranslate"><span class="pre">reference_kind</span></code> is
+<code class="docutils literal notranslate"><span class="pre">&quot;unavailable&quot;</span></code> and <a class="reference internal" href="#pinnlab.problems.SchrodingerProblem.exact" title="pinnlab.problems.SchrodingerProblem.exact"><code class="xref py py-meth docutils literal notranslate"><span class="pre">exact()</span></code></a> raises. The problem still trains; there
+is simply nothing here to score it against, and saying so is better than
+quietly comparing against the wrong thing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – Physical parameters and domain.</p></li>
+<li><p><strong>n_constraint_samples</strong> – Default sample count for each constraint.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pinnlab.problems.SchrodingerConfig" title="pinnlab.problems.schrodinger.SchrodingerConfig"><span class="pre">SchrodingerConfig</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">SchrodingerConfig(amplitude=1.0,</span> <span class="pre">tmin=0.0,</span> <span class="pre">tmax=1.5707963267948966,</span> <span class="pre">xmin=-5.0,</span> <span class="pre">xmax=5.0)</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.constraints">
+<span class="sig-name descname"><span class="pre">constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pinnlab.constraints.Constraint" title="pinnlab.constraints.base.Constraint"><span class="pre">Constraint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerProblem.constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.constraints" title="Link to this definition">¶</a></dt>
+<dd><p>Return initial conditions and value periodicity for both components.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.exact">
+<span class="sig-name descname"><span class="pre">exact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerProblem.exact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.exact" title="Link to this definition">¶</a></dt>
+<dd><p>Return the exact <code class="docutils literal notranslate"><span class="pre">(Re</span> <span class="pre">h,</span> <span class="pre">Im</span> <span class="pre">h)</span></code> for the soliton amplitude.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the amplitude is not the soliton amplitude, since no
+    closed form exists for it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.geometry">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">geometry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pinnlab.geometry.Rectangle" title="pinnlab.geometry.rectangle.Rectangle"><span class="pre">Rectangle</span></a></span><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.geometry" title="Link to this definition">¶</a></dt>
+<dd><p>Return the <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> space-time strip.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.initial_profile">
+<span class="sig-name descname"><span class="pre">initial_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerProblem.initial_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.initial_profile" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">(Re</span> <span class="pre">h,</span> <span class="pre">Im</span> <span class="pre">h)</span></code> at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">tmin</span></code>: a real <code class="docutils literal notranslate"><span class="pre">sech</span></code> profile.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.input_dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">input_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.input_dim" title="Link to this definition">¶</a></dt>
+<dd><p>time and one spatial coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return coordinate dimension</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.n_constraint_samples">
+<span class="sig-name descname"><span class="pre">n_constraint_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.n_constraint_samples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.output_dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">output_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.output_dim" title="Link to this definition">¶</a></dt>
+<dd><p>the real and imaginary parts of <code class="docutils literal notranslate"><span class="pre">h</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return output dimension</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.reference_grid">
+<span class="sig-name descname"><span class="pre">reference_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">41</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerProblem.reference_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.reference_grid" title="Link to this definition">¶</a></dt>
+<dd><p>Return a <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code> grid with the exact fields on it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the grid is degenerate, or the amplitude has no
+    closed form.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.reference_kind">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reference_kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.reference_kind" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code> for the soliton, <code class="docutils literal notranslate"><span class="pre">&quot;unavailable&quot;</span></code> otherwise.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.SchrodingerProblem.strong_residual">
+<span class="sig-name descname"><span class="pre">strong_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.residuals.DerivativeBackend" title="pinnlab.residuals.base.DerivativeBackend"><span class="pre">DerivativeBackend</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#SchrodingerProblem.strong_residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.SchrodingerProblem.strong_residual" title="Link to this definition">¶</a></dt>
+<dd><p>Return the real and imaginary residuals at <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x)</span></code>, shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is not <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code> or the model does
+    not produce two outputs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pinnlab.problems.WaveProblem">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">WaveProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.solvers.WaveConfig" title="pinnlab.solvers.wave.WaveConfig"><span class="pre">WaveConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">WaveConfig(c=1.0,</span> <span class="pre">length=1.0,</span> <span class="pre">modes=((1,</span> <span class="pre">1.0),))</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_constraint_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/wave.html#WaveProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.WaveProblem" title="Link to this definition">¶</a></dt>
 <dd><p>One-dimensional wave equation <code class="docutils literal notranslate"><span class="pre">u_tt</span> <span class="pre">-</span> <span class="pre">c^2</span> <span class="pre">u_xx</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
@@ -2374,6 +2558,16 @@ one is exact rather than numerical, which <code class="docutils literal notransl
 <dt class="sig sig-object py" id="pinnlab.problems.benchmark_initial_profile">
 <span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">benchmark_initial_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#benchmark_initial_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.benchmark_initial_profile" title="Link to this definition">¶</a></dt>
 <dd><p>Return the benchmark initial condition <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span> <span class="pre">=</span> <span class="pre">x^2</span> <span class="pre">cos(pi</span> <span class="pre">x)</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.problems.soliton">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">soliton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/schrodinger.html#soliton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.soliton" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">(Re</span> <span class="pre">h,</span> <span class="pre">Im</span> <span class="pre">h)</span></code> for <code class="docutils literal notranslate"><span class="pre">h</span> <span class="pre">=</span> <span class="pre">sech(x)</span> <span class="pre">exp(i</span> <span class="pre">t</span> <span class="pre">/</span> <span class="pre">2)</span></code>.</p>
+<p>An exact solution of <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">h_t</span> <span class="pre">+</span> <span class="pre">(1/2)</span> <span class="pre">h_xx</span> <span class="pre">+</span> <span class="pre">|h|^2</span> <span class="pre">h</span> <span class="pre">=</span> <span class="pre">0</span></code>: the <code class="docutils literal notranslate"><span class="pre">sech</span></code>
+profile is preserved exactly while its phase rotates uniformly. Verified
+against the equation rather than asserted; see
+<code class="docutils literal notranslate"><span class="pre">tests/unit/test_schrodinger_problem.py</span></code>.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -5489,8 +5683,11 @@ identically zero.</p>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.NavierStokesConfig"><code class="docutils literal notranslate"><span class="pre">NavierStokesConfig</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.NavierStokesProblem"><code class="docutils literal notranslate"><span class="pre">NavierStokesProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.PDEProblem"><code class="docutils literal notranslate"><span class="pre">PDEProblem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.SchrodingerConfig"><code class="docutils literal notranslate"><span class="pre">SchrodingerConfig</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.SchrodingerProblem"><code class="docutils literal notranslate"><span class="pre">SchrodingerProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.WaveProblem"><code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.benchmark_initial_profile"><code class="docutils literal notranslate"><span class="pre">benchmark_initial_profile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.soliton"><code class="docutils literal notranslate"><span class="pre">soliton()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.taylor_green"><code class="docutils literal notranslate"><span class="pre">taylor_green()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.residuals.AutogradDerivativeBackend"><code class="docutils literal notranslate"><span class="pre">AutogradDerivativeBackend</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.residuals.DerivativeBackend"><code class="docutils literal notranslate"><span class="pre">DerivativeBackend</span></code></a></li>
