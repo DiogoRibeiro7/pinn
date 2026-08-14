@@ -54,10 +54,17 @@ What `v0.5.0` means:
   never been run.
 
 Measurement discipline, which several entries below depend on:
-- Run-to-run spread on these problems is 2.2x to 2.6x. A single-run comparison
-  cannot resolve a 2x difference, so accuracy claims are quoted as a median
-  over seeds with the range attached, and comparisons are only called real when
-  the ranges are disjoint.
+- Run-to-run spread on these problems is 2.2x to 2.6x, so a single-run
+  comparison cannot resolve a 2x difference. Accuracy claims are quoted as a
+  median over seeds with the range attached.
+- **Which test depends on whether the arms share a seed.** When they do -- same
+  initialisation, same collocation draw, one setting changed -- the comparison
+  is paired, and the signal is the per-seed difference. Judging paired arms by
+  whether their ranges overlap throws that away: the RAR sweep reported "no
+  effect resolved" on all three problems while hiding that Schrodinger moved the
+  same direction on three seeds out of three. Use disjoint ranges only for
+  genuinely independent runs, where it is the right and conservative bar. The
+  causal-weighting result clears both, so nothing already recorded changes.
 - The local environment is not a proxy for CI in either direction. mypy passed
   locally and failed in CI on numpy scalar types; coverage measures slightly
   *lower* in CI than locally. Both are recorded where they bite.
