@@ -2117,8 +2117,32 @@ budget the optimiser has only <code class="docutils literal notranslate"><span c
 on, and does not converge. Supervision is the default; pass
 <code class="docutils literal notranslate"><span class="pre">constrain_pressure=False</span></code> for the formulation without it. Score pressure
 mean-centred whichever you choose, since the constant remains arbitrary.</p>
-<p>Even supervised, <code class="docutils literal notranslate"><span class="pre">0.64</span></code> is poor. Pressure is the hard part of this problem
-at a small budget, and neither setting should be read as solving it.</p>
+<p>Even supervised, pressure is the hard part of this problem at a small
+budget, and neither setting should be read as solving it.</p>
+<p><strong>Weighting a system is not the same as weighting a scalar problem, and
+getting it wrong is expensive.</strong> The trainer reduces the <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3)</span></code> residual
+with a single mean, so each equation receives a third of
+<code class="docutils literal notranslate"><span class="pre">loss_weights[&quot;pde&quot;]</span></code>, while each of the nine constraints here is a
+separate named entry at its own full weight. A configuration carried over
+from a scalar problem – every constraint at <code class="docutils literal notranslate"><span class="pre">10</span></code>, <code class="docutils literal notranslate"><span class="pre">pde</span></code> left at <code class="docutils literal notranslate"><span class="pre">1</span></code>
+– therefore weights the constraints thirty times more heavily against the
+residual than weighting each equation and each constraint equally would, and
+the network barely optimises the PDE. Measured at 3000 Adam steps over three
+seeds, that configuration reaches a velocity relative L2 of <code class="docutils literal notranslate"><span class="pre">0.139</span></code>,
+against <code class="docutils literal notranslate"><span class="pre">0.035</span></code> for the balance below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">loss_weights</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pde&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">}</span>                       <span class="c1"># 1 per equation</span>
+<span class="n">loss_weights</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;ic_u&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;ic_v&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;ic_p&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">})</span>
+<span class="n">loss_weights</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">()</span>
+     <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;periodic_&quot;</span><span class="p">)}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pde</span></code> at <code class="docutils literal notranslate"><span class="pre">3</span></code> turns the trainer’s mean back into a sum, so each equation
+carries weight one. This is a starting point rather than a tuned optimum: it
+reproduces the per-component balance of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">NavierStokesPINN</span></code>, which is a known
+working configuration for this benchmark, not a claim about the best one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

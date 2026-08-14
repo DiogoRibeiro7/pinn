@@ -173,8 +173,33 @@
 <span class="sd">    ``constrain_pressure=False`` for the formulation without it. Score pressure</span>
 <span class="sd">    mean-centred whichever you choose, since the constant remains arbitrary.</span>
 
-<span class="sd">    Even supervised, ``0.64`` is poor. Pressure is the hard part of this problem</span>
-<span class="sd">    at a small budget, and neither setting should be read as solving it.</span>
+<span class="sd">    Even supervised, pressure is the hard part of this problem at a small</span>
+<span class="sd">    budget, and neither setting should be read as solving it.</span>
+
+<span class="sd">    **Weighting a system is not the same as weighting a scalar problem, and</span>
+<span class="sd">    getting it wrong is expensive.** The trainer reduces the ``(N, 3)`` residual</span>
+<span class="sd">    with a single mean, so each equation receives a third of</span>
+<span class="sd">    ``loss_weights[&quot;pde&quot;]``, while each of the nine constraints here is a</span>
+<span class="sd">    separate named entry at its own full weight. A configuration carried over</span>
+<span class="sd">    from a scalar problem -- every constraint at ``10``, ``pde`` left at ``1``</span>
+<span class="sd">    -- therefore weights the constraints thirty times more heavily against the</span>
+<span class="sd">    residual than weighting each equation and each constraint equally would, and</span>
+<span class="sd">    the network barely optimises the PDE. Measured at 3000 Adam steps over three</span>
+<span class="sd">    seeds, that configuration reaches a velocity relative L2 of ``0.139``,</span>
+<span class="sd">    against ``0.035`` for the balance below::</span>
+
+<span class="sd">        loss_weights = {&quot;pde&quot;: 3.0}                       # 1 per equation</span>
+<span class="sd">        loss_weights.update({&quot;ic_u&quot;: 1.0, &quot;ic_v&quot;: 1.0, &quot;ic_p&quot;: 1.0})</span>
+<span class="sd">        loss_weights.update(</span>
+<span class="sd">            {c.name: 1.0 / 3.0 for c in problem.constraints()</span>
+<span class="sd">             if c.name.startswith(&quot;periodic_&quot;)}</span>
+<span class="sd">        )</span>
+
+<span class="sd">    ``pde`` at ``3`` turns the trainer&#39;s mean back into a sum, so each equation</span>
+<span class="sd">    carries weight one. This is a starting point rather than a tuned optimum: it</span>
+<span class="sd">    reproduces the per-component balance of</span>
+<span class="sd">    :class:`~pinnlab.solvers.navier_stokes.NavierStokesPINN`, which is a known</span>
+<span class="sd">    working configuration for this benchmark, not a claim about the best one.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        config: Physical parameters and domain.</span>
