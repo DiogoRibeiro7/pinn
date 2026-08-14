@@ -19,7 +19,15 @@ from pinnlab.benchmarks import (
     evaluate_independent_residual,
 )
 from pinnlab.models import MLP
-from pinnlab.problems import BurgersProblem, HeatProblem, WaveProblem
+from pinnlab.problems import (
+    AllenCahnProblem,
+    BurgersProblem,
+    HeatProblem,
+    NavierStokesProblem,
+    SchrodingerProblem,
+    WaveProblem,
+)
+from pinnlab.problems.allen_cahn import AllenCahnConfig
 from pinnlab.solvers.heat import HeatConfig
 from pinnlab.solvers.raissi_improved import BurgersConfig
 from pinnlab.solvers.wave import WaveConfig
@@ -38,6 +46,37 @@ def _relative_l2(prediction: np.ndarray, truth: np.ndarray) -> float:
     return float(error if denominator == 0.0 else error / denominator)
 
 
+def _reference_fields(problem: Any, n_grid: int) -> tuple[np.ndarray, list[np.ndarray]]:
+    """Return stacked grid coordinates and one reference array per output.
+
+    Handles the three shapes the composable problems now come in: an analytic
+    ``exact`` returning one array, an analytic ``exact`` returning a tuple of
+    components, and a problem whose reference is numerical and therefore
+    published as ``reference_grid`` rather than a closed form.
+    """
+    lower = problem.geometry.lower_bounds.numpy()
+    upper = problem.geometry.upper_bounds.numpy()
+    axes = [
+        np.linspace(float(lower[i]), float(upper[i]), n_grid) for i in range(len(lower))
+    ]
+    if not hasattr(problem, "exact"):
+        # A numerical reference is published as a grid rather than a closed
+        # form, and it chooses its own resolution: Allen-Cahn needs enough
+        # points in x to resolve its phase interfaces, and re-sampling that onto
+        # an arbitrary grid would discard the accuracy it was computed at.
+        grid = problem.reference_grid()
+        axis_names = [name for name in ("t", "x", "y") if name in grid]
+        coordinates = np.stack([grid[name].reshape(-1) for name in axis_names], axis=1)
+        return coordinates, [grid["reference"]]
+
+    mesh = np.meshgrid(*axes, indexing="ij")
+    coordinates = np.stack([m.reshape(-1) for m in mesh], axis=1)
+
+    truth = problem.exact(*mesh)
+    fields = list(truth) if isinstance(truth, tuple) else [truth]
+    return coordinates, fields
+
+
 def _evaluate_solution(
     problem: Any,
     model: torch.nn.Module,
@@ -45,20 +84,21 @@ def _evaluate_solution(
     dtype: torch.dtype,
     n_grid: int,
 ) -> float:
-    """Return solution relative L2 error on a regular space-time grid."""
-    lower = problem.geometry.lower_bounds.numpy()
-    upper = problem.geometry.upper_bounds.numpy()
-    t = np.linspace(float(lower[0]), float(upper[0]), n_grid)
-    x = np.linspace(float(lower[1]), float(upper[1]), n_grid)
-    tt, xx = np.meshgrid(t, x, indexing="ij")
-    flat = torch.tensor(
-        np.stack([tt.reshape(-1), xx.reshape(-1)], axis=1),
-        dtype=dtype,
-    )
+    """Return relative L2 error over every output on a regular grid.
+
+    For a system the components are compared together rather than one at a
+    time: the error is the norm of the stacked residual over the norm of the
+    stacked reference, so a problem is not scored well merely because one of its
+    fields is easy.
+    """
+    coordinates, fields = _reference_fields(problem, n_grid)
+    flat = torch.tensor(coordinates, dtype=dtype)
     model.eval()
     with torch.no_grad():
-        pred = model(flat).cpu().numpy().reshape(tt.shape)
-    return _relative_l2(pred, problem.exact(tt, xx))
+        pred = model(flat).cpu().numpy()
+    stacked_truth = np.concatenate([f.reshape(-1) for f in fields])
+    stacked_pred = np.concatenate([pred[:, i] for i in range(len(fields))])
+    return _relative_l2(stacked_pred, stacked_truth)
 
 
 def _make_problem(
@@ -82,6 +122,18 @@ def _make_problem(
             t_final=args.t_final,
             n_constraint_samples=args.constraint_points,
         )
+    if name == "allen_cahn":
+        # nu = 1e-2 rather than the 1e-4 benchmark: at the stiff value nothing
+        # at this budget escapes the trivial solution, so every mode would score
+        # the same and the comparison would measure nothing.
+        return AllenCahnProblem(
+            AllenCahnConfig(nu=1e-2),
+            n_constraint_samples=args.constraint_points,
+        )
+    if name == "schrodinger":
+        return SchrodingerProblem(n_constraint_samples=args.constraint_points)
+    if name == "navier_stokes":
+        return NavierStokesProblem(n_constraint_samples=args.constraint_points)
     raise ValueError(f"unknown benchmark problem: {name}")
 
 
@@ -93,25 +145,50 @@ def _reference_name(problem_name: str) -> str:
         return "Standing-wave solution"
     if problem_name == "burgers":
         return "Cole-Hopf Burgers solution"
+    if problem_name == "allen_cahn":
+        return "Fourier spectral Allen-Cahn solution"
+    if problem_name == "schrodinger":
+        return "Nonlinear Schrodinger soliton"
+    if problem_name == "navier_stokes":
+        return "Taylor-Green vortex"
     raise ValueError(f"unknown benchmark problem: {problem_name}")
 
 
-def _reference_details(
-    problem: BurgersProblem | HeatProblem | WaveProblem,
-) -> dict[str, Any]:
-    """Return serializable reference details for a problem."""
+def _reference_details(problem: Any) -> dict[str, Any]:
+    """Return serializable reference details for a problem.
+
+    Dispatches on type rather than assuming every non-Burgers problem carries
+    ``config.modes``, which was true only while heat and wave were the others.
+    """
     if isinstance(problem, BurgersProblem):
         return {
             "initial_condition": "-sin(pi x)",
             "boundary_conditions": "homogeneous_dirichlet",
             "nu": problem.config.nu,
         }
+    if isinstance(problem, AllenCahnProblem):
+        return {
+            "initial_condition": "x^2 cos(pi x)",
+            "boundary_conditions": "periodic",
+            "nu": problem.config.nu,
+            "gamma": problem.config.gamma,
+        }
+    if isinstance(problem, SchrodingerProblem):
+        return {
+            "initial_condition": f"{problem.config.amplitude} sech(x)",
+            "boundary_conditions": "periodic",
+            "amplitude": problem.config.amplitude,
+        }
+    if isinstance(problem, NavierStokesProblem):
+        return {
+            "initial_condition": "Taylor-Green vortex",
+            "boundary_conditions": "doubly_periodic",
+            "nu": problem.config.nu,
+        }
     return {"modes": [list(mode_) for mode_ in problem.config.modes]}
 
 
-def _problem_metadata(
-    problem_name: str, problem: BurgersProblem | HeatProblem | WaveProblem
-) -> dict[str, Any]:
+def _problem_metadata(problem_name: str, problem: Any) -> dict[str, Any]:
     """Return serializable problem metadata."""
     geometry = problem.geometry
     metadata: dict[str, Any] = {
@@ -119,13 +196,23 @@ def _problem_metadata(
         "t_final": float(geometry.upper_bounds[0]),
         "x_min": float(geometry.lower_bounds[1]),
         "x_max": float(geometry.upper_bounds[1]),
+        "input_dim": problem.input_dim,
+        "output_dim": problem.output_dim,
+        "reference_kind": getattr(problem, "reference_kind", "analytic"),
     }
     if isinstance(problem, BurgersProblem):
         metadata["nu"] = problem.config.nu
     elif isinstance(problem, HeatProblem):
         metadata["alpha"] = problem.config.alpha
-    else:
+    elif isinstance(problem, WaveProblem):
         metadata["wave_speed"] = problem.config.c
+    elif isinstance(problem, AllenCahnProblem):
+        metadata["nu"] = problem.config.nu
+        metadata["gamma"] = problem.config.gamma
+    elif isinstance(problem, SchrodingerProblem):
+        metadata["amplitude"] = problem.config.amplitude
+    elif isinstance(problem, NavierStokesProblem):
+        metadata["nu"] = problem.config.nu
     return metadata
 
 
@@ -148,7 +235,7 @@ def run_case(problem_name: str, mode: str, args: argparse.Namespace) -> Benchmar
     """Train one benchmark mode and return a schema-compatible case."""
     dtype = torch.float64 if args.dtype == "float64" else torch.float32
     problem = _make_problem(problem_name, args)
-    model = MLP(2, args.hidden_layers, args.width, 1)
+    model = MLP(problem.input_dim, args.hidden_layers, args.width, problem.output_dim)
     adaptive_refinement = _rar_config(args, mode)
     constraint_sample_counts = {
         constraint.name: args.constraint_points for constraint in problem.constraints()
@@ -290,10 +377,21 @@ def parse_args() -> argparse.Namespace:
         choices=("uniform", "rar", "rar_diverse"),
         default=("uniform", "rar", "rar_diverse"),
     )
+    # The default set is the three problems with closed-form scalar solutions,
+    # which is what this benchmark was built around. The others are opt-in
+    # because they are slower and, for Allen-Cahn, scored against a numerical
+    # reference rather than an exact one.
     parser.add_argument(
         "--problems",
         nargs="+",
-        choices=("burgers", "heat", "wave"),
+        choices=(
+            "burgers",
+            "heat",
+            "wave",
+            "allen_cahn",
+            "schrodinger",
+            "navier_stokes",
+        ),
         default=("burgers", "heat", "wave"),
     )
     return parser.parse_args()

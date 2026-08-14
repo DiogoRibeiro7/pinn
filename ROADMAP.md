@@ -572,8 +572,34 @@ Concrete work:
   `InteriorSampler` policies working together.
 - Decide whether `pinnlab.utils.sampling.Domain` remains as a compatibility type
   or becomes a wrapper around `pinnlab.geometry`.
-- Extend RAR benchmark comparisons beyond Burgers, heat and wave after new
-  composable problem adapters exist.
+- ✅ Extend RAR benchmark comparisons beyond Burgers, heat and wave.
+  `scripts/benchmark_rar.py` now covers all six composable problems. Extending
+  it meant removing assumptions that were only true while the set was heat,
+  wave and Burgers: a hardcoded `MLP(2, ..., 1)`, 2-D grids, "every non-Burgers
+  problem has `config.modes`", and "every problem has `exact`". Systems are
+  scored with their components stacked, so a problem is not flattered by one
+  field being easy.
+
+  The measurement is a negative result, recorded because it is one. At 1500
+  steps with 2000 collocation points, one seed per cell:
+
+  | problem | uniform | RAR | RAR + diversity |
+  |---|---|---|---|
+  | Allen-Cahn | 0.9959 | 0.9959 | 0.9959 |
+  | Schrodinger | 0.1432 | 0.1292 | 0.1292 |
+  | Navier-Stokes | 0.7428 | 0.7457 | 0.7457 |
+
+  RAR helps on Schrodinger by about 10%, does nothing measurable on Allen-Cahn,
+  and is marginally worse on Navier-Stokes. Diversity-aware selection differs
+  from plain RAR only in the fifth decimal on all three, despite genuinely
+  selecting different points -- the greedy diverse path is a different algorithm,
+  not a no-op, and was verified to run.
+
+  None of this is conclusive: one seed per cell against a run-to-run spread of
+  2.2x to 2.6x resolves nothing. What it does establish is that RAR is not a
+  free win on harder problems, and that the diversity knob does not earn its
+  complexity at these settings. A seeded comparison would be needed before
+  claiming any of it as an effect.
 
 Done when:
 - New sampling features target `InteriorSampler` and `Geometry` first.
