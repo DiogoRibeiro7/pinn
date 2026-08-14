@@ -83,23 +83,28 @@
 <span class="sd">failure, since the network is free to ignore what the early times imply about</span>
 <span class="sd">the late ones.</span>
 
-<span class="sd">At ``nu = 1e-2``, three seeds each, identical budgets (1500 Adam steps plus 200</span>
+<span class="sd">At ``nu = 1e-2``, four seeds each, identical budgets (1500 Adam steps plus 200</span>
 <span class="sd">L-BFGS, 2000 collocation points, 4x64 MLP), scored as relative L2 against the</span>
 <span class="sd">spectral reference:</span>
 
 <span class="sd">===========  ======================  ===============</span>
 <span class="sd">Setting      Median relative L2      Range</span>
 <span class="sd">===========  ======================  ===============</span>
-<span class="sd">unweighted   0.917                   0.913 - 0.922</span>
-<span class="sd">``eps=1``,   0.615                   0.600 - 0.688</span>
+<span class="sd">unweighted   0.920                   0.913 - 0.940</span>
+<span class="sd">``eps=1``,   0.651                   0.600 - 0.791</span>
 <span class="sd">16 chunks</span>
 <span class="sd">===========  ======================  ===============</span>
 
-<span class="sd">The ranges are disjoint across seeds, which is the bar the wave-equation</span>
-<span class="sd">comparison above failed to clear. The mechanism is visible in the solution</span>
-<span class="sd">magnitude rather than only in the score: mean ``|u|`` over the domain was</span>
-<span class="sd">``0.07`` unweighted against ``0.32`` to ``0.44`` weighted, where the reference</span>
-<span class="sd">is ``0.578``. The weighting is escaping the trivial solution, which is what it</span>
+<span class="sd">The ranges are disjoint across seeds -- the worst weighted run still beats the</span>
+<span class="sd">best unweighted one -- which is the bar the wave-equation comparison above</span>
+<span class="sd">failed to clear. The mechanism is visible in the solution magnitude rather than</span>
+<span class="sd">only in the score: mean ``|u|`` over the domain was ``0.06`` to ``0.08``</span>
+<span class="sd">unweighted against ``0.32`` to ``0.48`` weighted, where the reference is</span>
+<span class="sd">``0.578``.</span>
+
+<span class="sd">The fourth seed was added when ``notebooks/basic/06_composable_api.ipynb`` drew</span>
+<span class="sd">one and landed outside the original three-seed range. Three seeds had</span>
+<span class="sd">understated the spread; the conclusion survived widening it. The weighting is escaping the trivial solution, which is what it</span>
 <span class="sd">is supposed to do.</span>
 
 <span class="sd">Read that as &quot;the method works and this is where it bites&quot;, not as &quot;Allen-Cahn</span>
@@ -230,8 +235,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce a pointwise PDE residual to a causally weighted scalar loss.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        residual: Pointwise residual, shape ``(N,)`` or ``(N, 1)``.</span>
-<span class="sd">        t: Matching time coordinates, shape ``(N,)`` or ``(N, 1)``.</span>
+<span class="sd">        residual: Pointwise residual, shape ``(N,)``, ``(N, 1)`` or ``(N, k)``</span>
+<span class="sd">            for a system of ``k`` equations. Components are reduced per point by</span>
+<span class="sd">            mean square before the temporal weighting, so a point contributes</span>
+<span class="sd">            one number to its window regardless of how many equations it</span>
+<span class="sd">            carries. That matches the unweighted path, which reduces the whole</span>
+<span class="sd">            residual with a single ``mean``.</span>
+<span class="sd">        t: Matching time coordinates, shape ``(N,)`` or ``(N, 1)``. One entry</span>
+<span class="sd">            per *point*, not per residual component.</span>
 <span class="sd">        config: Causal weighting settings.</span>
 <span class="sd">        tmin: Start of the time interval.</span>
 <span class="sd">        tmax: End of the time interval.</span>
@@ -246,12 +257,19 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
 
-    <span class="n">squared</span> <span class="o">=</span> <span class="n">residual</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">residual</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;residual must be (N,), (N, 1) or (N, k), got </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">residual</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="c1"># Reduce a system&#39;s components per point first. Flattening instead would</span>
+    <span class="c1"># give a system of k equations k times as many entries as it has time</span>
+    <span class="c1"># coordinates, which is what used to fail here for multi-output problems.</span>
+    <span class="n">squared</span> <span class="o">=</span> <span class="p">(</span><span class="n">residual</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">residual</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">residual</span><span class="o">**</span><span class="mi">2</span>
     <span class="n">times</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">squared</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;residual and t must describe the same points, got </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">squared</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;residual and t must describe the same points, got &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">squared</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2"> residual points and </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2"> times&quot;</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>

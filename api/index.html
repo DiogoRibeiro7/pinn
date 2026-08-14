@@ -4021,8 +4021,14 @@ residual top-k selection.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>residual</strong> – Pointwise residual, shape <code class="docutils literal notranslate"><span class="pre">(N,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">1)</span></code>.</p></li>
-<li><p><strong>t</strong> – Matching time coordinates, shape <code class="docutils literal notranslate"><span class="pre">(N,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">1)</span></code>.</p></li>
+<li><p><strong>residual</strong> – Pointwise residual, shape <code class="docutils literal notranslate"><span class="pre">(N,)</span></code>, <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">k)</span></code>
+for a system of <code class="docutils literal notranslate"><span class="pre">k</span></code> equations. Components are reduced per point by
+mean square before the temporal weighting, so a point contributes
+one number to its window regardless of how many equations it
+carries. That matches the unweighted path, which reduces the whole
+residual with a single <code class="docutils literal notranslate"><span class="pre">mean</span></code>.</p></li>
+<li><p><strong>t</strong> – Matching time coordinates, shape <code class="docutils literal notranslate"><span class="pre">(N,)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">1)</span></code>. One entry
+per <em>point</em>, not per residual component.</p></li>
 <li><p><strong>config</strong> – Causal weighting settings.</p></li>
 <li><p><strong>tmin</strong> – Start of the time interval.</p></li>
 <li><p><strong>tmax</strong> – End of the time interval.</p></li>
