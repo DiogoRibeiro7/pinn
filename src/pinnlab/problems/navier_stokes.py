@@ -129,8 +129,33 @@ class NavierStokesProblem:
     ``constrain_pressure=False`` for the formulation without it. Score pressure
     mean-centred whichever you choose, since the constant remains arbitrary.
 
-    Even supervised, ``0.64`` is poor. Pressure is the hard part of this problem
-    at a small budget, and neither setting should be read as solving it.
+    Even supervised, pressure is the hard part of this problem at a small
+    budget, and neither setting should be read as solving it.
+
+    **Weighting a system is not the same as weighting a scalar problem, and
+    getting it wrong is expensive.** The trainer reduces the ``(N, 3)`` residual
+    with a single mean, so each equation receives a third of
+    ``loss_weights["pde"]``, while each of the nine constraints here is a
+    separate named entry at its own full weight. A configuration carried over
+    from a scalar problem -- every constraint at ``10``, ``pde`` left at ``1``
+    -- therefore weights the constraints thirty times more heavily against the
+    residual than weighting each equation and each constraint equally would, and
+    the network barely optimises the PDE. Measured at 3000 Adam steps over three
+    seeds, that configuration reaches a velocity relative L2 of ``0.139``,
+    against ``0.035`` for the balance below::
+
+        loss_weights = {"pde": 3.0}                       # 1 per equation
+        loss_weights.update({"ic_u": 1.0, "ic_v": 1.0, "ic_p": 1.0})
+        loss_weights.update(
+            {c.name: 1.0 / 3.0 for c in problem.constraints()
+             if c.name.startswith("periodic_")}
+        )
+
+    ``pde`` at ``3`` turns the trainer's mean back into a sum, so each equation
+    carries weight one. This is a starting point rather than a tuned optimum: it
+    reproduces the per-component balance of
+    :class:`~pinnlab.solvers.navier_stokes.NavierStokesPINN`, which is a known
+    working configuration for this benchmark, not a claim about the best one.
 
     Args:
         config: Physical parameters and domain.
