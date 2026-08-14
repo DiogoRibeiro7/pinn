@@ -2024,6 +2024,212 @@ boundaries at <code class="docutils literal notranslate"><span class="pre">x</sp
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">NavierStokesConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6.283185307179586</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6.283185307179586</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Domain and viscosity for the 2-D incompressible Navier-Stokes benchmark.</p>
+<p>The defaults are the Taylor-Green vortex on a <code class="docutils literal notranslate"><span class="pre">2*pi</span></code>-periodic box with
+<code class="docutils literal notranslate"><span class="pre">nu</span> <span class="pre">=</span> <span class="pre">0.01</span></code>, matching <code class="xref py py-class docutils literal notranslate"><span class="pre">NSConfig</span></code> so
+the composable and legacy paths describe the same physics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nu</strong> – Kinematic viscosity; must be positive.</p></li>
+<li><p><strong>tmin</strong> – Initial time.</p></li>
+<li><p><strong>tmax</strong> – Final time; must exceed <code class="docutils literal notranslate"><span class="pre">tmin</span></code>.</p></li>
+<li><p><strong>xmin</strong> – Left edge of the periodic box.</p></li>
+<li><p><strong>xmax</strong> – Right edge; the period in <code class="docutils literal notranslate"><span class="pre">x</span></code> is <code class="docutils literal notranslate"><span class="pre">xmax</span> <span class="pre">-</span> <span class="pre">xmin</span></code>.</p></li>
+<li><p><strong>ymin</strong> – Lower edge of the periodic box.</p></li>
+<li><p><strong>ymax</strong> – Upper edge; the period in <code class="docutils literal notranslate"><span class="pre">y</span></code> is <code class="docutils literal notranslate"><span class="pre">ymax</span> <span class="pre">-</span> <span class="pre">ymin</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.nu">
+<span class="sig-name descname"><span class="pre">nu</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.nu" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.tmax">
+<span class="sig-name descname"><span class="pre">tmax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.tmax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.tmin">
+<span class="sig-name descname"><span class="pre">tmin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.tmin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> when the configuration is unphysical.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.xmax">
+<span class="sig-name descname"><span class="pre">xmax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.283185307179586</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.xmax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.xmin">
+<span class="sig-name descname"><span class="pre">xmin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.xmin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.ymax">
+<span class="sig-name descname"><span class="pre">ymax</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.283185307179586</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.ymax" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesConfig.ymin">
+<span class="sig-name descname"><span class="pre">ymin</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesConfig.ymin" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">NavierStokesProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.problems.NavierStokesConfig" title="pinnlab.problems.navier_stokes.NavierStokesConfig"><span class="pre">NavierStokesConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NavierStokesConfig(nu=0.01,</span> <span class="pre">tmin=0.0,</span> <span class="pre">tmax=1.0,</span> <span class="pre">xmin=0.0,</span> <span class="pre">xmax=6.283185307179586,</span> <span class="pre">ymin=0.0,</span> <span class="pre">ymax=6.283185307179586)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_constraint_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constrain_pressure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem" title="Link to this definition">¶</a></dt>
+<dd><p>2-D incompressible Navier-Stokes on a doubly periodic space-time box.</p>
+<p>The unknowns are <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v,</span> <span class="pre">p)</span></code> and the residual has three components:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">+</span> <span class="pre">u</span> <span class="pre">u_x</span> <span class="pre">+</span> <span class="pre">v</span> <span class="pre">u_y</span> <span class="pre">+</span> <span class="pre">p_x</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">(u_xx</span> <span class="pre">+</span> <span class="pre">u_yy)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v_t</span> <span class="pre">+</span> <span class="pre">u</span> <span class="pre">v_x</span> <span class="pre">+</span> <span class="pre">v</span> <span class="pre">v_y</span> <span class="pre">+</span> <span class="pre">p_y</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">(v_xx</span> <span class="pre">+</span> <span class="pre">v_yy)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u_x</span> <span class="pre">+</span> <span class="pre">v_y</span></code></p></li>
+</ul>
+<p>The third is the incompressibility constraint. It carries no time
+derivative, which is what makes this a differential-algebraic system rather
+than three evolution equations, and is the structural reason a
+velocity-pressure PINN behaves differently from the scalar problems here.</p>
+<p><strong>Pressure is determined only up to an additive constant.</strong> Nothing in the
+equations fixes its level: only <code class="docutils literal notranslate"><span class="pre">grad</span> <span class="pre">p</span></code> appears, so a solution offset by
+a constant is equally correct and supervising <code class="docutils literal notranslate"><span class="pre">p</span></code> pointwise penalises it
+for something that does not matter.</p>
+<p>That argument is sound and still lost to measurement. Leaving pressure free
+was the original default here; scored mean-centred over three seeds at 1500
+Adam steps plus 100 L-BFGS, it gave a median relative L2 of <code class="docutils literal notranslate"><span class="pre">0.98</span></code>
+(range <code class="docutils literal notranslate"><span class="pre">0.97-1.03</span></code>) – indistinguishable from predicting a constant –
+against <code class="docutils literal notranslate"><span class="pre">0.64</span></code> (range <code class="docutils literal notranslate"><span class="pre">0.42-0.68</span></code>) with the initial condition
+supervising it. Those ranges are disjoint. Velocity was unaffected either
+way, the two sets of ranges overlapping (<code class="docutils literal notranslate"><span class="pre">u</span></code> 0.21-0.30 against 0.21-0.28).</p>
+<p>So the gauge freedom is real but does not bite: absorbing a constant offset
+is cheap for the network, whereas with nothing anchoring <code class="docutils literal notranslate"><span class="pre">p</span></code> at this
+budget the optimiser has only <code class="docutils literal notranslate"><span class="pre">grad</span> <span class="pre">p</span></code> inside the momentum residual to go
+on, and does not converge. Supervision is the default; pass
+<code class="docutils literal notranslate"><span class="pre">constrain_pressure=False</span></code> for the formulation without it. Score pressure
+mean-centred whichever you choose, since the constant remains arbitrary.</p>
+<p>Even supervised, <code class="docutils literal notranslate"><span class="pre">0.64</span></code> is poor. Pressure is the hard part of this problem
+at a small budget, and neither setting should be read as solving it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – Physical parameters and domain.</p></li>
+<li><p><strong>n_constraint_samples</strong> – Default sample count for each constraint.</p></li>
+<li><p><strong>constrain_pressure</strong> – Whether the initial condition also supervises <code class="docutils literal notranslate"><span class="pre">p</span></code>.
+On by default, on the measurement above rather than on principle.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.config">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pinnlab.problems.NavierStokesConfig" title="pinnlab.problems.navier_stokes.NavierStokesConfig"><span class="pre">NavierStokesConfig</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NavierStokesConfig(nu=0.01,</span> <span class="pre">tmin=0.0,</span> <span class="pre">tmax=1.0,</span> <span class="pre">xmin=0.0,</span> <span class="pre">xmax=6.283185307179586,</span> <span class="pre">ymin=0.0,</span> <span class="pre">ymax=6.283185307179586)</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.constrain_pressure">
+<span class="sig-name descname"><span class="pre">constrain_pressure</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.constrain_pressure" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.constraints">
+<span class="sig-name descname"><span class="pre">constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pinnlab.constraints.Constraint" title="pinnlab.constraints.base.Constraint"><span class="pre">Constraint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesProblem.constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.constraints" title="Link to this definition">¶</a></dt>
+<dd><p>Return initial conditions and periodicity in both spatial directions.</p>
+<p>Periodicity is matched on value only. Unlike Allen-Cahn, the initial
+data here is smooth and genuinely periodic in both directions, so the
+derivative match that problem needs to rule out a seam kink is not
+required to make the condition well posed. It is also three times as
+expensive, since it would apply to every output.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.exact">
+<span class="sig-name descname"><span class="pre">exact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesProblem.exact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.exact" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the Taylor-Green solution <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v,</span> <span class="pre">p)</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.geometry">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">geometry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pinnlab.geometry.Rectangle" title="pinnlab.geometry.rectangle.Rectangle"><span class="pre">Rectangle</span></a></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.geometry" title="Link to this definition">¶</a></dt>
+<dd><p>Return the <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x,</span> <span class="pre">y)</span></code> space-time box.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.initial_state">
+<span class="sig-name descname"><span class="pre">initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesProblem.initial_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.initial_state" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluate the Taylor-Green field at the coordinates’ <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code>.</p>
+<p>Returns all three components; callers select one with an
+<code class="docutils literal notranslate"><span class="pre">output_index</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.input_dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">input_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.input_dim" title="Link to this definition">¶</a></dt>
+<dd><p>time and two spatial coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return coordinate dimension</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.n_constraint_samples">
+<span class="sig-name descname"><span class="pre">n_constraint_samples</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.n_constraint_samples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.output_dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">output_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.output_dim" title="Link to this definition">¶</a></dt>
+<dd><p>two velocity components and pressure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return output dimension</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.reference_grid">
+<span class="sig-name descname"><span class="pre">reference_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">21</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesProblem.reference_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.reference_grid" title="Link to this definition">¶</a></dt>
+<dd><p>Return a <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x,</span> <span class="pre">y)</span></code> grid with the exact fields on it.</p>
+<p>Named <code class="docutils literal notranslate"><span class="pre">reference_grid</span></code> for symmetry with the other problems, but this
+one is exact rather than numerical, which <code class="docutils literal notranslate"><span class="pre">reference_kind</span></code> reports.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.reference_kind">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reference_kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.reference_kind" title="Link to this definition">¶</a></dt>
+<dd><p>the Taylor-Green vortex is a closed form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pinnlab.problems.NavierStokesProblem.strong_residual">
+<span class="sig-name descname"><span class="pre">strong_residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative_backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pinnlab.residuals.DerivativeBackend" title="pinnlab.residuals.base.DerivativeBackend"><span class="pre">DerivativeBackend</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#NavierStokesProblem.strong_residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.NavierStokesProblem.strong_residual" title="Link to this definition">¶</a></dt>
+<dd><p>Return the three residual components at <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">x,</span> <span class="pre">y)</span></code>, shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is not <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pinnlab.problems.PDEProblem">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">PDEProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinnlab/problems/base.html#PDEProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.PDEProblem" title="Link to this definition">¶</a></dt>
 <dd><p>Protocol for a PDE problem solved by a generic trainer.</p>
@@ -2144,6 +2350,19 @@ boundaries at <code class="docutils literal notranslate"><span class="pre">x</sp
 <dt class="sig sig-object py" id="pinnlab.problems.benchmark_initial_profile">
 <span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">benchmark_initial_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/allen_cahn.html#benchmark_initial_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.benchmark_initial_profile" title="Link to this definition">¶</a></dt>
 <dd><p>Return the benchmark initial condition <code class="docutils literal notranslate"><span class="pre">u(0,</span> <span class="pre">x)</span> <span class="pre">=</span> <span class="pre">x^2</span> <span class="pre">cos(pi</span> <span class="pre">x)</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pinnlab.problems.taylor_green">
+<span class="sig-prename descclassname"><span class="pre">pinnlab.problems.</span></span><span class="sig-name descname"><span class="pre">taylor_green</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pinnlab/problems/navier_stokes.html#taylor_green"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinnlab.problems.taylor_green" title="Link to this definition">¶</a></dt>
+<dd><p>Return the Taylor-Green vortex <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v,</span> <span class="pre">p)</span></code> at the given points.</p>
+<p>This is an exact solution of the 2-D incompressible Navier-Stokes equations
+in the form used here, <code class="docutils literal notranslate"><span class="pre">u_t</span> <span class="pre">+</span> <span class="pre">(u.grad)u</span> <span class="pre">+</span> <span class="pre">grad</span> <span class="pre">p</span> <span class="pre">-</span> <span class="pre">nu</span> <span class="pre">lap</span> <span class="pre">u</span> <span class="pre">=</span> <span class="pre">0</span></code> with
+<code class="docutils literal notranslate"><span class="pre">div</span> <span class="pre">u</span> <span class="pre">=</span> <span class="pre">0</span></code>. Verified against those equations rather than asserted; see
+<code class="docutils literal notranslate"><span class="pre">tests/unit/test_taylor_green_reference.py</span></code>.</p>
+<p>Note the pressure sign. With this velocity field the momentum residual
+vanishes only for <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">+(1/4)(cos</span> <span class="pre">2x</span> <span class="pre">+</span> <span class="pre">cos</span> <span class="pre">2y)</span> <span class="pre">exp(-4</span> <span class="pre">nu</span> <span class="pre">t)</span></code>. Pressure is
+free up to an additive constant, not up to a sign.</p>
 </dd></dl>
 
 <p id="module-pinnlab.residuals">Residual forms and derivative helpers.</p>
@@ -5243,9 +5462,12 @@ identically zero.</p>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.AllenCahnProblem"><code class="docutils literal notranslate"><span class="pre">AllenCahnProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.BurgersProblem"><code class="docutils literal notranslate"><span class="pre">BurgersProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.HeatProblem"><code class="docutils literal notranslate"><span class="pre">HeatProblem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.NavierStokesConfig"><code class="docutils literal notranslate"><span class="pre">NavierStokesConfig</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.NavierStokesProblem"><code class="docutils literal notranslate"><span class="pre">NavierStokesProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.PDEProblem"><code class="docutils literal notranslate"><span class="pre">PDEProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.WaveProblem"><code class="docutils literal notranslate"><span class="pre">WaveProblem</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.benchmark_initial_profile"><code class="docutils literal notranslate"><span class="pre">benchmark_initial_profile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pinnlab.problems.taylor_green"><code class="docutils literal notranslate"><span class="pre">taylor_green()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.residuals.AutogradDerivativeBackend"><code class="docutils literal notranslate"><span class="pre">AutogradDerivativeBackend</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.residuals.DerivativeBackend"><code class="docutils literal notranslate"><span class="pre">DerivativeBackend</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pinnlab.residuals.ResidualForm"><code class="docutils literal notranslate"><span class="pre">ResidualForm</span></code></a></li>
