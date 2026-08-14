@@ -31,7 +31,54 @@
           <div class="body" role="main">
             
   <h1>Source code for pinnlab.training.adaptive_refinement</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Residual-based adaptive refinement for composable PINN training.&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;Residual-based adaptive refinement for composable PINN training.</span>
+
+<span class="sd">RAR periodically scores fresh interior candidates by residual magnitude and</span>
+<span class="sd">retains the worst of them as extra collocation points, on the reasoning that</span>
+<span class="sd">the network should spend its capacity where it is currently wrong.</span>
+
+<span class="sd">What has actually been measured here</span>
+<span class="sd">------------------------------------</span>
+<span class="sd">No benefit worth switching it on for, and it depends on the problem.</span>
+
+<span class="sd">Three seeds per configuration at 1500 Adam steps with 2000 collocation points,</span>
+<span class="sd">64 points retained per refinement pass and a 256-point cap. Both arms share a</span>
+<span class="sd">seed, so each pair has the same initialisation and the same collocation draw and</span>
+<span class="sd">the per-seed difference is the signal; comparing the *ranges* would hide it,</span>
+<span class="sd">since seed-to-seed spread is much larger than the effect.</span>
+
+<span class="sd">Relative L2 against each problem&#39;s reference, uniform minus RAR as a percentage</span>
+<span class="sd">of uniform -- positive means RAR did better:</span>
+
+<span class="sd">=============  =========================  ==================</span>
+<span class="sd">Problem        Per seed                   RAR better on</span>
+<span class="sd">=============  =========================  ==================</span>
+<span class="sd">heat           -8.9%, +4.8%, -1.5%        1 of 3</span>
+<span class="sd">Schrodinger    +9.8%, +1.4%, +2.5%        3 of 3</span>
+<span class="sd">Navier-Stokes  -0.4%, 0.0%, -1.4%         0 of 3</span>
+<span class="sd">=============  =========================  ==================</span>
+
+<span class="sd">Schrodinger improves on every seed, which is the one result here worth a second</span>
+<span class="sd">look, but three seeds cannot establish it: the same direction three times is</span>
+<span class="sd">what a fair coin gives one run in eight, and the magnitudes range from 1.4% to</span>
+<span class="sd">9.8%. Heat, the easy problem this feature was first demonstrated on, shows no</span>
+<span class="sd">direction at all. Navier-Stokes is never better.</span>
+
+<span class="sd">An earlier single-seed sweep reported Schrodinger improving by 10% and nothing</span>
+<span class="sd">else moving. That 10% was the largest of the three seeds; the other two are</span>
+<span class="sd">under 3%. Single runs on these problems do not resolve differences this size.</span>
+
+<span class="sd">``diversity_weight`` changes which points are selected -- a greedy spread-aware</span>
+<span class="sd">selection rather than a plain top-k, and it does run -- but the outcome differs</span>
+<span class="sd">only in the fifth decimal. It does not earn its complexity at these settings.</span>
+
+<span class="sd">Read this as &quot;not demonstrated here&quot;, not &quot;does not work&quot;. Published results for</span>
+<span class="sd">adaptive collocation use larger budgets, more aggressive refinement, and</span>
+<span class="sd">problems with sharper localised features than these. What it does mean is that</span>
+<span class="sd">switching RAR on is not free accuracy: it costs a candidate scoring pass every</span>
+<span class="sd">``refresh_every`` steps, and on this evidence you should measure it on your own</span>
+<span class="sd">problem rather than assume a gain.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
