@@ -338,10 +338,23 @@ the code rather than guessed at, and the cost figures are measured.
    edits. Until then broken `:class:` cross-references fail silently, since
    `-W` does not catch them.
 
-4. **Return `matplotlib` to the `viz` extra.** seaborn made it out this cycle.
-   matplotlib is still imported at module scope by `pinnlab.utils.visualization`,
-   which `pinnlab.utils` imports eagerly, so this needs that eager import
-   guarded first.
+4. ✅ **Return `matplotlib` to the `viz` extra.** Done. `pinnlab.utils` imports
+   the visualisation module on first access rather than at package import, and
+   the top-level plotting names resolve the same way, so nothing on the solver
+   path touches matplotlib. `pip install pinnlab` now pulls torch, numpy, PyYAML
+   and tqdm and nothing else; the whole plotting stack lives in `[viz]`.
+
+   Verified by blocking matplotlib entirely and importing the package, rather
+   than by reading the dependency list. Accessing a plotting name without the
+   extra now raises `AttributeError` naming what to install; previously those
+   names were set to `None`, which turned a missing dependency into a
+   `TypeError` somewhere further along.
+
+   No timing is quoted. A five-run A/B gave medians of 28.8s against 26.5s with
+   ranges spanning 7.9s to 43s -- the machine was thrashing and the numbers are
+   noise. The structural claim stands without it: matplotlib is not in the
+   import graph. The same distinction applied to the seaborn change, where the
+   first timing was cache-warming rather than measurement.
 
 ---
 

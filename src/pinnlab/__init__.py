@@ -10,7 +10,6 @@ from . import (
     solvers,
     transfer,
     utils,
-    visualization,
 )
 from .models import (
     MLP,
@@ -68,18 +67,6 @@ from .utils.validation import (
 from .utils.metrics import compute_error_metrics
 from .utils.sampling import create_lhs_sampler
 
-try:  # pragma: no cover - optional dependency may be missing
-    from .utils.visualization import PINNVisualizer, quick_plot_1d, quick_plot_loss
-except Exception:  # pragma: no cover - optional dependency may be missing
-    PINNVisualizer = None  # type: ignore[misc,assignment]
-    quick_plot_1d = None  # type: ignore[assignment]
-    quick_plot_loss = None  # type: ignore[assignment]
-
-try:  # pragma: no cover - optional dependency may be missing
-    from .visualization import TrainingDashboard, export_animation
-except Exception:  # pragma: no cover - optional dependency may be missing
-    TrainingDashboard = None  # type: ignore[misc,assignment]
-    export_animation = None  # type: ignore[assignment]
 from .sampling import (
     GradientBasedImportanceSampler,
     ActiveLearningStrategy,
@@ -353,3 +340,50 @@ __all__ = [
     "DomainAdaptationPINN",
     "DomainAdaptationConfig",
 ]
+
+
+# Plotting names resolve on first access rather than at import. Importing them
+# eagerly pulled in matplotlib.pyplot, about 1.1s of a 5.5s `import pinnlab`,
+# and forced matplotlib to be a required dependency rather than part of the
+# `viz` extra. They used to be set to None when the import failed, which turned
+# a missing dependency into a TypeError somewhere further along; now the
+# AttributeError names what to install.
+_LAZY_ATTRIBUTES = {
+    "PINNVisualizer": ".utils.visualization",
+    "quick_plot_1d": ".utils.visualization",
+    "quick_plot_loss": ".utils.visualization",
+    "TrainingDashboard": ".visualization",
+    "export_animation": ".visualization",
+    "visualization": ".visualization",
+}
+
+
+def __getattr__(name: str):
+    """Resolve deferred plotting names on first access (PEP 562).
+
+    Raises:
+        AttributeError: If the name is unknown, or if it needs an optional
+            dependency that is not installed. The message names the extra to
+            install rather than leaving a ``None`` to fail later.
+    """
+    target = _LAZY_ATTRIBUTES.get(name)
+    if target is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    import importlib
+
+    try:
+        module = importlib.import_module(target, __name__)
+    except ImportError as exc:  # pragma: no cover - needs matplotlib absent
+        raise AttributeError(
+            f"{name} needs the optional plotting dependencies: "
+            f"pip install 'pinnlab[viz]' ({exc})"
+        ) from exc
+    value = module if name == "visualization" else getattr(module, name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list:
+    """List deferred names alongside the eagerly imported ones."""
+    return sorted(set(globals()) | set(_LAZY_ATTRIBUTES))

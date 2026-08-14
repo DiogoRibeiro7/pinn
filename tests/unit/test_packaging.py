@@ -36,6 +36,7 @@ PACKAGE_ROOT = REPO_ROOT / "src" / "pinnlab"
 # Third-party roots the package may touch. Anything here must either be a
 # declared runtime dependency or be imported defensively.
 OPTIONAL_ROOTS = {
+    "matplotlib",
     "psutil",
     "scipy",
     "plotly",
@@ -140,13 +141,21 @@ class TestImportWithDeclaredDependenciesOnly:
 
 
 class TestDeclaredDependenciesAreHonest:
-    def test_matplotlib_is_required(self):
-        """matplotlib is imported at module scope by pinnlab.utils.visualization,
-        which pinnlab.utils imports eagerly, so declaring it optional would ship
-        a package that cannot be imported. If that import is ever guarded, move
-        it to the `viz` extra and delete this test."""
+    def test_matplotlib_is_not_required(self):
+        """matplotlib moved to the `viz` extra once its import became lazy.
+
+        pinnlab.utils imports the visualisation module on first access rather
+        than at package import, so the solver path never touches matplotlib.
+        This test replaces one asserting the opposite, which carried a note to
+        do exactly this if the import were ever guarded.
+        """
+        assert "matplotlib" not in _declared_runtime_requirements()
+
+    def test_no_plotting_dependency_is_required(self):
+        """The whole plotting stack belongs to the extra, not the base install."""
         declared = _declared_runtime_requirements()
-        assert "matplotlib" in declared
+        for package in ("matplotlib", "seaborn", "plotly", "scipy"):
+            assert package not in declared, f"{package} must live in the viz extra"
 
     def test_seaborn_is_not_required(self):
         """seaborn moved to the `viz` extra once its import became lazy.

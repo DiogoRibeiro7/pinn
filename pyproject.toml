@@ -42,19 +42,20 @@ dependencies = [
     "numpy>=2.2.6",
     "PyYAML>=6.0.3",
     "tqdm>=4.70.0",
-    # matplotlib is required, not optional, despite the `viz` extra below:
-    # importing pinnlab pulls in pinnlab.utils.visualization, which imports it
-    # at module scope, so declaring it optional would ship a distribution that
-    # fails on `import pinnlab`. seaborn used to be here for the same reason
-    # and is now in the extra: its only use is one set_palette call, applied
-    # lazily on first plot, and its absence changes colours and nothing else.
-    "matplotlib>=3.10.9",
 ]
 
 [project.optional-dependencies]
 # matplotlib and seaborn moved to the required dependencies; these two are
 # genuinely optional and degrade with a warning when absent.
-viz = ["plotly>=6.9.0", "scipy>=1.15.3", "seaborn>=0.13.2"]
+# Everything needed to plot. `import pinnlab` no longer touches any of it:
+# pinnlab.utils.visualization is imported on first access, so the solver path
+# runs without matplotlib installed at all.
+viz = [
+    "matplotlib>=3.10.9",
+    "plotly>=6.9.0",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+]
 dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",

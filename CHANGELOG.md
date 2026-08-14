@@ -8,6 +8,20 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Changed
+
+- **`matplotlib` moved to the `viz` extra.** `pinnlab.utils` now imports the
+  visualisation module on first access rather than at package import, and the
+  top-level plotting names resolve the same way, so the solver path never
+  touches matplotlib. `pip install pinnlab` brings torch, numpy, PyYAML and
+  tqdm; matplotlib, seaborn, plotly and scipy are all in `[viz]`.
+
+  Verified by blocking matplotlib and importing the package, not by reading the
+  dependency list. One behaviour change worth knowing: accessing
+  `PINNVisualizer` and friends without the extra raises `AttributeError` naming
+  what to install, where they were previously set to `None` -- which deferred
+  the failure to a `TypeError` somewhere less obvious.
+
 ### Added
 
 - **`SchrodingerProblem`**, the second composable problem with more than one
