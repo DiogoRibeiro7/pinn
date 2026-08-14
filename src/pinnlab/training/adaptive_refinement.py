@@ -1,4 +1,51 @@
-"""Residual-based adaptive refinement for composable PINN training."""
+"""Residual-based adaptive refinement for composable PINN training.
+
+RAR periodically scores fresh interior candidates by residual magnitude and
+retains the worst of them as extra collocation points, on the reasoning that
+the network should spend its capacity where it is currently wrong.
+
+What has actually been measured here
+------------------------------------
+No benefit worth switching it on for, and it depends on the problem.
+
+Three seeds per configuration at 1500 Adam steps with 2000 collocation points,
+64 points retained per refinement pass and a 256-point cap. Both arms share a
+seed, so each pair has the same initialisation and the same collocation draw and
+the per-seed difference is the signal; comparing the *ranges* would hide it,
+since seed-to-seed spread is much larger than the effect.
+
+Relative L2 against each problem's reference, uniform minus RAR as a percentage
+of uniform -- positive means RAR did better:
+
+=============  =========================  ==================
+Problem        Per seed                   RAR better on
+=============  =========================  ==================
+heat           -8.9%, +4.8%, -1.5%        1 of 3
+Schrodinger    +9.8%, +1.4%, +2.5%        3 of 3
+Navier-Stokes  -0.4%, 0.0%, -1.4%         0 of 3
+=============  =========================  ==================
+
+Schrodinger improves on every seed, which is the one result here worth a second
+look, but three seeds cannot establish it: the same direction three times is
+what a fair coin gives one run in eight, and the magnitudes range from 1.4% to
+9.8%. Heat, the easy problem this feature was first demonstrated on, shows no
+direction at all. Navier-Stokes is never better.
+
+An earlier single-seed sweep reported Schrodinger improving by 10% and nothing
+else moving. That 10% was the largest of the three seeds; the other two are
+under 3%. Single runs on these problems do not resolve differences this size.
+
+``diversity_weight`` changes which points are selected -- a greedy spread-aware
+selection rather than a plain top-k, and it does run -- but the outcome differs
+only in the fifth decimal. It does not earn its complexity at these settings.
+
+Read this as "not demonstrated here", not "does not work". Published results for
+adaptive collocation use larger budgets, more aggressive refinement, and
+problems with sharper localised features than these. What it does mean is that
+switching RAR on is not free accuracy: it costs a candidate scoring pass every
+``refresh_every`` steps, and on this evidence you should measure it on your own
+problem rather than assume a gain.
+"""
 
 from __future__ import annotations
 

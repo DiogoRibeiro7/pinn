@@ -580,26 +580,31 @@ Concrete work:
   scored with their components stacked, so a problem is not flattered by one
   field being easy.
 
-  The measurement is a negative result, recorded because it is one. At 1500
-  steps with 2000 collocation points, one seed per cell:
+  The measurement it enabled is recorded in the `adaptive_refinement` module
+  docstring, which previously made no accuracy claim at all. Three seeds per
+  configuration at 1500 steps, comparing per-seed differences rather than
+  ranges because both arms share a seed and the spread between seeds is much
+  larger than the effect:
 
-  | problem | uniform | RAR | RAR + diversity |
-  |---|---|---|---|
-  | Allen-Cahn | 0.9959 | 0.9959 | 0.9959 |
-  | Schrodinger | 0.1432 | 0.1292 | 0.1292 |
-  | Navier-Stokes | 0.7428 | 0.7457 | 0.7457 |
+  | problem | per seed, uniform minus RAR | RAR better on |
+  |---|---|---|
+  | heat | -8.9%, +4.8%, -1.5% | 1 of 3 |
+  | Schrodinger | +9.8%, +1.4%, +2.5% | 3 of 3 |
+  | Navier-Stokes | -0.4%, 0.0%, -1.4% | 0 of 3 |
 
-  RAR helps on Schrodinger by about 10%, does nothing measurable on Allen-Cahn,
-  and is marginally worse on Navier-Stokes. Diversity-aware selection differs
-  from plain RAR only in the fifth decimal on all three, despite genuinely
-  selecting different points -- the greedy diverse path is a different algorithm,
-  not a no-op, and was verified to run.
+  Schrodinger improves on every seed, which is the only result worth another
+  look, but three seeds cannot establish it -- the same direction three times is
+  a one-in-eight coin flip. Heat, the problem this feature was first shown on,
+  has no direction. Navier-Stokes is never better. Diversity-aware selection
+  differs from plain RAR only in the fifth decimal.
 
-  None of this is conclusive: one seed per cell against a run-to-run spread of
-  2.2x to 2.6x resolves nothing. What it does establish is that RAR is not a
-  free win on harder problems, and that the diversity knob does not earn its
-  complexity at these settings. A seeded comparison would be needed before
-  claiming any of it as an effect.
+  Two corrections came out of this. A first single-seed sweep reported
+  Schrodinger improving 10% and was written up here as a result; that 10% was
+  the largest of three seeds and the others are under 3%. And the seeded script
+  first judged the comparison by whether the ranges overlapped, which is the
+  wrong test when both arms share a seed: it reported "no effect resolved"
+  everywhere and hid that Schrodinger moved the same way three times out of
+  three.
 
 Done when:
 - New sampling features target `InteriorSampler` and `Geometry` first.
