@@ -8,6 +8,28 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Added
+
+- **`NavierStokesProblem`**, the first composable problem with more than one
+  output: three coupled unknowns (`u`, `v`, `p`) and three residuals, one of
+  which -- incompressibility -- carries no time derivative, which is what makes
+  a velocity-pressure PINN structurally different from the scalar problems here.
+  It scores against the Taylor-Green vortex and so is also the first composable
+  problem reporting `reference_kind == "analytic"` rather than `"numerical"`.
+
+  Its residual is verified to vanish on the closed-form solution at 1e-12 in
+  float64, with a wrong-viscosity control so that "the residual is small" cannot
+  pass by accident.
+
+  Pressure is supervised at `t = 0` by default. The opposite is defensible --
+  only `grad p` appears in the equations, so a constant offset is equally
+  correct and penalising it is unphysical -- and it was the original default
+  here. It lost to measurement: mean-centred relative L2 of 0.98 unconstrained
+  (range 0.97-1.03, indistinguishable from predicting a constant) against 0.64
+  constrained (range 0.42-0.68), disjoint over three seeds, with velocity
+  unaffected either way. Pass `constrain_pressure=False` for the unsupervised
+  formulation. Even at 0.64 pressure is not solved, only learned.
+
 ### Fixed
 
 - **The Taylor-Green vortex pressure had the wrong sign, and it was supervising

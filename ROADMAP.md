@@ -256,23 +256,31 @@ Non-goals for the immediate next cycle:
 Concrete open work, in the order I would take it. Each has been scoped against
 the code rather than guessed at, and the cost figures are measured.
 
-1. **A composable Navier-Stokes problem.** Multi-output residuals were listed
-   here as "the remaining structural gap" and as something the
-   `StrongFormResidual` contract "does not express". That was wrong, and
-   checking it took one probe: `StrongFormResidual` already validates
-   `(N, residual_dim)`, every constraint already takes an `output_index`, and
-   the trainer already reduces with a shape-agnostic `mean`. A two-output
-   problem trains through the generic `Trainer` today, with each output
-   converging on its own equation.
+1. ✅ **A composable Navier-Stokes problem.** Done: `NavierStokesProblem` is the
+   first composable problem with more than one output -- three coupled unknowns
+   and three residuals, one of which carries no time derivative. It scores
+   against the Taylor-Green vortex, so it is also the first with
+   `reference_kind == "analytic"`.
 
-   One thing genuinely was scalar-only, and is now fixed: `causal_residual_loss`
-   flattened the residual, so a system of `k` equations offered `N * k` entries
-   against `N` time coordinates and was rejected. Components are reduced per
-   point by mean square before chunking, which agrees exactly with the
-   unweighted path.
+   Multi-output was recorded here as "the remaining structural gap" that
+   `StrongFormResidual` "does not express". That was wrong, and one probe
+   settled it: the residual form already validated `(N, residual_dim)`,
+   constraints already selected components with `output_index`, and the trainer
+   already reduced with a shape-agnostic mean. Only `causal_residual_loss` was
+   scalar-only, and it now reduces components per point.
 
-   So the blocker was never structural. What remains is the work itself:
-   defining the problem, its constraints, and a reference to score against.
+   Two things were measured rather than assumed while building it. The shipped
+   Taylor-Green pressure had the wrong sign, which mattered because pressure is
+   supervised: fixing it took the legacy notebook's velocity error from 2.4e-1
+   to 8.4e-2 at identical seed and collocation points. And leaving pressure
+   unconstrained -- defensible, since only `grad p` appears in the equations --
+   lost to supervising it, 0.98 against 0.64 mean-centred over three seeds with
+   disjoint ranges and no measurable effect on velocity. The default follows the
+   measurement.
+
+   Still open: at 0.64 relative L2 pressure is not solved, only learned. The
+   velocity errors of ~0.2 are also well short of the legacy solver's 8.4e-2,
+   which used twice the Adam budget; a like-for-like comparison has not been run.
 
 2. **A composable nonlinear Schrodinger problem, or a written decision not to.**
    The usual formulation splits the complex field into real and imaginary
