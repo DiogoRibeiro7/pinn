@@ -6,6 +6,32 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
+## [Unreleased]
+
+### Fixed
+
+- Causal weighting rejected multi-output problems. `causal_residual_loss`
+  flattened the residual with `reshape(-1)`, so a system of `k` equations
+  offered `N * k` entries against `N` time coordinates and failed its own shape
+  check. Components are now reduced per point by mean square before the
+  temporal weighting, which agrees exactly with the unweighted path -- reducing
+  by sum instead would have silently scaled a system's PDE loss by `k`.
+
+  This was the only thing in the composable core that was actually scalar-only.
+  ROADMAP.md had recorded multi-output residuals as "the remaining structural
+  gap" that `StrongFormResidual` "does not express"; a single probe showed
+  otherwise. The residual form already validates `(N, residual_dim)`, every
+  constraint already takes an `output_index`, and the trainer already reduces
+  with a shape-agnostic `mean`. A two-output problem -- two decoupled heat
+  equations with different diffusivities -- trains through the generic
+  `Trainer` with each output converging on its own equation.
+
+### Changed
+
+- The causal-weighting module docstring now reports the four-seed Allen-Cahn
+  measurement, matching the notebook, changelog and roadmap. It was the last
+  place still citing three seeds.
+
 ## [0.5.1] - 2026-08-14
 
 Mostly a notebook release, with one library fix that matters to anyone who

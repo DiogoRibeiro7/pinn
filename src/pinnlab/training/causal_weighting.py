@@ -50,23 +50,28 @@ condition and decays to zero for ``t > 0``. That is precisely a causality
 failure, since the network is free to ignore what the early times imply about
 the late ones.
 
-At ``nu = 1e-2``, three seeds each, identical budgets (1500 Adam steps plus 200
+At ``nu = 1e-2``, four seeds each, identical budgets (1500 Adam steps plus 200
 L-BFGS, 2000 collocation points, 4x64 MLP), scored as relative L2 against the
 spectral reference:
 
 ===========  ======================  ===============
 Setting      Median relative L2      Range
 ===========  ======================  ===============
-unweighted   0.917                   0.913 - 0.922
-``eps=1``,   0.615                   0.600 - 0.688
+unweighted   0.920                   0.913 - 0.940
+``eps=1``,   0.651                   0.600 - 0.791
 16 chunks
 ===========  ======================  ===============
 
-The ranges are disjoint across seeds, which is the bar the wave-equation
-comparison above failed to clear. The mechanism is visible in the solution
-magnitude rather than only in the score: mean ``|u|`` over the domain was
-``0.07`` unweighted against ``0.32`` to ``0.44`` weighted, where the reference
-is ``0.578``. The weighting is escaping the trivial solution, which is what it
+The ranges are disjoint across seeds -- the worst weighted run still beats the
+best unweighted one -- which is the bar the wave-equation comparison above
+failed to clear. The mechanism is visible in the solution magnitude rather than
+only in the score: mean ``|u|`` over the domain was ``0.06`` to ``0.08``
+unweighted against ``0.32`` to ``0.48`` weighted, where the reference is
+``0.578``.
+
+The fourth seed was added when ``notebooks/basic/06_composable_api.ipynb`` drew
+one and landed outside the original three-seed range. Three seeds had
+understated the spread; the conclusion survived widening it. The weighting is escaping the trivial solution, which is what it
 is supposed to do.
 
 Read that as "the method works and this is where it bites", not as "Allen-Cahn
@@ -183,8 +188,14 @@ def causal_residual_loss(
     """Reduce a pointwise PDE residual to a causally weighted scalar loss.
 
     Args:
-        residual: Pointwise residual, shape ``(N,)`` or ``(N, 1)``.
-        t: Matching time coordinates, shape ``(N,)`` or ``(N, 1)``.
+        residual: Pointwise residual, shape ``(N,)``, ``(N, 1)`` or ``(N, k)``
+            for a system of ``k`` equations. Components are reduced per point by
+            mean square before the temporal weighting, so a point contributes
+            one number to its window regardless of how many equations it
+            carries. That matches the unweighted path, which reduces the whole
+            residual with a single ``mean``.
+        t: Matching time coordinates, shape ``(N,)`` or ``(N, 1)``. One entry
+            per *point*, not per residual component.
         config: Causal weighting settings.
         tmin: Start of the time interval.
         tmax: End of the time interval.
@@ -199,12 +210,19 @@ def causal_residual_loss(
     """
     config.validate()
 
-    squared = residual.reshape(-1) ** 2
+    if residual.ndim > 2:
+        raise ValueError(
+            f"residual must be (N,), (N, 1) or (N, k), got {tuple(residual.shape)}"
+        )
+    # Reduce a system's components per point first. Flattening instead would
+    # give a system of k equations k times as many entries as it has time
+    # coordinates, which is what used to fail here for multi-output problems.
+    squared = (residual**2).mean(dim=1) if residual.ndim == 2 else residual**2
     times = t.reshape(-1)
     if squared.shape != times.shape:
         raise ValueError(
-            f"residual and t must describe the same points, got {tuple(squared.shape)} "
-            f"and {tuple(times.shape)}"
+            f"residual and t must describe the same points, got "
+            f"{tuple(squared.shape)} residual points and {tuple(times.shape)} times"
         )
 
     if not config.enabled:

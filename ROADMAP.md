@@ -85,9 +85,11 @@ Current limitation:
   composable trainer. Heat, wave, Burgers and Allen-Cahn have composable
   problem coverage; richer legacy features such as caching, AMP, active
   learning and some batching behavior still live mostly in `raissi_improved`.
-- Every composable problem so far is scalar. Navier-Stokes and nonlinear
-  Schrodinger both need multi-output residuals, which the current
-  `StrongFormResidual` contract does not express.
+- Every composable problem shipped so far is scalar, but the core is not: a
+  two-output problem trains through the generic `Trainer`, verified by probe.
+  The residual form validates `(N, residual_dim)`, constraints select a
+  component with `output_index`, and causal weighting reduces components per
+  point. What is missing is problems, not plumbing.
 
 ### References And Benchmarks
 
@@ -254,14 +256,30 @@ Non-goals for the immediate next cycle:
 Concrete open work, in the order I would take it. Each has been scoped against
 the code rather than guessed at, and the cost figures are measured.
 
-1. **Multi-output residuals.** The remaining structural gap in the composable
-   core, and the honest blocker for migrating Navier-Stokes. Periodic
-   constraints are now exercised properly by Allen-Cahn, which was the other
-   precondition.
+1. **A composable Navier-Stokes problem.** Multi-output residuals were listed
+   here as "the remaining structural gap" and as something the
+   `StrongFormResidual` contract "does not express". That was wrong, and
+   checking it took one probe: `StrongFormResidual` already validates
+   `(N, residual_dim)`, every constraint already takes an `output_index`, and
+   the trainer already reduces with a shape-agnostic `mean`. A two-output
+   problem trains through the generic `Trainer` today, with each output
+   converging on its own equation.
+
+   One thing genuinely was scalar-only, and is now fixed: `causal_residual_loss`
+   flattened the residual, so a system of `k` equations offered `N * k` entries
+   against `N` time coordinates and was rejected. Components are reduced per
+   point by mean square before chunking, which agrees exactly with the
+   unweighted path.
+
+   So the blocker was never structural. What remains is the work itself:
+   defining the problem, its constraints, and a reference to score against.
 
 2. **A composable nonlinear Schrodinger problem, or a written decision not to.**
-   It needs complex-valued residuals, which the current `StrongFormResidual`
-   contract does not express. Documenting why is a valid outcome.
+   The usual formulation splits the complex field into real and imaginary
+   parts, which is a two-output problem and therefore works today -- the claim
+   here that it "needs complex-valued residuals" was the same mistaken
+   assumption as above. Worth attempting before assuming anything else blocks
+   it.
 
 3. **`nitpicky = True` for the docs.** Measured at 670 warnings, almost all
    unresolvable references to `torch` and `numpy` types. Closing it needs an

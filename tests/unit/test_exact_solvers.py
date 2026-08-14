@@ -338,6 +338,79 @@ class TestRelativeL2Error:
 # ---------------------------------------------------------------------------
 
 
+class TestCausalWeightingOnSystems:
+    """Multi-component residuals, which used to raise here.
+
+    ``causal_residual_loss`` flattened the residual with ``reshape(-1)``, so a
+    system of ``k`` equations produced ``N * k`` entries against ``N`` time
+    coordinates and the shape check rejected it. Everything else in the
+    composable core already handled multiple outputs -- the residual form
+    validates ``(N, residual_dim)``, every constraint takes an ``output_index``,
+    and the unweighted path reduces with a shape-agnostic ``mean`` -- so this
+    was the only thing standing between the trainer and a PDE system.
+    """
+
+    @staticmethod
+    def _config(enabled: bool = True):
+        return CausalWeightConfig(enabled=enabled, n_chunks=4, eps=1.0)
+
+    def test_a_two_component_residual_is_accepted(self):
+        residual = torch.rand(40, 2)
+        t = torch.linspace(0.0, 1.0, 40)
+        loss, weights = causal_residual_loss(residual, t, self._config(), 0.0, 1.0)
+        assert torch.isfinite(loss)
+        assert weights.shape == (4,)
+
+    def test_disabled_weighting_matches_the_unweighted_reduction(self):
+        """The trainer reduces with ``torch.mean(residual ** 2)`` when weighting
+        is off, so this path has to agree with it for a system exactly as it
+        does for a scalar. Reducing components by *sum* instead of mean would
+        silently scale a system's PDE loss by ``k``."""
+        residual = torch.randn(30, 3)
+        t = torch.linspace(0.0, 1.0, 30)
+        loss, _ = causal_residual_loss(
+            residual, t, self._config(enabled=False), 0.0, 1.0
+        )
+        assert loss == pytest.approx(float(torch.mean(residual**2)), rel=1e-6)
+
+    def test_one_component_is_unchanged_by_the_generalisation(self):
+        """An ``(N, 1)`` residual must behave exactly as it did before."""
+        residual = torch.rand(24, 1)
+        t = torch.linspace(0.0, 1.0, 24)
+        loss_2d, _ = causal_residual_loss(residual, t, self._config(), 0.0, 1.0)
+        loss_1d, _ = causal_residual_loss(
+            residual.reshape(-1), t, self._config(), 0.0, 1.0
+        )
+        assert float(loss_2d) == pytest.approx(float(loss_1d), rel=1e-6)
+
+    def test_a_mismatched_point_count_is_still_rejected(self):
+        """The shape check must still catch a genuine mismatch, not just stop
+        firing on the case it used to get wrong."""
+        with pytest.raises(ValueError, match="same points"):
+            causal_residual_loss(
+                torch.rand(10, 2), torch.linspace(0.0, 1.0, 7), self._config(), 0.0, 1.0
+            )
+
+    def test_a_three_dimensional_residual_is_rejected(self):
+        with pytest.raises(ValueError, match=r"\(N,\), \(N, 1\) or \(N, k\)"):
+            causal_residual_loss(
+                torch.rand(8, 2, 2),
+                torch.linspace(0.0, 1.0, 8),
+                self._config(),
+                0.0,
+                1.0,
+            )
+
+    def test_a_noisy_late_component_still_suppresses_late_windows(self):
+        """The weighting must respond to system components, not ignore them."""
+        t = torch.linspace(0.0, 1.0, 80)
+        residual = torch.zeros(80, 2)
+        residual[t < 0.25, 1] = 5.0  # only the second equation, only early on
+        _, weights = causal_residual_loss(residual, t, self._config(), 0.0, 1.0)
+        assert float(weights[0]) == pytest.approx(1.0)
+        assert float(weights[-1]) < 0.1
+
+
 class TestCausalWeighting:
     def test_chunk_index_spans_the_windows(self):
         t = torch.linspace(0.0, 1.0, 100)
