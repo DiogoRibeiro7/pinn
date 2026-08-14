@@ -82,19 +82,31 @@ Physics-Informed Neural Networks (PINNs) embed physical laws described by PDEs d
 ### Installation
 
 ```bash
-# Clone the repository
+pip install pinnlab
+```
+
+That is the whole solver: torch, numpy, PyYAML and tqdm. Plotting is optional
+and lives in the `viz` extra, along with SciPy and Plotly:
+
+```bash
+pip install "pinnlab[viz]"
+```
+
+`import pinnlab` does not touch matplotlib, so the base install stays light.
+Reach for a plotting helper without the extra and you get an `AttributeError`
+saying which extra to install, rather than a failure further along.
+
+Other extras: `dev` (tests, linters, docs), `gpu`, `deploy`. To work on the
+library itself:
+
+```bash
 git clone https://github.com/DiogoRibeiro7/pinn.git
 cd pinn
-
-# Development installation
-pip install -e .
-
-# Regular installation
-pip install .
-
-# With optional dependencies
-pip install .[viz,dev,gpu,deploy]
+pip install -e ".[dev,viz]"
 ```
+
+The distribution is `pinnlab`, not `pinn`: that name on PyPI belongs to an
+unrelated REST-API client. The import name matches the distribution.
 
 ### Build Documentation
 
@@ -639,8 +651,9 @@ cd pinn
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
-# Install with the development and visualisation extras. Install `viz` too:
-# importing pinn pulls in matplotlib and seaborn.
+# Install with the development and visualisation extras. `viz` is not needed to
+# import the package -- plotting is imported lazily -- but the examples,
+# notebooks and a few tests do plot.
 pip install -e ".[dev,viz]"
 
 # Optional: run the formatting and lint checks on every commit

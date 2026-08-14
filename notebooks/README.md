@@ -15,7 +15,7 @@ see the notes at the bottom.
 ## 🚀 Quick start
 
 ```bash
-pip install pinnlab            # or: pip install -e ".[dev,viz]" from a clone
+pip install "pinnlab[viz]"     # the gallery plots, so the viz extra is needed
 jupyter notebook notebooks/    # or open in VS Code
 ```
 
