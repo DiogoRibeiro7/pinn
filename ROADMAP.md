@@ -349,7 +349,13 @@ the code rather than guessed at, and the cost figures are measured.
    comma fixed the render, not just the warning.
 
    The rest are suppressed by `nitpick_ignore_regex`, each category with its
-   reason in `docs/conf.py`. The largest is structural and worth knowing:
+   reason in `docs/conf.py`. One category only appears in CI: Sphinx splits a
+   parameterised type at its comma and tries to resolve the fragment, so
+   `Dict[str, float]` produces a reference to `Dict[str`. That happens under
+   CI's Python 3.11 and not under 3.13 locally, so the first push failed the
+   Docs build. It is the fourth local-versus-CI divergence recorded here, after
+   numpy stub versions, coverage direction and notebook runtime -- a clean local
+   run is evidence, not proof. The largest is structural and worth knowing:
    docstrings reference the public re-export, `pinnlab.training.Trainer`, which
    is the path a user types, while autodoc registers each class under the module
    that defines it, `pinnlab.training.trainer.Trainer`. The API reference

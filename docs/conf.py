@@ -86,4 +86,12 @@ nitpick_ignore_regex = [
     ("py:exc", r"pinnlab\..*"),
     ("py:func", r"pinnlab\..*"),
     ("py:meth", r"pinnlab\..*"),
+    # Truncated generics. Sphinx splits a parameterised type at its comma and
+    # tries to resolve the fragment, so `Dict[str, float]` produces a reference
+    # to `Dict[str`. These appear under CI's Python 3.11 and not under 3.13
+    # locally, which is why they were not caught before pushing. The pattern
+    # matches an opening bracket with no closing one -- a fragment, never a real
+    # target.
+    ("py:class", r"^[^\[\]]*\[[^\]]*$"),
+    ("py:obj", r"^[^\[\]]*\[[^\]]*$"),
 ]
