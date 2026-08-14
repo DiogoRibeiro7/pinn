@@ -25,8 +25,8 @@ identifiers:
 repository-code: "https://github.com/DiogoRibeiro7/pinn"
 url: "https://github.com/DiogoRibeiro7/pinn"
 license: MIT
-version: 0.5.0
-date-released: "2026-08-11"
+version: 0.5.1
+date-released: "2026-08-14"
 keywords:
   - physics-informed neural networks
   - PINN

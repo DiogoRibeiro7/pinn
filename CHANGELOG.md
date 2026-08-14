@@ -6,7 +6,13 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
-## [Unreleased]
+## [0.5.1] - 2026-08-14
+
+Mostly a notebook release, with one library fix that matters to anyone who
+installed `pinnlab[viz]` for the statistical metrics: they returned `nan` in
+0.5.0 regardless of whether SciPy was present. Everything else here is the
+notebook gallery, its documentation and its CI, none of which ships in the
+distribution.
 
 ### Fixed
 
