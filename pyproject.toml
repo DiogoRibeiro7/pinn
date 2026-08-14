@@ -123,7 +123,13 @@ exclude = ["tests"]
 # here is for future drift, not for platform variation, of which there is
 # currently none. Note the direction: CI is slightly below local, not above.
 # Raise it as tests are added; see ROADMAP.md.
-addopts = "-q --cov=pinnlab --cov-report=term-missing --cov-fail-under=64"
+# -m "not performance" keeps wall-clock assertions out of the correctness gate.
+# tests/performance/test_mlp_performance.py asserts 100 forward passes finish
+# inside a second, which is a statement about the machine, not the code: it
+# failed once in a full-gate run that took 18 minutes under load and passed
+# immediately on a quiet one. Those tests still run, in their own
+# performance.yml workflow, where a slow result means something.
+addopts = """-q -m "not performance" --cov=pinnlab     --cov-report=term-missing --cov-fail-under=64"""
 testpaths = ["tests"]
 markers = [
     "integration: integration tests",

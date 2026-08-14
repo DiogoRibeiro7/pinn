@@ -10,6 +10,35 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ### Added
 
+- **`SchrodingerProblem`**, the second composable problem with more than one
+  output, and the one showing the outputs need not be physically distinct
+  fields: here they are the real and imaginary parts of a single complex field,
+  split by the problem rather than handled by the core.
+
+  The amplitude decides whether it can be scored. At the default
+  `amplitude = 1` the initial data is the fundamental soliton and
+  `sech(x) exp(i t / 2)` is exact, so `reference_kind` is `"analytic"`. At
+  `amplitude = 2`, the familiar benchmark, the initial data is a breather with
+  no closed form -- it leaves a residual of order 1 -- so `reference_kind` is
+  `"unavailable"` and `exact()` raises instead of returning something wrong.
+
+  Periodicity is matched on value only, which is exact here because `sech` is
+  even. Derivative periodicity is violated, since `sech'` is odd, and Dirichlet
+  would contradict the solution by `0.0135`. Trained at a modest budget it
+  reaches a `|h|` relative L2 of `4.2e-3`.
+
+### Fixed
+
+- Performance benchmarks no longer run inside the correctness suite.
+  `test_mlp_forward_speed` asserts that 100 forward passes finish within a
+  second, which is a statement about the machine rather than the code: it
+  failed once during a full-gate run that took 18 minutes under load, and
+  passed immediately on an unloaded one. `addopts` now deselects the
+  `performance` marker, and `performance.yml` re-enables it with
+  `-m performance`, because without that override the job collects nothing and
+  pytest exits 5 -- which reads as a failure. Both paths verified.
+
+
 - **`NavierStokesProblem`**, the first composable problem with more than one
   output: three coupled unknowns (`u`, `v`, `p`) and three residuals, one of
   which -- incompressibility -- carries no time derivative, which is what makes

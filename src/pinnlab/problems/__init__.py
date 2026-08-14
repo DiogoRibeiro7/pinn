@@ -9,6 +9,12 @@ from .navier_stokes import (
     NavierStokesProblem,
     taylor_green,
 )
+from .schrodinger import (
+    SOLITON_AMPLITUDE,
+    SchrodingerConfig,
+    SchrodingerProblem,
+    soliton,
+)
 from .wave import WaveProblem
 
 __all__ = [
@@ -20,6 +26,10 @@ __all__ = [
     "NavierStokesProblem",
     "taylor_green",
     "PDEProblem",
+    "SOLITON_AMPLITUDE",
+    "SchrodingerConfig",
+    "SchrodingerProblem",
+    "soliton",
     "WaveProblem",
     "benchmark_initial_profile",
 ]

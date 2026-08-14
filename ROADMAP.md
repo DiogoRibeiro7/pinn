@@ -303,12 +303,34 @@ the code rather than guessed at, and the cost figures are measured.
    repeat is documented in `docs/core_api.rst`: count per-component weights
    before assuming a scalar problem's configuration transfers to a system.
 
-2. **A composable nonlinear Schrodinger problem, or a written decision not to.**
-   The usual formulation splits the complex field into real and imaginary
-   parts, which is a two-output problem and therefore works today -- the claim
-   here that it "needs complex-valued residuals" was the same mistaken
-   assumption as above. Worth attempting before assuming anything else blocks
-   it.
+2. ✅ **A composable nonlinear Schrodinger problem.** Done: `SchrodingerProblem`
+   is the second multi-output problem, and the one that shows the outputs need
+   not be physically distinct fields -- here they are the real and imaginary
+   parts of one complex field. This entry previously said it needed
+   "complex-valued residuals, which the current `StrongFormResidual` contract
+   does not express". It did not: the split is ordinary two-output work and
+   belongs to the problem, not the core. That is the same wrong assumption the
+   Navier-Stokes entry carried.
+
+   The amplitude decides whether the problem can be scored, which is worth
+   knowing before using it. At `amplitude = 1` the initial data is the
+   fundamental soliton, `sech(x) exp(i t / 2)` is exact, and `reference_kind` is
+   `"analytic"`. At `amplitude = 2` -- the familiar Raissi benchmark -- the
+   initial data is a breather with no closed form; it leaves a residual of order
+   1 rather than zero, so `reference_kind` is `"unavailable"` and `exact()`
+   raises rather than returning something wrong.
+
+   Boundary conditions follow from the solution rather than convention. `sech`
+   is even, so value periodicity is exact to the last bit on `[-5, 5]`; `sech'`
+   is odd, so derivative periodicity is violated and no flux constraint is
+   imposed; and Dirichlet would contradict the exact solution by `0.0135`, over
+   a percent of the peak. Only value matching is actually satisfied.
+
+   Trained at 1500 Adam steps plus 100 L-BFGS with per-component weights
+   balanced the way the Navier-Stokes work established: `|h|` relative L2 of
+   `4.2e-3`. The easiest composable problem here, which is a fact about the
+   soliton rather than the framework -- a smooth stationary profile whose
+   boundary condition is exactly satisfied.
 
 3. **`nitpicky = True` for the docs.** Measured at 670 warnings, almost all
    unresolvable references to `torch` and `numpy` types. Closing it needs an

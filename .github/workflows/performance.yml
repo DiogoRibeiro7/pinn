@@ -28,11 +28,16 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: pip install .[dev,viz]
-      # --no-cov because addopts in pyproject.toml carries a repository-wide
-      # --cov-fail-under. Applied to this subset it measures the coverage that
-      # the performance tests alone happen to reach (~29%) and fails the job,
-      # which says nothing about whether the benchmarks passed.
-      - run: pytest tests/performance -q --no-cov
+      # Two overrides of pyproject.toml's addopts, both required:
+      #   --no-cov         because the repository-wide --cov-fail-under would
+      #                    measure what the performance tests alone happen to
+      #                    reach (~29%) and fail the job, saying nothing about
+      #                    whether the benchmarks passed.
+      #   -m performance   because addopts deselects that marker, to keep
+      #                    wall-clock assertions out of the correctness gate.
+      #                    Without this the job collects nothing and pytest
+      #                    exits 5, which reads as a failure.
+      - run: pytest tests/performance -q --no-cov -m performance
       - run: python scripts/benchmark_training.py
       - run: python scripts/benchmark_distributed.py
       # customSmallerIsBetter expects a bare JSON *array* of
