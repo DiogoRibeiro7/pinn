@@ -320,6 +320,62 @@ benchmark <code class="docutils literal notranslate"><span class="pre">nu</span>
 <code class="docutils literal notranslate"><span class="pre">sqrt(nu</span> <span class="pre">/</span> <span class="pre">gamma)</span> <span class="pre">=</span> <span class="pre">0.0045</span></code> wide, and below roughly <code class="docutils literal notranslate"><span class="pre">n_x</span> <span class="pre">=</span> <span class="pre">512</span></code> on
 <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> they are unresolved and the solution overshoots <code class="docutils literal notranslate"><span class="pre">|u|</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
 </section>
+<section id="systems-more-than-one-unknown">
+<h2>Systems: More Than One Unknown<a class="headerlink" href="#systems-more-than-one-unknown" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">NavierStokesProblem</span></code> is the first composable problem whose network has more
+than one output. It carries three coupled unknowns – two velocity components
+and a pressure – and a residual with three columns:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>u_t + u u_x + v u_y + p_x - nu (u_xx + u_yy)
+v_t + u v_x + v v_y + p_y - nu (v_xx + v_yy)
+u_x + v_y
+</pre></div>
+</div>
+<p>The third is incompressibility. It contains no time derivative, which is what
+makes a velocity-pressure system structurally different from the scalar
+problems above: it constrains the solution at every instant rather than
+evolving it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.problems</span><span class="w"> </span><span class="kn">import</span> <span class="n">NavierStokesProblem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinnlab.training</span><span class="w"> </span><span class="kn">import</span> <span class="n">Trainer</span><span class="p">,</span> <span class="n">TrainerConfig</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">NavierStokesProblem</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">hidden_layers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">TrainerConfig</span><span class="p">())</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Nothing in the trainer, the residual form or the constraints needed changing to
+support this. Constraints already selected their component with
+<code class="docutils literal notranslate"><span class="pre">output_index</span></code>, <code class="docutils literal notranslate"><span class="pre">StrongFormResidual</span></code> already validated <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">residual_dim)</span></code>
+and the trainer already reduced with a shape-agnostic mean. Only causal
+weighting was scalar-only; it now reduces components per point before the
+temporal weighting.</p>
+<p>The benchmark is the Taylor-Green vortex, which has a closed form, so
+<code class="docutils literal notranslate"><span class="pre">reference_kind</span></code> reports <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code> – the first composable problem that
+can. Its residual is verified to vanish on that solution to <code class="docutils literal notranslate"><span class="pre">1e-12</span></code> in
+float64, with a wrong-viscosity control so a small residual cannot pass by
+accident. That check earns its place: the shipped pressure carried a sign error
+until 2026-08-14.</p>
+<p><strong>Weighting a system needs more care than a scalar problem.</strong> The trainer
+reduces a residual of shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">k)</span></code> with a single mean, so each equation
+receives <code class="docutils literal notranslate"><span class="pre">1/k</span></code> of the weight named by <code class="docutils literal notranslate"><span class="pre">loss_weights[&quot;pde&quot;]</span></code>, while every
+constraint is a separate named entry at its own full weight. Adding three
+initial conditions and six periodic constraints at weight <code class="docutils literal notranslate"><span class="pre">10</span></code> therefore
+weights the constraints thirty times more heavily against the residual than
+weighting each equation and each constraint equally would. That is a real
+effect, not a bookkeeping detail: it measurably changes what the network
+converges to. Count the per-component weights before assuming a configuration
+that suited a scalar problem transfers.</p>
+<p>Pressure is supervised at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> by default, which deserves a note because
+the opposite is defensible. Only <code class="docutils literal notranslate"><span class="pre">grad</span> <span class="pre">p</span></code> appears in the equations, so a
+solution offset by a constant is equally correct and supervising <code class="docutils literal notranslate"><span class="pre">p</span></code>
+pointwise penalises it for something physically meaningless. Leaving it free
+was the original default here and lost to measurement: scored mean-centred over
+three seeds, unconstrained pressure reached a relative L2 of <code class="docutils literal notranslate"><span class="pre">0.98</span></code>, which is
+indistinguishable from predicting a constant, against <code class="docutils literal notranslate"><span class="pre">0.64</span></code> supervised, with
+disjoint ranges and no measurable effect on velocity. Pass
+<code class="docutils literal notranslate"><span class="pre">constrain_pressure=False</span></code> for the unsupervised formulation, and score
+pressure mean-centred either way.</p>
+</section>
 <section id="compatibility">
 <h2>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading">¶</a></h2>
 <p>Legacy solver imports such as <code class="docutils literal notranslate"><span class="pre">pinnlab.solvers.heat.HeatPINN</span></code> and
@@ -373,6 +429,7 @@ available as legacy solver facades.</p>
 <li class="toctree-l2"><a class="reference internal" href="#benchmark-reports">Benchmark Reports</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#design-responsibilities">Design Responsibilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#nonlinear-and-periodic-problems">Nonlinear And Periodic Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#systems-more-than-one-unknown">Systems: More Than One Unknown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#compatibility">Compatibility</a></li>
 </ul>
 </li>
