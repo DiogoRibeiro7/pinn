@@ -278,32 +278,30 @@ the code rather than guessed at, and the cost figures are measured.
    disjoint ranges and no measurable effect on velocity. The default follows the
    measurement.
 
-   **The composable path is behind the legacy solver on this problem, and the
-   reason is not yet known.** Matched as closely as the two paths allow -- 3000
-   Adam steps, lr 1e-3, 2500 collocation points, 300 initial-condition points,
-   400 per periodic face, no L-BFGS -- three composable seeds give velocity
-   relative L2 of `0.139` (range `0.115-0.177`), against the legacy notebook's
-   single run at `0.084`. The legacy result sits below all three, so this is
-   suggestive rather than decisive: its own seed spread was never measured.
+   **The gap against the legacy solver was loss weighting, and it is closed.**
+   A first comparison at matched budget put composable velocity at `0.139`
+   against the legacy notebook's `0.084`, recorded here as unexplained. It was
+   not the sampler, which was the hypothesis named at the time; it was
+   arithmetic that could have been read rather than measured.
 
-   Budget is not the explanation. Doubling from 1500 Adam steps plus 100 L-BFGS
-   to 3000 Adam took composable velocity from `0.27` to `0.139` and pressure
-   from `0.64` to `0.364`, so it converges, just from further back.
+   The trainer reduces an `(N, k)` residual with a single mean, so each of the
+   three equations receives a third of `loss_weights["pde"]`, while every
+   constraint is a separate named entry at its full weight. The first run used
+   `10.0` for all nine constraints, which weighted them thirty times more
+   heavily against the residual than the legacy solver does -- its `lpde` sums
+   three component means rather than averaging them. The network was barely
+   optimising the PDE.
 
-   Two differences could not be removed from the comparison and are the leading
-   candidates, neither tested:
+   Matching the per-component weights exactly -- `pde` at 3, initial conditions
+   at 1, periodic at 1/3 -- and changing nothing else gives velocity relative L2
+   of `0.035` (range `0.033-0.048`) over three seeds, a 4x improvement from that
+   one variable. Pressure went from `0.364` to `0.173`.
 
-   - The legacy solver draws collocation points once by Latin hypercube and
-     reuses them; the trainer resamples uniformly every step. `FixedInteriorSampler`
-     exists to reproduce the first behaviour. Note it was measured as *worse*
-     than resampling on the heat problem, so this cuts against being the
-     explanation rather than for it.
-   - The legacy loss sums three periodic residuals per face, where this problem
-     carries one constraint per field per direction, so the effective weighting
-     differs even at equal nominal weight.
-
-   Worth resolving before the composable path is described as a replacement for
-   the legacy solver rather than an alternative to it.
+   All three matched seeds land below the legacy single run at `0.084`, but that
+   is one seed whose own spread was never measured, so the composable path is
+   established as *not behind* rather than as better. The rule that prevents a
+   repeat is documented in `docs/core_api.rst`: count per-component weights
+   before assuming a scalar problem's configuration transfers to a system.
 
 2. **A composable nonlinear Schrodinger problem, or a written decision not to.**
    The usual formulation splits the complex field into real and imaginary

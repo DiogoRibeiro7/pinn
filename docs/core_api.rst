@@ -362,9 +362,13 @@ constraint is a separate named entry at its own full weight. Adding three
 initial conditions and six periodic constraints at weight ``10`` therefore
 weights the constraints thirty times more heavily against the residual than
 weighting each equation and each constraint equally would. That is a real
-effect, not a bookkeeping detail: it measurably changes what the network
-converges to. Count the per-component weights before assuming a configuration
-that suited a scalar problem transfers.
+effect, not a bookkeeping detail, and it is large. Measured on this problem at
+a fixed budget over three seeds, weighting every constraint at ``10`` gives a
+velocity relative L2 of ``0.139``; matching the per-component weights of the
+legacy solver -- ``pde`` at ``3``, initial conditions at ``1``, periodic at
+``1/3`` -- gives ``0.035`` from that single change. Count the per-component
+weights before assuming a configuration that suited a scalar problem
+transfers.
 
 Pressure is supervised at ``t = 0`` by default, which deserves a note because
 the opposite is defensible. Only ``grad p`` appears in the equations, so a
