@@ -362,9 +362,13 @@ constraint is a separate named entry at its own full weight. Adding three
 initial conditions and six periodic constraints at weight <code class="docutils literal notranslate"><span class="pre">10</span></code> therefore
 weights the constraints thirty times more heavily against the residual than
 weighting each equation and each constraint equally would. That is a real
-effect, not a bookkeeping detail: it measurably changes what the network
-converges to. Count the per-component weights before assuming a configuration
-that suited a scalar problem transfers.</p>
+effect, not a bookkeeping detail, and it is large. Measured on this problem at
+a fixed budget over three seeds, weighting every constraint at <code class="docutils literal notranslate"><span class="pre">10</span></code> gives a
+velocity relative L2 of <code class="docutils literal notranslate"><span class="pre">0.139</span></code>; matching the per-component weights of the
+legacy solver – <code class="docutils literal notranslate"><span class="pre">pde</span></code> at <code class="docutils literal notranslate"><span class="pre">3</span></code>, initial conditions at <code class="docutils literal notranslate"><span class="pre">1</span></code>, periodic at
+<code class="docutils literal notranslate"><span class="pre">1/3</span></code> – gives <code class="docutils literal notranslate"><span class="pre">0.035</span></code> from that single change. Count the per-component
+weights before assuming a configuration that suited a scalar problem
+transfers.</p>
 <p>Pressure is supervised at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> by default, which deserves a note because
 the opposite is defensible. Only <code class="docutils literal notranslate"><span class="pre">grad</span> <span class="pre">p</span></code> appears in the equations, so a
 solution offset by a constant is equally correct and supervising <code class="docutils literal notranslate"><span class="pre">p</span></code>
