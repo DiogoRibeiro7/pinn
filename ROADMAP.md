@@ -11,31 +11,36 @@ or actively being migrated, planned = not started or intentionally deferred.
 
 ## Current Snapshot
 
-The current released version is `v0.6.0`, published on 2026-08-14.
+The current released version is `v0.6.1`, published on 2026-08-14.
 
 Release state:
-- Tag: `v0.6.0`
+- Tag: `v0.6.1`
 - GitHub Release: published, with the wheel and source distribution attached
 - PyPI: published as [`pinnlab`](https://pypi.org/project/pinnlab/), uploaded by
   `.github/workflows/publish.yml` through trusted publishing on the version tag.
-  `0.4.0`, `0.5.0`, `0.5.1` and `0.6.0` are all live.
-- `v0.6.0` is a minor rather than a patch because the install shape changed:
-  matplotlib left the required dependencies, so `pip install pinnlab` brings
-  the solver alone and code relying on matplotlib arriving with the package
-  needs `pinnlab[viz]`. It adds two multi-output composable problems and fixes
-  the Taylor-Green pressure sign, which was degrading training in the legacy
-  Navier-Stokes solver. The name is `pinnlab` because `pinn` on
+  `0.4.0`, `0.5.0`, `0.5.1`, `0.6.0` and `0.6.1` are all live.
+- `v0.6.1` is documentation and correctness: every problem declares
+  `reference_kind` and the RAR benchmark reads it instead of hardcoding
+  `"analytic"`, the documentation builds under `nitpicky` so broken
+  cross-references fail CI, and `ResidualAdaptiveConfig` carries the accuracy
+  measurement it never had. Training behaviour is unchanged.
+- `v0.6.0` before it was a minor rather than a patch because the install shape
+  changed: matplotlib left the required dependencies, so `pip install pinnlab`
+  brings the solver alone and code relying on matplotlib arriving with the
+  package needs `pinnlab[viz]`. It added two multi-output composable problems
+  and fixed the Taylor-Green pressure sign, which was degrading training in the
+  legacy Navier-Stokes solver. The name is `pinnlab` because `pinn` on
   PyPI belongs to an unrelated REST-API client that also occupies the
   `import pinn` name
-- Validation before release, all run rather than assumed: 480 tests pass at
-  66.52% coverage; black, flake8, bandit and mypy clean, with mypy carrying no
-  exemptions; `sphinx -W` builds at zero warnings; all 16 examples execute; all
-  19 notebooks execute; `CITATION.cff` validates against CFF 1.2.0;
-  `twine check --strict` passes with no stray files among the 194 sdist
-  entries; and the wheel installs into a clean environment and imports without
-  pulling seaborn
+- Validation before release, all run rather than assumed: 551 tests pass at
+  67.52% coverage; black, flake8, bandit and mypy clean, with mypy carrying no
+  exemptions; `sphinx -W` builds at zero warnings with `nitpicky` on, so broken
+  cross-references fail too; all 16 examples execute; all 20 notebooks execute;
+  `CITATION.cff` validates against CFF 1.2.0; `twine check --strict` passes with
+  no stray files among the 197 sdist entries; and the wheel installs into a
+  clean environment and imports with neither matplotlib nor seaborn present
 
-What `v0.5.0` means:
+What the composable architecture means, as of `v0.6.x`:
 - The composable architecture is no longer only demonstrated on problems chosen
   to suit it. `AllenCahnProblem` is nonlinear *and* periodic and needed no
   trainer changes, which is the first real evidence that the split between
@@ -261,8 +266,38 @@ Non-goals for the immediate next cycle:
 
 ## What To Do Next
 
-Concrete open work, in the order I would take it. Each has been scoped against
-the code rather than guessed at, and the cost figures are measured.
+Everything previously listed here is closed; those entries are kept below as
+history, because several record a claim that turned out to be wrong and the
+correction is the useful part.
+
+What is genuinely open is no longer a task list. The remaining milestones are
+decisions rather than bounded work, and each wants a direction before code:
+
+1. **Does `pinnlab.utils.sampling.Domain` stay a compatibility type, or become a
+   wrapper around `pinnlab.geometry`?** Milestone 4 has asked this since
+   `v0.3.0`. Nothing forces the answer, which is why it has not moved: both
+   options work, and the cost is paid by whoever maintains two sampling
+   vocabularies in the meantime.
+
+2. **Do the legacy solver modules get full flake8, or documented per-file
+   ignores?** Milestone 7. The same shape of question: the gate is green either
+   way, and the choice is about what the repository wants to say about that
+   code.
+
+3. **Architecture guidance.** Milestone 6 wants worked examples showing when
+   `SirenPINN` or `FourierFeaturePINN` earn their place. That is real work, but
+   it needs a claim worth demonstrating first -- and on the evidence of causal
+   weighting and RAR, the honest answer may be "no measurable difference at
+   these budgets", which is worth knowing before writing an example that
+   assumes otherwise.
+
+A note on sequencing, learned the hard way this cycle: three roadmap entries
+here described blockers that did not exist -- multi-output residuals,
+complex-valued residuals, and a fixed-versus-resampled sampling hypothesis that
+was actually arithmetic. Before treating an entry here as a constraint, spend
+ten minutes checking it still is one.
+
+### Closed, kept for the corrections they record
 
 1. ✅ **A composable Navier-Stokes problem.** Done: `NavierStokesProblem` is the
    first composable problem with more than one output -- three coupled unknowns
