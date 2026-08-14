@@ -44,6 +44,15 @@ class BurgersProblem:
         return 2
 
     @property
+    def reference_kind(self) -> str:
+        """Return ``"analytic"``: Cole-Hopf is a closed form.
+
+        Evaluating it needs Gauss-Hermite quadrature, so a computed value
+        carries quadrature error; the solution itself is exact.
+        """
+        return "analytic"
+
+    @property
     def output_dim(self) -> int:
         """Return scalar output dimension."""
         return 1

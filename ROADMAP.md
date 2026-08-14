@@ -521,9 +521,14 @@ Concrete work:
 - ✅ Add exact, numerical or observational reference labels for every new
   benchmark. Problems expose `reference_kind`; Allen-Cahn reports `numerical`
   and its reference is `reference_grid()`, deliberately not named `exact`.
-- Add a composable nonlinear Schrodinger problem or document the blocking
+- ✅ Add a composable nonlinear Schrodinger problem. `SchrodingerProblem`,
+  scored against the soliton; the recorded blocker did not exist. Superseded by
+  the entry under What To Do Next.
+- Superseded, kept for history: add a composable Schrodinger problem or document the blocking
   decisions around complex-valued residuals.
-- Start Navier-Stokes migration only after multi-output residuals and periodic
+- ✅ Start Navier-Stokes migration after multi-output residuals and periodic
+  constraints exist. Both did; `NavierStokesProblem` ships with three outputs.
+- Superseded, kept for history: start Navier-Stokes migration only after multi-output residuals and periodic
   constraints are exercised strongly enough. Periodic constraints are now
   exercised by Allen-Cahn; multi-output residuals are still not.
 
@@ -544,7 +549,10 @@ property of the standard benchmark, not of the formulation, and it is documented
 on the class rather than quietly worked around.
 
 Follow-up recorded while doing this, and then corrected:
-- `notebooks/basic/02_allen_cahn.ipynb` hand-rolls the residual with raw
+- ✅ Resolved: `notebooks/basic/02_allen_cahn.ipynb` keeps its hand-written
+  residual, which is the lesson it exists to teach, and hands off to
+  `06_composable_api.ipynb` for the same equation solved the composable way.
+- Superseded, kept for history: `notebooks/basic/02_allen_cahn.ipynb` hand-rolls the residual with raw
   `torch.autograd.grad` calls and uses `D = 5e-3` rather than the benchmark
   parameters. This was first recorded as duplicating `AllenCahnProblem` and
   wanting migration. That reading was wrong: the notebook's stated purpose is
@@ -786,7 +794,9 @@ Concrete work:
   `custom_pde.py` and `performance_benchmark.py` still have no budget flag and
   are marked `budget=FULL` in the output. Both are already fast, the latter
   because it uses `adam_steps=5` by design.
-- Add a CI job that executes selected notebooks. Not started; the examples job
+- ✅ Add a CI job that executes notebooks. `.github/workflows/notebooks.yml`
+  runs all 20 weekly, on demand, and on pull requests touching them.
+- Superseded, kept for history: add a CI job that executes selected notebooks; the examples job
   above is the cheaper half of what this line originally covered.
 - Keep tests pointed at production implementations, not local test doubles that
   shadow imports.

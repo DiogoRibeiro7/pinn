@@ -8,7 +8,25 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ## [Unreleased]
 
+### Added
+
+- Every composable problem declares `reference_kind`. `HeatProblem`,
+  `WaveProblem` and `BurgersProblem` were relying on an assumption elsewhere
+  that they were analytic; they now say so themselves. `BurgersProblem` notes
+  the nuance: Cole-Hopf is a closed form, but evaluating it needs Gauss-Hermite
+  quadrature, so a computed value carries quadrature error even though the
+  solution is exact.
+
 ### Fixed
+
+- The RAR benchmark advertised Allen-Cahn's reference as analytic. The
+  `kind` field of `BenchmarkReference` was hardcoded to `"analytic"`, which was
+  true while the benchmark covered heat, wave and Burgers and became a false
+  provenance claim when Allen-Cahn joined -- its reference is a Fourier spectral
+  solver carrying its own discretisation error, not a closed form. The script
+  now asks the problem. This is the distinction the `analytic` / `numerical` /
+  `observational` labels exist to preserve, so a report cannot claim more
+  authority than its reference has.
 
 - Nine property docstrings rendered a bogus type. A colon in a property's
   summary -- "Return coordinate dimension: time and one spatial coordinate" --

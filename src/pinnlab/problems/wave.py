@@ -50,6 +50,11 @@ class WaveProblem:
         return 2
 
     @property
+    def reference_kind(self) -> str:
+        """Return ``"analytic"``: the standing-wave solution is exact."""
+        return "analytic"
+
+    @property
     def output_dim(self) -> int:
         """Return scalar output dimension."""
         return 1

@@ -92,3 +92,41 @@ def test_rar_benchmark_script_emits_burgers_case(benchmark_rar_module) -> None:
     assert case.reference.name == "Cole-Hopf Burgers solution"
     assert case.metadata["problem"]["name"] == "burgers"
     assert case.metadata["problem"]["nu"] == 0.01
+
+
+class TestReferenceProvenance:
+    """A benchmark must not claim more authority than its reference has.
+
+    ``BenchmarkReference.kind`` was hardcoded to ``"analytic"`` in the RAR
+    script. That was true while the problems were heat, wave and Burgers, and
+    became a false claim the moment Allen-Cahn joined: its reference is a
+    Fourier spectral solver, not a closed form. The script now asks the problem,
+    and every problem declares the answer.
+    """
+
+    def test_every_composable_problem_declares_its_provenance(self):
+        from pinnlab.problems import (
+            AllenCahnProblem,
+            BurgersProblem,
+            HeatProblem,
+            NavierStokesProblem,
+            SchrodingerProblem,
+            WaveProblem,
+        )
+
+        expected = {
+            HeatProblem: "analytic",
+            WaveProblem: "analytic",
+            BurgersProblem: "analytic",
+            AllenCahnProblem: "numerical",
+            SchrodingerProblem: "analytic",
+            NavierStokesProblem: "analytic",
+        }
+        for problem_class, kind in expected.items():
+            assert problem_class().reference_kind == kind, problem_class.__name__
+
+    def test_allen_cahn_is_not_advertised_as_analytic(self):
+        """The specific regression, stated on its own so it cannot be lost."""
+        from pinnlab.problems import AllenCahnProblem
+
+        assert AllenCahnProblem().reference_kind != "analytic"

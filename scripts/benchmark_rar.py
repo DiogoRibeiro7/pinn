@@ -301,7 +301,11 @@ def run_case(problem_name: str, mode: str, args: argparse.Namespace) -> Benchmar
     return BenchmarkCase(
         name=f"{problem_name}-{mode}",
         reference=BenchmarkReference(
-            kind="analytic",
+            # Ask the problem rather than assuming. This was hardcoded to
+            # "analytic", which was true while the set was heat, wave and
+            # Burgers and became a false provenance claim when Allen-Cahn, whose
+            # reference is a spectral solver, was added.
+            kind=problem.reference_kind,
             name=_reference_name(problem_name),
             details=_reference_details(problem),
         ),
