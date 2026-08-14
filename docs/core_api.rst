@@ -313,6 +313,70 @@ benchmark ``nu = 1e-4, gamma = 5`` the phase interfaces are about
 ``sqrt(nu / gamma) = 0.0045`` wide, and below roughly ``n_x = 512`` on
 ``[-1, 1]`` they are unresolved and the solution overshoots ``|u| = 1``.
 
+Systems: More Than One Unknown
+------------------------------
+
+``NavierStokesProblem`` is the first composable problem whose network has more
+than one output. It carries three coupled unknowns -- two velocity components
+and a pressure -- and a residual with three columns:
+
+.. code-block:: text
+
+   u_t + u u_x + v u_y + p_x - nu (u_xx + u_yy)
+   v_t + u v_x + v v_y + p_y - nu (v_xx + v_yy)
+   u_x + v_y
+
+The third is incompressibility. It contains no time derivative, which is what
+makes a velocity-pressure system structurally different from the scalar
+problems above: it constrains the solution at every instant rather than
+evolving it.
+
+.. code-block:: python
+
+   from pinnlab.problems import NavierStokesProblem
+   from pinnlab.models import MLP
+   from pinnlab.training import Trainer, TrainerConfig
+
+   problem = NavierStokesProblem()
+   model = MLP(in_dim=3, hidden_layers=4, width=64, out_dim=3)
+   result = Trainer(TrainerConfig()).train(problem, model)
+
+Nothing in the trainer, the residual form or the constraints needed changing to
+support this. Constraints already selected their component with
+``output_index``, ``StrongFormResidual`` already validated ``(N, residual_dim)``
+and the trainer already reduced with a shape-agnostic mean. Only causal
+weighting was scalar-only; it now reduces components per point before the
+temporal weighting.
+
+The benchmark is the Taylor-Green vortex, which has a closed form, so
+``reference_kind`` reports ``"analytic"`` -- the first composable problem that
+can. Its residual is verified to vanish on that solution to ``1e-12`` in
+float64, with a wrong-viscosity control so a small residual cannot pass by
+accident. That check earns its place: the shipped pressure carried a sign error
+until 2026-08-14.
+
+**Weighting a system needs more care than a scalar problem.** The trainer
+reduces a residual of shape ``(N, k)`` with a single mean, so each equation
+receives ``1/k`` of the weight named by ``loss_weights["pde"]``, while every
+constraint is a separate named entry at its own full weight. Adding three
+initial conditions and six periodic constraints at weight ``10`` therefore
+weights the constraints thirty times more heavily against the residual than
+weighting each equation and each constraint equally would. That is a real
+effect, not a bookkeeping detail: it measurably changes what the network
+converges to. Count the per-component weights before assuming a configuration
+that suited a scalar problem transfers.
+
+Pressure is supervised at ``t = 0`` by default, which deserves a note because
+the opposite is defensible. Only ``grad p`` appears in the equations, so a
+solution offset by a constant is equally correct and supervising ``p``
+pointwise penalises it for something physically meaningless. Leaving it free
+was the original default here and lost to measurement: scored mean-centred over
+three seeds, unconstrained pressure reached a relative L2 of ``0.98``, which is
+indistinguishable from predicting a constant, against ``0.64`` supervised, with
+disjoint ranges and no measurable effect on velocity. Pass
+``constrain_pressure=False`` for the unsupervised formulation, and score
+pressure mean-centred either way.
+
 Compatibility
 -------------
 
