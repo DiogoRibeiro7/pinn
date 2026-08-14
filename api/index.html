@@ -1931,6 +1931,19 @@ boundaries at <code class="docutils literal notranslate"><span class="pre">x</sp
 <dd><p>Return scalar output dimension.</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.BurgersProblem.reference_kind">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reference_kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#pinnlab.problems.BurgersProblem.reference_kind" title="Link to this definition">¶</a></dt>
+<dd><p>Cole-Hopf is a closed form.</p>
+<p>Evaluating it needs Gauss-Hermite quadrature, so a computed value
+carries quadrature error; the solution itself is exact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pinnlab.problems.BurgersProblem.reference_quad_points">
 <span class="sig-name descname"><span class="pre">reference_quad_points</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">200</span></span><a class="headerlink" href="#pinnlab.problems.BurgersProblem.reference_quad_points" title="Link to this definition">¶</a></dt>
@@ -1993,6 +2006,17 @@ boundaries at <code class="docutils literal notranslate"><span class="pre">x</sp
 <dt class="sig sig-object py" id="pinnlab.problems.HeatProblem.output_dim">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">output_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#pinnlab.problems.HeatProblem.output_dim" title="Link to this definition">¶</a></dt>
 <dd><p>Return scalar output dimension.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.HeatProblem.reference_kind">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reference_kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#pinnlab.problems.HeatProblem.reference_kind" title="Link to this definition">¶</a></dt>
+<dd><p>the Fourier series solution is exact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2499,6 +2523,17 @@ quietly comparing against the wrong thing.</p>
 <dt class="sig sig-object py" id="pinnlab.problems.WaveProblem.output_dim">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">output_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#pinnlab.problems.WaveProblem.output_dim" title="Link to this definition">¶</a></dt>
 <dd><p>Return scalar output dimension.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pinnlab.problems.WaveProblem.reference_kind">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reference_kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#pinnlab.problems.WaveProblem.reference_kind" title="Link to this definition">¶</a></dt>
+<dd><p>the standing-wave solution is exact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Return <code class="docutils literal notranslate"><span class="pre">&quot;analytic&quot;</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

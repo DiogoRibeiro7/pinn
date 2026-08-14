@@ -75,6 +75,11 @@
         <span class="k">return</span> <span class="mi">2</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reference_kind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``&quot;analytic&quot;``: the Fourier series solution is exact.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;analytic&quot;</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">output_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return scalar output dimension.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">1</span>
