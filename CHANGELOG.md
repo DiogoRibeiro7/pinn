@@ -6,7 +6,11 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
-## [Unreleased]
+## [0.6.1] - 2026-08-14
+
+A documentation and correctness release. Nothing changes how training behaves;
+the one addition to the public API is a read-only property, and the fix is to a
+provenance label that a benchmark report was getting wrong.
 
 ### Added
 

@@ -172,7 +172,7 @@ from .transfer import (
 try:
     __version__ = version("pinnlab")
 except PackageNotFoundError:  # pragma: no cover - during local development
-    __version__ = "0.6.0"
+    __version__ = "0.6.1"
 
 # Backward compatibility aliases
 from .solvers import navier_stokes as pinn_navier_stokes
