@@ -11,14 +11,19 @@ or actively being migrated, planned = not started or intentionally deferred.
 
 ## Current Snapshot
 
-The current released version is `v0.5.0`, published on 2026-08-11.
+The current released version is `v0.5.1`, published on 2026-08-14.
 
 Release state:
-- Tag: `v0.5.0`
+- Tag: `v0.5.1`
 - GitHub Release: published, with the wheel and source distribution attached
 - PyPI: published as [`pinnlab`](https://pypi.org/project/pinnlab/), uploaded by
   `.github/workflows/publish.yml` through trusted publishing on the version tag.
-  `0.4.0` and `0.5.0` are both live. The name is `pinnlab` because `pinn` on
+  `0.4.0`, `0.5.0` and `0.5.1` are all live.
+- `v0.5.1` is a patch for one defect shipped in `0.5.0`: `utils.metrics`
+  imported `wasserstein_distance` from the wrong module, so `SCIPY_AVAILABLE`
+  was permanently `False` and the SciPy-gated statistics returned `nan` for
+  every user, whether or not SciPy was installed. It also carries the notebook
+  gallery work, which does not ship in the distribution. The name is `pinnlab` because `pinn` on
   PyPI belongs to an unrelated REST-API client that also occupies the
   `import pinn` name
 - Validation before release, all run rather than assumed: 480 tests pass at
