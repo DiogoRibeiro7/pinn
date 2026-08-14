@@ -6,6 +6,28 @@ Releases are cut manually: tag the commit (`git tag -a vX.Y.Z -m "vX.Y.Z"`), pus
 tag, publish the GitHub release, and — if desired — build and upload with
 `python -m build && twine upload dist/*`.
 
+## [Unreleased]
+
+### Fixed
+
+- Nine property docstrings rendered a bogus type. A colon in a property's
+  summary -- "Return coordinate dimension: time and one spatial coordinate" --
+  is read by Sphinx as `type: description`, so the documentation showed a type
+  named "Return coordinate dimension". Found by turning on nitpicky mode;
+  reworded with a comma, which fixes the rendering rather than only the warning.
+
+### Changed
+
+- The documentation builds with `nitpicky = True` under `-W`, so a broken
+  cross-reference fails CI instead of resolving to nothing. Previously `-W`
+  passed while references silently went nowhere.
+
+  Getting there was mostly not docstring work: an `intersphinx_mapping` for
+  python, numpy, torch and matplotlib resolved 637 of 708 warnings, since those
+  are names this project mentions in signatures but does not define. What
+  remains is suppressed by `nitpick_ignore_regex`, each category with its
+  reason recorded in `docs/conf.py`.
+
 ## [0.6.0] - 2026-08-14
 
 Two new composable problems, both with more than one output, and a lighter

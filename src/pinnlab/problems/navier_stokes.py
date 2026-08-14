@@ -176,12 +176,12 @@ class NavierStokesProblem:
 
     @property
     def input_dim(self) -> int:
-        """Return coordinate dimension: time and two spatial coordinates."""
+        """Return the coordinate dimension, time plus two spatial coordinates."""
         return 3
 
     @property
     def output_dim(self) -> int:
-        """Return output dimension: two velocity components and pressure."""
+        """Return the output dimension, two velocity components and a pressure."""
         return 3
 
     @property

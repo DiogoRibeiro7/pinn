@@ -271,7 +271,7 @@ class ExactlySolvablePINN(ABC):
             cfg: Training settings. Defaults to :class:`TrainConfig`.
 
         Returns:
-            The loss history: one dict of components per recorded step.
+            The loss history, one dict of components per recorded step.
 
         Raises:
             ValueError: If the configuration is invalid.

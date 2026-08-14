@@ -134,12 +134,12 @@ class SchrodingerProblem:
 
     @property
     def input_dim(self) -> int:
-        """Return coordinate dimension: time and one spatial coordinate."""
+        """Return the coordinate dimension, time plus one spatial coordinate."""
         return 2
 
     @property
     def output_dim(self) -> int:
-        """Return output dimension: the real and imaginary parts of ``h``."""
+        """Return the output dimension, the real and imaginary parts of ``h``."""
         return 2
 
     @property

@@ -11,19 +11,20 @@ or actively being migrated, planned = not started or intentionally deferred.
 
 ## Current Snapshot
 
-The current released version is `v0.5.1`, published on 2026-08-14.
+The current released version is `v0.6.0`, published on 2026-08-14.
 
 Release state:
-- Tag: `v0.5.1`
+- Tag: `v0.6.0`
 - GitHub Release: published, with the wheel and source distribution attached
 - PyPI: published as [`pinnlab`](https://pypi.org/project/pinnlab/), uploaded by
   `.github/workflows/publish.yml` through trusted publishing on the version tag.
-  `0.4.0`, `0.5.0` and `0.5.1` are all live.
-- `v0.5.1` is a patch for one defect shipped in `0.5.0`: `utils.metrics`
-  imported `wasserstein_distance` from the wrong module, so `SCIPY_AVAILABLE`
-  was permanently `False` and the SciPy-gated statistics returned `nan` for
-  every user, whether or not SciPy was installed. It also carries the notebook
-  gallery work, which does not ship in the distribution. The name is `pinnlab` because `pinn` on
+  `0.4.0`, `0.5.0`, `0.5.1` and `0.6.0` are all live.
+- `v0.6.0` is a minor rather than a patch because the install shape changed:
+  matplotlib left the required dependencies, so `pip install pinnlab` brings
+  the solver alone and code relying on matplotlib arriving with the package
+  needs `pinnlab[viz]`. It adds two multi-output composable problems and fixes
+  the Taylor-Green pressure sign, which was degrading training in the legacy
+  Navier-Stokes solver. The name is `pinnlab` because `pinn` on
   PyPI belongs to an unrelated REST-API client that also occupies the
   `import pinn` name
 - Validation before release, all run rather than assumed: 480 tests pass at
@@ -332,11 +333,30 @@ the code rather than guessed at, and the cost figures are measured.
    soliton rather than the framework -- a smooth stationary profile whose
    boundary condition is exactly satisfied.
 
-3. **`nitpicky = True` for the docs.** Measured at 670 warnings, almost all
-   unresolvable references to `torch` and `numpy` types. Closing it needs an
-   `intersphinx_mapping` for both plus a `nitpick_ignore` list, not docstring
-   edits. Until then broken `:class:` cross-references fail silently, since
-   `-W` does not catch them.
+3. ✅ **`nitpicky = True` for the docs.** Done. The build runs nitpicky under
+   `-W` at zero warnings, so a broken cross-reference now fails CI instead of
+   passing silently. Verified by injecting `:class:`torch.NoSuchThing`` and
+   confirming the build exits non-zero.
+
+   The 670 figure recorded here was 708 by the time it was measured again.
+   Most of it was never docstring work: `intersphinx_mapping` for python,
+   numpy, torch and matplotlib resolved 637 of them in one change, leaving 71.
+
+   Two real defects were hiding in the remainder. Nine docstrings used a colon
+   in a property summary -- "Return coordinate dimension: time and one spatial
+   coordinate" -- which Sphinx reads as `type: description`, so the rendered
+   docs carried a type named "Return coordinate dimension". Rewording with a
+   comma fixed the render, not just the warning.
+
+   The rest are suppressed by `nitpick_ignore_regex`, each category with its
+   reason in `docs/conf.py`. The largest is structural and worth knowing:
+   docstrings reference the public re-export, `pinnlab.training.Trainer`, which
+   is the path a user types, while autodoc registers each class under the module
+   that defines it, `pinnlab.training.trainer.Trainer`. The API reference
+   documents subpackages rather than every submodule, so the defining path is
+   never rendered and the public path has no target. Resolving it properly means
+   documenting submodules, which reintroduces the duplicate-object warnings that
+   `napoleon_use_ivar` was added to remove. Left as a deliberate trade.
 
 4. ✅ **Return `matplotlib` to the `viz` extra.** Done. `pinnlab.utils` imports
    the visualisation module on first access rather than at package import, and

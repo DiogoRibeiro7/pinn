@@ -46,7 +46,7 @@ class WaveProblem:
 
     @property
     def input_dim(self) -> int:
-        """Return coordinate dimension: time and one spatial coordinate."""
+        """Return the coordinate dimension, time plus one spatial coordinate."""
         return 2
 
     @property

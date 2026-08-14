@@ -15,6 +15,7 @@ copyright = f"{current_year}, {author}"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.doctest",
@@ -34,3 +35,55 @@ html_theme = "alabaster"
 
 # Ensure doctests see package root
 doctest_global_setup = "import numpy as np; import torch; import pinnlab"
+
+# Resolve type references into the projects they come from. Without these, a
+# nitpicky build reports 652 of its 708 warnings against torch, numpy, the
+# standard library and matplotlib -- names this project mentions in signatures
+# but does not define.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "torch": ("https://pytorch.org/docs/stable", None),
+    "matplotlib": ("https://matplotlib.org/stable", None),
+}
+# Do not let a slow or unreachable inventory host stall a docs build; a missed
+# inventory degrades to unresolved references rather than hanging CI.
+intersphinx_timeout = 30
+
+# nitpicky surfaces every unresolved cross-reference. It is on, and the Docs
+# workflow builds with -W, so a new broken reference fails the build.
+nitpicky = True
+
+# What cannot be resolved, and why. Each entry is a category, not a convenience:
+#
+# pinnlab.*   Docstrings reference the public re-export -- `pinnlab.training.Trainer`,
+#             the path a user types -- while autodoc registers each class under the
+#             module that defines it, `pinnlab.training.trainer.Trainer`. The API
+#             reference documents subpackages rather than every submodule, so the
+#             defining path is never rendered and the public path has no target.
+#             Fixing this properly means documenting submodules, which reintroduces
+#             duplicate-object warnings; see ROADMAP.md.
+# pathlib._local
+#             Python 3.13 moved Path's implementation into pathlib._local, so
+#             autodoc reports that path while intersphinx only knows pathlib.Path.
+# torch.jit._script, fastapi
+#             A private torch path with no public inventory entry, and a project
+#             with no intersphinx inventory published.
+# Bare names  Unqualified names in prose -- Module, Tensor, Path -- that Sphinx
+#             cannot attach to a project without a full path.
+nitpick_ignore_regex = [
+    ("py:class", r"pinnlab\..*"),
+    ("py:class", r"pathlib\._local\..*"),
+    ("py:class", r"torch\.jit\._script\..*"),
+    ("py:class", r"fastapi\..*"),
+    ("py:class", r"^(Module|Tensor|Path|nn\.Module)$"),
+    ("py:class", r"^(VisualizationError|ValidationError)$"),
+    ("py:class", r"^store_(gradients|losses|samples)$"),
+    ("py:class", r"plotly\..*"),
+    # Exception and function references hit the same re-export problem as the
+    # classes above, and need their own role entries: an ignore is per-role.
+    ("py:exc", r"^(VisualizationError|ValidationError|ConfigError)$"),
+    ("py:exc", r"pinnlab\..*"),
+    ("py:func", r"pinnlab\..*"),
+    ("py:meth", r"pinnlab\..*"),
+]
