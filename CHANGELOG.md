@@ -10,6 +10,27 @@ tag, publish the GitHub release, and — if desired — build and upload with
 
 ### Fixed
 
+- **The Taylor-Green vortex pressure had the wrong sign, and it was supervising
+  training.** `tgv_p` returned `-(1/4)(cos 2x + cos 2y) exp(-4 nu t)`. With the
+  momentum residual `NavierStokesPINN` actually minimises --
+  `u_t + u u_x + v u_y + p_x - nu lap u` -- that leaves a residual of order 1;
+  the correct sign leaves 2e-16. Pressure is supervised at `t = 0`, so the
+  initial condition pulled the network toward one sign while its own PDE
+  residual required the other, and momentum couples pressure to both velocity
+  components, so the conflict was not confined to `p`.
+
+  Pressure is determined only up to an additive constant, which the training
+  loss already handled by mean-centring both sides. That freedom does not
+  extend to the sign, and the existing comment calling the field "consistent
+  here" referred to the constant.
+
+  The velocities were always correct -- continuity holds for them whatever the
+  pressure -- so `examples/basic/navier_stokes_2d.py` and
+  `notebooks/basic/04_navier_stokes_2d.ipynb`, which score `u` and `v` only,
+  reported valid numbers throughout. `tests/unit/test_taylor_green_reference.py`
+  now differentiates the closed form and asserts all three residuals vanish in
+  float64, with a negative control that the old sign is detected.
+
 - Causal weighting rejected multi-output problems. `causal_residual_loss`
   flattened the residual with `reshape(-1)`, so a system of `k` equations
   offered `N * k` entries against `N` time coordinates and failed its own shape

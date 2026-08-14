@@ -72,7 +72,21 @@ def tgv_v(t: np.ndarray, x: np.ndarray, y: np.ndarray, nu: float) -> np.ndarray:
 
 
 def tgv_p(t: np.ndarray, x: np.ndarray, y: np.ndarray, nu: float) -> np.ndarray:
-    return (-(np.cos(2.0 * x) + np.cos(2.0 * y)) * 0.25 * np.exp(-4.0 * nu * t)).astype(
+    """Taylor-Green pressure for the velocity field above.
+
+    The sign matters and is not a convention: with ``u = sin x cos y`` and
+    ``v = -cos x sin y``, the momentum residual used here --
+    ``u_t + u u_x + v u_y + p_x - nu lap u`` -- vanishes only for
+    ``p = +(1/4)(cos 2x + cos 2y) exp(-4 nu t)``.
+
+    This returned the negative of that until 2026-08-14, which mattered because
+    ``p`` is supervised at ``t = 0``: the initial condition pulled the network
+    toward one sign while its own PDE residual required the other, and momentum
+    couples pressure to both velocity components. Pressure is still only
+    determined up to an additive constant, which the training loss handles by
+    mean-centring both sides; that freedom does not extend to the sign.
+    """
+    return ((np.cos(2.0 * x) + np.cos(2.0 * y)) * 0.25 * np.exp(-4.0 * nu * t)).astype(
         np.float32
     )
 
