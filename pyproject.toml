@@ -67,7 +67,7 @@ dev = [
     # so an unpinned version makes CI disagree with a local run that passed.
     "black==26.5.1",
     "mypy",
-    "flake8==7.3.0",
+    "flake8==7.4.0",
     "bandit==1.9.4",
     "sphinx>=8.1.3",
     "sphinx-autodoc-typehints>=3.0.1",
