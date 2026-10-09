@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/project-logo.png" alt="pinn project logo" width="160" height="160">
+</p>
+
 # Physics-Informed Neural Networks (PINNs) 🧠⚡
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21844101.svg)](https://doi.org/10.5281/zenodo.21844101) [![CI](https://github.com/DiogoRibeiro7/pinn/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/pinn/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/) [![PyTorch](https://img.shields.io/badge/PyTorch-2.13%2B-red)](https://pytorch.org/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen)](docs/)

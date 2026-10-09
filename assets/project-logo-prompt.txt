@@ -1,0 +1,7 @@
+Tool: built-in image generation
+
+Use case: logo-brand.
+Asset type: square README project logo for pinn.
+Project purpose: A comprehensive, production-ready PyTorch implementation of Physics-Informed Neural Networks for solving partial differential equations (PDEs). This repository provides modular implementations with advanced visualization, comprehensive error analysis, and state-of-the-art sampling strategies.
+Design direction: A sculptural terracotta membrane bows between four dark teal anchor pegs, with a few ivory connected nodes embedded in its surface. A small mathematical clay maquette, warm sand background, dramatic but soft directional light, strong curved tension and tactile clay texture. Physics-constrained learning without a brain icon.
+Composition: create one finished square artwork with a strong silhouette, readable at 160 pixels, and comfortable margins. This is the logo itself, not a presentation or product mockup. No text, words, letters, numbers, captions or watermark anywhere in the image. Do not use a generic navy-and-gold metallic badge.
