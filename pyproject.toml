@@ -65,7 +65,7 @@ dev = [
     # The three tools that gate CI are pinned exactly. Their output changes
     # between releases -- black reformats, flake8 and bandit add new checks --
     # so an unpinned version makes CI disagree with a local run that passed.
-    "black==26.5.1",
+    "black==26.10.0",
     "mypy",
     "flake8==7.3.0",
     "bandit==1.9.4",
