@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794831862045,
+  "lastUpdate": 1795442392177,
   "repoUrl": "https://github.com/DiogoRibeiro7/pinn",
   "entries": {
     "training": [
@@ -377,6 +377,33 @@ window.BENCHMARK_DATA = {
           {
             "name": "burgers_continuous_pinn_train",
             "value": 0.8662983970000084,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Diogo Ribeiro",
+            "username": "DiogoRibeiro7",
+            "email": "diogo_dj@hotmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "fc11ae4482b5fb865e86b7c0398f17a49bd6d84c",
+          "message": "docs: add project logo [skip ci]\n\nAdd a project emblem, its generation prompt, and a README image. Documentation and image assets only.",
+          "timestamp": "2026-10-09T16:06:58Z",
+          "url": "https://github.com/DiogoRibeiro7/pinn/commit/fc11ae4482b5fb865e86b7c0398f17a49bd6d84c"
+        },
+        "date": 1795442391017,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "burgers_continuous_pinn_train",
+            "value": 1.2645062220000227,
             "unit": "s"
           }
         ]
